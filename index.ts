@@ -1361,7 +1361,7 @@ const pluck$ = interval(100)
  * switchMap 
  * после каждого нового значения входящего потока interval(302)
  * выполняет функцию аргумент switchMapFork$, который возвращает новый поток
- * предыдущий поток из switchMapFork$ закрывается
+ * предыдущий поток из switchMapFork$ закрывается, потому рекомендуется только для чтения занчений
  * https://www.learnrxjs.io/operators/transformation/switchmap.html
 "startItem-0 forkItem-0"
 "startItem-0 forkItem-100"
@@ -1374,16 +1374,16 @@ const pluck$ = interval(100)
 "startItem-604 forkItem-200"
 поток закрыт
  */
-const switchMapFork$ = startItem => interval(100)
+const switchMapFork1$ = startItem => interval(101)
   .pipe(
     take(3),
-    map(item => `${startItem} forkItem-${item * 100}`)
+    map(item => `${startItem} forkItem-${item * 101}`)
   );
 
-const switchMap$ = interval(302).pipe(
+const switchMap$ = interval(303).pipe(
   take(3),
-  map(item => `startItem-${item * 302}`),
-  switchMap(switchMapFork$)
+  map(item => `startItem-${item * 303}`),
+  switchMap(switchMapFork1$)
 );
 
 //switchMap$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
