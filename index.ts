@@ -545,7 +545,7 @@ const timeOut$ = interval(102).pipe(
   })
 )
 
-timeOut$.subscribe(a => console.log(a), err => (console.log('ошибка: ' + err)), () => console.log('complete'));
+//timeOut$.subscribe(a => console.log(a), err => (console.log('ошибка: ' + err)), () => console.log('complete'));
 
 /**
  * timeoutWith
@@ -1228,13 +1228,17 @@ const mergeAll$ = of(mergeAll1, mergeAll2, mergeAll3, mergeAll4).pipe(
  */
 const withLatestFrom1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const withLatestFrom2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const withLatestFrom3 = of(1);
+//const withLatestFrom3 = of(1).pipe(delay(1000));
 const withLatestFrom$ = interval(303).pipe(
   take(3),
   map(item => item * 303 + '-3'),
-  withLatestFrom(withLatestFrom1, withLatestFrom2)
+  withLatestFrom(withLatestFrom1, withLatestFrom2, withLatestFrom3),
+  //map(([item1,item2,item3,item4])=>console.log([item1,item2,item3,item4]))
 )
 
-//withLatestFrom$.subscribe((item) => console.log('получил: ',item))
+//withLatestFrom$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('поток закрыт'));
+
 
 //========================================================================================================================
 //==================================================GROUPING VALUES=======================================================
@@ -1260,12 +1264,12 @@ const mergeMap2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const mergeMap3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const mergeMap4 = of(1, 2, 3).pipe(delay(2000));
 const mapTo = item$ => item$.pipe(toArray())
-const mergeMap$ = of(mergeAll1, mergeAll2, mergeAll3, mergeAll4).pipe(
+const mergeMap$ = of(mergeMap1, mergeMap2, mergeMap3, mergeMap4).pipe(
   tap(() => console.log(...arguments)),//возвращает три потока наблюдателей
   mergeMap(mapTo)
 )
 
-//mergeMap$.subscribe((item) => console.log('получил: ',item))
+//mergeMap$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('поток закрыт'));
 
 /**
  * groupBy
@@ -1361,7 +1365,7 @@ const pluck$ = interval(100)
  * switchMap 
  * после каждого нового значения входящего потока interval(302)
  * выполняет функцию аргумент switchMapFork$, который возвращает новый поток
- * предыдущий поток из switchMapFork$ закрывается, потому рекомендуется только для чтения занчений
+ * предыдущий поток из switchMapFork$ закрывается, потому рекомендуется только для чтения значений
  * https://www.learnrxjs.io/operators/transformation/switchmap.html
 "startItem-0 forkItem-0"
 "startItem-0 forkItem-100"
