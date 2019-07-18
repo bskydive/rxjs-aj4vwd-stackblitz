@@ -1381,7 +1381,7 @@ const pairwise$ = interval(100).pipe(
 поток закрыт
 
  */
-const switchAll0 = of(1, 2, 3).pipe(endWith('0-закрыт'));
+const switchAll0 = of(1, 2, 3).pipe(map(item => item * 1 + '-0'), tap(logAll), endWith('0-закрыт'));
 const switchAll2 = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + '-1'), tap(logAll), endWith('1-закрыт'));
 const switchAll3 = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + '-2'), tap(logAll), endWith('2-закрыт'));
 const switchAll$ = of(switchAll0, switchAll2, switchAll3).pipe(
