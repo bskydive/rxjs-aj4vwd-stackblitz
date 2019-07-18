@@ -1,9 +1,9 @@
 import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, partition, exhaustMap, pluck } from 'rxjs/operators';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith } from 'rxjs/operators';
 
 
 const source = of('World').pipe(
-  map(x => `Hello ${x}!`)
+	map(x => `Hello ${x}!`)
 );
 source.subscribe(x => console.log(x));
 
@@ -52,6 +52,13 @@ source.subscribe(x => console.log(x));
  * распыляющие - multicast
  */
 
+/**
+ * Чтобы обойти ошибку TS2496: The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5. Consider using a standard function expression.
+ * https://github.com/microsoft/TypeScript/issues/1609
+ */
+function logAll() {
+	console.log(...arguments);
+}
 
 /**
  * map
@@ -62,10 +69,10 @@ source.subscribe(x => console.log(x));
  * take - останавливает поток после получения указанного количества значений
  */
 const map$ = interval(100).pipe(
-  take(3),
-  map(item => ['преобразуй это: ', item]),
-  tap(item => ['фига с два: ', item]),//не возвращает ничего
-  tap(item => console.log('отладь меня: ', item)),//используется для отладки
+	take(3),
+	map(item => ['преобразуй это: ', item]),
+	tap(item => ['фига с два: ', item]),//не возвращает ничего
+	tap(item => console.log('отладь меня: ', item)),//используется для отладки
 )
 
 /**
@@ -100,9 +107,9 @@ setTimeout(() => {
 //[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 //[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 const buffer$ = interval(100).pipe(
-  buffer(interval(1000)),
-  take(3),
-  map(item => ['bufferInterval', ...item])
+	buffer(interval(1000)),
+	take(3),
+	map(item => ['bufferInterval', ...item])
 )
 //buffer$.subscribe(a => console.log(a));
 
@@ -110,9 +117,9 @@ const buffer$ = interval(100).pipe(
 //[3, 4, 5]
 //[6, 7, 8]
 const bufferCount$ = interval(100).pipe(
-  bufferCount(3),
-  take(3),
-  map(item => ['bufferCount', ...item])
+	bufferCount(3),
+	take(3),
+	map(item => ['bufferCount', ...item])
 )
 //bufferCount$.subscribe(a => console.log(a));
 
@@ -121,9 +128,9 @@ const bufferCount$ = interval(100).pipe(
 //[4, 5, 6]
 //стартует новый буфер каждое второе значение
 const bufferCountLength$ = interval(100).pipe(
-  bufferCount(3, 2),
-  take(3),
-  map(item => ['bufferCountFork', ...item])
+	bufferCount(3, 2),
+	take(3),
+	map(item => ['bufferCountFork', ...item])
 )
 //bufferCountLength$.subscribe(a => console.log(a));
 
@@ -131,9 +138,9 @@ const bufferCountLength$ = interval(100).pipe(
 //["bufferTime", 0, 1, 2]
 //["bufferTime", 1, 2, 3]
 const bufferTime$ = interval(100).pipe(
-  bufferTime(200, 100),
-  take(3),
-  map(item => ['bufferTime', ...item])
+	bufferTime(200, 100),
+	take(3),
+	map(item => ['bufferTime', ...item])
 )
 //bufferTime$.subscribe(a => console.log(a));
 
@@ -170,10 +177,10 @@ const bufferOpen$ = interval(400).pipe(tap(() => console.log('bufferOpen', count
 const bufferClose$ = () => interval(300).pipe(tap(() => console.log('bufferClose', count++)))
 
 const bufferToggle$ = interval(100).pipe(
-  tap(item => console.log(item)),
-  bufferToggle(bufferOpen$, bufferClose$),
-  take(3),
-  map(item => ['bufferToggle', ...item])
+	tap(item => console.log(item)),
+	bufferToggle(bufferOpen$, bufferClose$),
+	take(3),
+	map(item => ['bufferToggle', ...item])
 )
 //bufferToggle$.subscribe(a => console.log(a));
 
@@ -189,21 +196,21 @@ const bufferToggle$ = interval(100).pipe(
 */
 count = 0;
 const bufferWhen$ = interval(500).pipe(
-  take(10),
-  map(item => (count = item)),
-  bufferWhen(() => {
-    if (count < 5) {
-      return interval(1000)
-    }
-    else { return interval(500) }
-  }),
-  map(item => {
-    if (count < 5) {
-      return ['bufferWhen', ...item]
-    } else {
-      return ['bufferWhenElse', ...item]
-    }
-  })
+	take(10),
+	map(item => (count = item)),
+	bufferWhen(() => {
+		if (count < 5) {
+			return interval(1000)
+		}
+		else { return interval(500) }
+	}),
+	map(item => {
+		if (count < 5) {
+			return ['bufferWhen', ...item]
+		} else {
+			return ['bufferWhenElse', ...item]
+		}
+	})
 )
 //bufferWhen$.subscribe(a => console.log(a));
 
@@ -220,12 +227,12 @@ const bufferWhen$ = interval(500).pipe(
 ["window", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 */
 const window$ = interval(100).pipe(
-  window(interval(1000)),
-  take(3),
-  switchMap(item => item.pipe(
-    toArray(),
-    map(item => ['window', ...item]))
-  ),
+	window(interval(1000)),
+	take(3),
+	switchMap(item => item.pipe(
+		toArray(),
+		map(item => ['window', ...item]))
+	),
 )
 //window$.subscribe(a => console.log(a));
 
@@ -246,12 +253,12 @@ windowCount(2,3)
 ["windowCount", 9]
 */
 const windowCount$ = interval(100).pipe(
-  take(10),
-  windowCount(2, 3),
-  switchMap(item => item.pipe(
-    toArray(),
-    map(item => ['windowCount', ...item]))
-  ),
+	take(10),
+	windowCount(2, 3),
+	switchMap(item => item.pipe(
+		toArray(),
+		map(item => ['windowCount', ...item]))
+	),
 )
 //windowCount$.subscribe(a => console.log(a));
 
@@ -266,14 +273,14 @@ const windowCount$ = interval(100).pipe(
 ["windowTime", 8]
  */
 const windowTime$ = timer(0, 100)
-  .pipe(
-    take(9),
-    windowTime(200),
-    switchMap(item => item.pipe(
-      toArray(),
-      map(item => ['windowTime', ...item]))
-    ),
-  )
+	.pipe(
+		take(9),
+		windowTime(200),
+		switchMap(item => item.pipe(
+			toArray(),
+			map(item => ['windowTime', ...item]))
+		),
+	)
 //windowTime$.subscribe(a => console.log(a));
 
 /**
@@ -302,13 +309,13 @@ const windowOpen$ = timer(0, 400).pipe(map(() => console.log('windowOpen', count
 const windowClose$ = () => timer(300).pipe(map(() => console.log('windowClose', count++)))
 
 const windowToggle$ = timer(0, 100).pipe(
-  take(10),
-  tap(item => console.log(item)),
-  windowToggle(windowOpen$, windowClose$),
-  switchMap(item => item.pipe(
-    toArray(),
-    map(item => ['windowToggle', ...item]))
-  ),
+	take(10),
+	tap(item => console.log(item)),
+	windowToggle(windowOpen$, windowClose$),
+	switchMap(item => item.pipe(
+		toArray(),
+		map(item => ['windowToggle', ...item]))
+	),
 )
 //windowToggle$.subscribe(a => console.log(a));
 
@@ -318,26 +325,26 @@ const windowToggle$ = timer(0, 100).pipe(
 */
 count = 0;
 const windowWhen$ = interval(500).pipe(
-  take(10),
-  map(item => (count = item)),
-  windowWhen(() => {
-    if (count < 5) {
-      return interval(1000)
-    }
-    else { return interval(500) }
-  }),
-  switchMap(item => item
-    .pipe(
-      toArray(),
-      map(item => {
-        if (count < 5) {
-          return ['windowWhen', ...item]
-        } else {
-          return ['windowWhenElse', ...item]
-        }
-      })
-    )
-  )
+	take(10),
+	map(item => (count = item)),
+	windowWhen(() => {
+		if (count < 5) {
+			return interval(1000)
+		}
+		else { return interval(500) }
+	}),
+	switchMap(item => item
+		.pipe(
+			toArray(),
+			map(item => {
+				if (count < 5) {
+					return ['windowWhen', ...item]
+				} else {
+					return ['windowWhenElse', ...item]
+				}
+			})
+		)
+	)
 )
 //windowWhen$.subscribe(a => console.log(a));
 
@@ -355,16 +362,16 @@ const windowWhen$ = interval(500).pipe(
 норм
  */
 const error$ = throwError('ошибка ошибковна')
-  .pipe(
-    catchError((err, caught) => {
-      console.log('словил:', err, 'источик:', caught);//перехватчик ошибок
-      return throwError(`вернул взад ${err}`);//генерируем новую ошибку вместо текущей
-    }),
-    catchError((err, caught) => {
-      console.log('положь где взял:', err, 'источик:', caught);//перехватчик ошибок работает последовательно
-      return of('янеошибка');//подмена ошибки значением
-    }),
-  )
+	.pipe(
+		catchError((err, caught) => {
+			console.log('словил:', err, 'источик:', caught);//перехватчик ошибок
+			return throwError(`вернул взад ${err}`);//генерируем новую ошибку вместо текущей
+		}),
+		catchError((err, caught) => {
+			console.log('положь где взял:', err, 'источик:', caught);//перехватчик ошибок работает последовательно
+			return of('янеошибка');//подмена ошибки значением
+		}),
+	)
 //error$.subscribe(a => console.log(a), err => console.log('ошибка:', err), ()=>console.log('норм'));
 
 
@@ -375,8 +382,8 @@ const error$ = throwError('ошибка ошибковна')
  */
 const errorHandler = () => console.log(`ничоси`);
 const errorEmpty$ = of().pipe(
-  throwIfEmpty()//без подмены
-  //throwIfEmpty(errorHandler)//подмена ошибки
+	throwIfEmpty()//без подмены
+	//throwIfEmpty(errorHandler)//подмена ошибки
 )
 
 //errorEmpty$.subscribe(a => console.log(a), err=>console.log(err));
@@ -393,15 +400,15 @@ const errorEmpty$ = of().pipe(
  */
 const errorNext$ = of(`едем дальше`);//резервный поток после ошибок
 const errorSwitch$ = timer(0, 100).pipe(
-  take(5),
-  map(item => {
-    if (item > 3) {
-      throw new Error('ничоси');
-    } else {
-      return item;
-    }
-  }),
-  onErrorResumeNext(errorNext$)
+	take(5),
+	map(item => {
+		if (item > 3) {
+			throw new Error('ничоси');
+		} else {
+			return item;
+		}
+	}),
+	onErrorResumeNext(errorNext$)
 )
 
 //errorSwitch$.subscribe(a => console.log(a), err=>console.log(err));
@@ -425,15 +432,15 @@ Error: ничоси
  */
 
 const errorRetry$ = timer(0, 100).pipe(
-  take(5),
-  map(item => {
-    if (item > 3) {
-      throw new Error('ничоси');
-    } else {
-      return item;
-    }
-  }),
-  retry(2)
+	take(5),
+	map(item => {
+		if (item > 3) {
+			throw new Error('ничоси');
+		} else {
+			return item;
+		}
+	}),
+	retry(2)
 )
 
 //errorRetry$.subscribe(a => console.log(a));
@@ -456,66 +463,66 @@ const errorRetry$ = timer(0, 100).pipe(
  */
 
 const errorRetryWhen$ = timer(0, 100).pipe(
-  take(5),
-  map(item => {
-    if (item === 3) {
-      throw new Error('ничоси');
-    } else {
-      return item;
-    }
-  }),
-  retryWhen(retryCondition$ => {
-    return retryCondition$.pipe(
-      map(item => {
-        console.log('словили: ' + item)
-      }),
-      take(3)//отправляет complete после 3 повторов
-    )
-  })
+	take(5),
+	map(item => {
+		if (item === 3) {
+			throw new Error('ничоси');
+		} else {
+			return item;
+		}
+	}),
+	retryWhen(retryCondition$ => {
+		return retryCondition$.pipe(
+			map(item => {
+				console.log('словили: ' + item)
+			}),
+			take(3)//отправляет complete после 3 повторов
+		)
+	})
 )
 //errorRetryWhen$.subscribe(a => console.log(a));
 
 //retryWhen
 const swallow = false;
 const sw$ = interval(200).pipe(
-  map(x => {
-    console.log('try: ' + x);
-    if (x === 1) {
-      throw 'error: ' + x;
-    }
-    return x;
-  }),
-  retryWhen(errors => {
-    if (swallow) {
-      return errors.pipe(
-        tap(err => console.log(err)),
-        scan(acc => acc + 1, 0),
-        tap(retryCount => {
-          if (retryCount === 2) {
-            console.log('swallowing error and stop')
-          } else {
-            console.log('retry all: ' + retryCount);
-          }
-          return retryCount;
-        }),
-        takeWhile(errCount => errCount < 2)
-      )
-    } else {
-      return errors.pipe(
-        tap(err => console.log(err)),
-        scan(acc => acc + 1, 0),
-        tap(retryCount => {
-          if (retryCount === 2) {
-            console.log('fail');
-            throw 'error';
-          } else {
-            console.log('retry whole source: ' + retryCount);
-          }
-        })
-      )
-    }
+	map(x => {
+		console.log('try: ' + x);
+		if (x === 1) {
+			throw 'error: ' + x;
+		}
+		return x;
+	}),
+	retryWhen(errors => {
+		if (swallow) {
+			return errors.pipe(
+				tap(err => console.log(err)),
+				scan(acc => acc + 1, 0),
+				tap(retryCount => {
+					if (retryCount === 2) {
+						console.log('swallowing error and stop')
+					} else {
+						console.log('retry all: ' + retryCount);
+					}
+					return retryCount;
+				}),
+				takeWhile(errCount => errCount < 2)
+			)
+		} else {
+			return errors.pipe(
+				tap(err => console.log(err)),
+				scan(acc => acc + 1, 0),
+				tap(retryCount => {
+					if (retryCount === 2) {
+						console.log('fail');
+						throw 'error';
+					} else {
+						console.log('retry whole source: ' + retryCount);
+					}
+				})
+			)
+		}
 
-  })
+	})
 )
 
 //sw$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('completed'))
@@ -532,16 +539,16 @@ complete
  */
 const errorMsg = () => console.log('error');
 const timeOut$ = interval(102).pipe(
-  take(5),
-  tap(value => console.log(value * 102)),
-  timeout(100), // таймер
-  catchError((err, caught) => {
-    if (err.name === 'TimeoutError') {
-      // обрабатываем событие таймера
-      console.log('Таймер сработал')
-    };
-    return of(err, caught)
-  })
+	take(5),
+	tap(value => console.log(value * 102)),
+	timeout(100), // таймер
+	catchError((err, caught) => {
+		if (err.name === 'TimeoutError') {
+			// обрабатываем событие таймера
+			console.log('Таймер сработал')
+		};
+		return of(err, caught)
+	})
 )
 
 //timeOut$.subscribe(a => console.log(a), err => (console.log('ошибка: ' + err)), () => console.log('complete'));
@@ -559,10 +566,10 @@ complete
  */
 const timeOutWithFallback$ = of(1, 2, 3);
 const timeOutWith$ = Observable.create(observer => {
-  observer.next('ещё 0');
-  setTimeout(() => observer.next('ещё 100'), 100);
-  setTimeout(() => observer.next('ещё 202'), 202);//заменить на 200, чтобы не было прерывания
-  setTimeout(() => observer.complete('ещё 300'), 300);
+	observer.next('ещё 0');
+	setTimeout(() => observer.next('ещё 100'), 100);
+	setTimeout(() => observer.next('ещё 202'), 202);//заменить на 200, чтобы не было прерывания
+	setTimeout(() => observer.complete('ещё 300'), 300);
 }).pipe(timeoutWith(101, timeOutWithFallback$))
 
 //timeOutWith$.subscribe(a => console.log(a), err=>(console.log('ошибка: '+err)), ()=>console.log('complete'));
@@ -581,8 +588,8 @@ const timeOutWith$ = Observable.create(observer => {
 4
  */
 const skip$ = timer(0, 100).pipe(
-  take(5),
-  skip(2)
+	take(5),
+	skip(2)
 )
 
 //skip$.subscribe(a => console.log(a));
@@ -599,8 +606,8 @@ const skip$ = timer(0, 100).pipe(
 3
  */
 const skipLast$ = timer(0, 1000).pipe(
-  take(10),
-  skipLast(5)
+	take(10),
+	skipLast(5)
 )
 
 //skipLast$.subscribe(a => console.log(a));
@@ -614,8 +621,8 @@ const skipLast$ = timer(0, 1000).pipe(
 5
  */
 const skipUntil$ = timer(0, 1000).pipe(
-  take(6),
-  skipUntil(timer(3000))
+	take(6),
+	skipUntil(timer(3000))
 )
 
 //skipUntil$.subscribe(a => console.log(a));
@@ -629,8 +636,8 @@ const skipUntil$ = timer(0, 1000).pipe(
 5
  */
 const skipWhile$ = timer(0, 100).pipe(
-  take(6),
-  skipWhile(item => item !== 3)
+	take(6),
+	skipWhile(item => item !== 3)
 )
 
 //skipWhile$.subscribe(a => console.log(a));
@@ -646,7 +653,7 @@ const skipWhile$ = timer(0, 100).pipe(
 4
  */
 const take$ = timer(0, 100).pipe(
-  take(5),
+	take(5),
 )
 
 //take$.subscribe(a => console.log(a));
@@ -663,8 +670,8 @@ const take$ = timer(0, 100).pipe(
 5
  */
 const takeLast$ = timer(0, 1000).pipe(
-  take(6),
-  takeLast(3)
+	take(6),
+	takeLast(3)
 )
 
 //takeLast$.subscribe(a => console.log(a));
@@ -679,17 +686,19 @@ const takeLast$ = timer(0, 1000).pipe(
 2
 поток закрыт
  */
-const takeUntilButtonElement = document.getElementById('id-tight-button');
+
+/* const takeUntilButtonElement = document.getElementById('id-tight-button');
 const takeUntilComplete$ = fromEvent(takeUntilButtonElement, 'click');//прерывание потока по кнопке
 
 //const takeUntilComplete$ = timer(3000);//прерывание потока по таймеру
 
 const takeUntil$ = timer(0, 1000).pipe(
-  take(6),
-  takeUntil(takeUntilComplete$)
+	take(6),
+	takeUntil(takeUntilComplete$)
 )
 
-//takeUntil$.subscribe(a => console.log(a), err => console.log('error', err), () => console.log('поток закрыт'));
+//takeUntil$.subscribe(a => console.log(a), err => console.log('error', err), () => console.log('поток закрыт')); */
+
 
 /**
  * takeWhile
@@ -700,8 +709,8 @@ const takeUntil$ = timer(0, 1000).pipe(
 2
  */
 const takeWhile$ = timer(0, 100).pipe(
-  take(6),
-  takeWhile(item => item !== 3)
+	take(6),
+	takeWhile(item => item !== 3)
 )
 
 //takeWhile$.subscribe(a => console.log(a));
@@ -718,7 +727,7 @@ const takeWhile$ = timer(0, 100).pipe(
 5
  */
 const distinct$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
-  distinct()
+	distinct()
 )
 //distinct$.subscribe(a => console.log(a));
 
@@ -732,14 +741,14 @@ const distinct$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
 {a: 2, b: "3"}
  */
 const distinctFunc$ =
-  of(
-    { a: 1, b: '2' },
-    { a: 1, b: '3' },
-    { a: 2, b: '3' },
-    { a: 1, b: '4' }
-  ).pipe(
-    distinct(item => item.a)
-  )
+	of(
+		{ a: 1, b: '2' },
+		{ a: 1, b: '3' },
+		{ a: 2, b: '3' },
+		{ a: 1, b: '4' }
+	).pipe(
+		distinct(item => item.a)
+	)
 //distinctFunc$.subscribe(a => console.log(a));
 
 /**
@@ -755,7 +764,7 @@ const distinctFunc$ =
 5
  */
 const distinctUntilChanged$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
-  distinctUntilChanged()
+	distinctUntilChanged()
 )
 //distinctUntilChanged$.subscribe(a => console.log(a));
 
@@ -771,15 +780,15 @@ const distinctUntilChanged$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
 {a: 1, b: "4"}
  */
 const distinctUntilKeyChanged$ =
-  of(
-    { a: 1, b: '2' },
-    { a: 1, b: '3' },
-    { a: 2, b: '3' },
-    { a: 1, b: '4' }
-  ).pipe(
-    //distinctUntilKeyChanged('a')
-    distinctUntilKeyChanged('b')
-  )
+	of(
+		{ a: 1, b: '2' },
+		{ a: 1, b: '3' },
+		{ a: 2, b: '3' },
+		{ a: 1, b: '4' }
+	).pipe(
+		//distinctUntilKeyChanged('a')
+		distinctUntilKeyChanged('b')
+	)
 //distinctUntilKeyChanged$.subscribe(a => console.log(a));
 
 /**
@@ -790,8 +799,8 @@ const distinctUntilKeyChanged$ =
 4
  */
 const filter$ = timer(0, 100).pipe(
-  take(6),
-  filter(item => item % 2 === 0)
+	take(6),
+	filter(item => item % 2 === 0)
 )
 
 //filter$.subscribe(a => console.log(a));
@@ -817,10 +826,10 @@ complete
  */
 const sampleProbe$ = interval(300)
 const sample$ = interval(102).pipe(
-  take(10),
-  map(item => item * 102),
-  tap(item => console.log('получил: ' + item)),
-  sample(sampleProbe$)
+	take(10),
+	map(item => item * 102),
+	tap(item => console.log('получил: ' + item)),
+	sample(sampleProbe$)
 )
 
 //sample$.subscribe(a => console.log(a), err=>(console.log('ошибка: '+err)), ()=>console.log('complete'));
@@ -848,14 +857,14 @@ const sample$ = interval(102).pipe(
 обработал: 918
  */
 const auditProbe$ = item => {
-  console.log('обработал: ' + item);
-  return interval(300);
+	console.log('обработал: ' + item);
+	return interval(300);
 }
 const audit$ = timer(0, 102).pipe(
-  take(10),
-  map(item => item * 102),
-  tap(item => console.log('получил: ' + item)),
-  audit(auditProbe$)
+	take(10),
+	map(item => item * 102),
+	tap(item => console.log('получил: ' + item)),
+	audit(auditProbe$)
 )
 
 //audit$.subscribe(a => console.log(a));
@@ -885,14 +894,14 @@ const audit$ = timer(0, 102).pipe(
  */
 
 const throttleProbe$ = item => {
-  console.log('обработал: ' + item);
-  return timer(300);
+	console.log('обработал: ' + item);
+	return timer(300);
 }
 const throttle$ = timer(0, 102).pipe(
-  take(10),
-  map(item => item * 102),
-  tap(item => console.log('получил: ' + item)),
-  throttle(throttleProbe$)
+	take(10),
+	map(item => item * 102),
+	tap(item => console.log('получил: ' + item)),
+	throttle(throttleProbe$)
 )
 
 //throttle$.subscribe(a => console.log(a));
@@ -912,11 +921,11 @@ const throttle$ = timer(0, 102).pipe(
 0
  */
 const first$ = timer(0, 100).pipe(
-  take(10),
-  map(item => item * 100),
-  tap(item => console.log('получил: ' + item)),
-  first()
-  //first(item=>item % 2 === 0)//вернёт первое чётное число
+	take(10),
+	map(item => item * 100),
+	tap(item => console.log('получил: ' + item)),
+	first()
+	//first(item=>item % 2 === 0)//вернёт первое чётное число
 )
 
 //first$.subscribe(a => console.log(a));
@@ -939,11 +948,11 @@ const first$ = timer(0, 100).pipe(
 900
  */
 const last$ = timer(0, 100).pipe(
-  take(10),
-  map(item => item * 100),
-  tap(item => console.log('получил: ' + item)),
-  last()
-  //last(item=>item % 2 === 0)//вернёт первое чётное число
+	take(10),
+	map(item => item * 100),
+	tap(item => console.log('получил: ' + item)),
+	last()
+	//last(item=>item % 2 === 0)//вернёт первое чётное число
 )
 
 //last$.subscribe(a => console.log(a));
@@ -962,11 +971,11 @@ const last$ = timer(0, 100).pipe(
 0
  */
 const min$ = of(-2, -1, 0, 4, 5, 6).pipe(
-  tap(item => console.log('получил: ' + item)),
-  //min()//вернёт минимальное число -2
-  min((item1, item2) => {
-    if (Math.abs(item1) > Math.abs(item2)) { return 1 } else { return -1 };
-  })
+	tap(item => console.log('получил: ' + item)),
+	//min()//вернёт минимальное число -2
+	min((item1, item2) => {
+		if (Math.abs(item1) > Math.abs(item2)) { return 1 } else { return -1 };
+	})
 )
 //min$.subscribe(a => console.log(a));
 
@@ -986,11 +995,11 @@ const min$ = of(-2, -1, 0, 4, 5, 6).pipe(
  */
 
 const max$ = of(-2, -1, 0, 4, 5, 6).pipe(
-  tap(item => console.log('получил: ' + item)),
-  max()//вернёт максиимальное число 6
-  //max((item1, item2) => {
-  //    if (Math.abs(item1) < Math.abs(item2)) { return 1 } else { return -1 };
-  //  })
+	tap(item => console.log('получил: ' + item)),
+	max()//вернёт максиимальное число 6
+	//max((item1, item2) => {
+	//    if (Math.abs(item1) < Math.abs(item2)) { return 1 } else { return -1 };
+	//  })
 )
 //max$.subscribe(a => console.log(a));
 
@@ -1000,8 +1009,8 @@ const max$ = of(-2, -1, 0, 4, 5, 6).pipe(
 4
  */
 const elementAt$ = of(-2, -1, 0, 4, 5, 6).pipe(
-  tap(item => console.log('получил: ' + item)),
-  elementAt(3)
+	tap(item => console.log('получил: ' + item)),
+	elementAt(3)
 
 )
 //elementAt$.subscribe(a => console.log(a));
@@ -1013,8 +1022,8 @@ const elementAt$ = of(-2, -1, 0, 4, 5, 6).pipe(
  */
 const findProbe = item => item === 0;
 const find$ = of(-2, -1, 0, 4, 5, 6).pipe(
-  tap(item => console.log('получил: ' + item)),
-  find(findProbe)
+	tap(item => console.log('получил: ' + item)),
+	find(findProbe)
 )
 //find$.subscribe(a => console.log(a));
 
@@ -1024,8 +1033,8 @@ const find$ = of(-2, -1, 0, 4, 5, 6).pipe(
  */
 const findIndexProbe = item => item === 0;
 const findIndex$ = of(-2, -1, 0, 4, 5, 6).pipe(
-  tap(item => console.log('получил: ' + item)),
-  findIndex(findIndexProbe)
+	tap(item => console.log('получил: ' + item)),
+	findIndex(findIndexProbe)
 )
 //findIndex$.subscribe(a => console.log(a));
 
@@ -1040,8 +1049,8 @@ const singleProbe = item => item === 0;
 //const singleProbe = item=>item>0;//ошибка
 //const singleProbe = item=>item===10;//undefined
 const single$ = of(-2, -1, 0, 4, 5, 6).pipe(
-  tap(item => console.log('получил: ' + item)),
-  single(singleProbe)
+	tap(item => console.log('получил: ' + item)),
+	single(singleProbe)
 )
 //single$.subscribe(a => console.log(a));
 
@@ -1073,12 +1082,13 @@ Observable {_isScalar: false, source: {…}, operator: {…}}
 [909, 606, 606]
 [909, 808, 606]
  */
+
 const combine1$ = interval(101).pipe(take(10), map(item => item * 101));
 const combine2$ = interval(202).pipe(take(5), map(item => item * 202));
 const combine3$ = interval(303).pipe(take(3), map(item => item * 303));
 const combineAll$ = of(combine1$, combine2$, combine3$).pipe(
-  tap(() => console.log(...arguments)),//возвращает три потока наблюдателей
-  combineAll()
+	tap(logAll),//возвращает три потока наблюдателей
+	combineAll()
 )
 
 //combineAll$.subscribe(() => console.log( ...arguments))
@@ -1103,9 +1113,9 @@ item1:606-item2:404-item3:303
  */
 const combineLatestParser = (item1, item2, item3) => `item1:${item1}-item2:${item2}-item3:${item3}`;
 const combineLatest$ = combineLatest(combine1$, combine2$, combine3$, combineLatestParser).pipe(
-  take(9)
+	take(9)
 )
-//combineLatest$.subscribe(() => console.log(...arguments))
+//combineLatest$.subscribe(logAll)
 
 /**
  * concatAll
@@ -1138,8 +1148,8 @@ const concat1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const concat2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const concat3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const concatAll$ = of(concat1, concat2, concat3).pipe(
-  tap(() => console.log(...arguments)),//возвращает три потока наблюдателей
-  concatAll()
+	tap(logAll),//возвращает три потока наблюдателей
+	concatAll()
 )
 
 //concatAll$.subscribe((item) => console.log('получил: ',item))
@@ -1167,8 +1177,8 @@ const exhaust2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const exhaust3 = interval(2000).pipe(take(3), map(item => item * 303 + '-3'));
 const exhaust4 = of(1, 2, 3).pipe(delay(2000));
 const exhaust$ = of(exhaust1, exhaust2, exhaust3, exhaust4).pipe(
-  tap(() => console.log(...arguments)),//возвращает три потока наблюдателей
-  exhaust()
+	tap(logAll),//возвращает три потока наблюдателей
+	exhaust()
 )
 
 //exhaust$.subscribe((item) => console.log('получил: ',...arguments))
@@ -1209,8 +1219,8 @@ const mergeAll2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const mergeAll3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const mergeAll4 = of(1, 2, 3).pipe(delay(2000));
 const mergeAll$ = of(mergeAll1, mergeAll2, mergeAll3, mergeAll4).pipe(
-  tap(() => console.log(...arguments)),//возвращает три потока наблюдателей
-  mergeAll()
+	tap(logAll),//возвращает три потока наблюдателей
+	mergeAll()
 )
 
 //mergeAll$.subscribe((item) => console.log('получил: ',item))
@@ -1230,10 +1240,10 @@ const withLatestFrom2 = interval(202).pipe(take(5), map(item => item * 202 + '-2
 const withLatestFrom3 = of(1);
 //const withLatestFrom3 = of(1).pipe(delay(1000));
 const withLatestFrom$ = interval(303).pipe(
-  take(3),
-  map(item => item * 303 + '-3'),
-  withLatestFrom(withLatestFrom1, withLatestFrom2, withLatestFrom3),
-  //map(([item1,item2,item3,item4])=>console.log([item1,item2,item3,item4]))
+	take(3),
+	map(item => item * 303 + '-3'),
+	withLatestFrom(withLatestFrom1, withLatestFrom2, withLatestFrom3),
+	//map(([item1,item2,item3,item4])=>console.log([item1,item2,item3,item4]))
 )
 
 //withLatestFrom$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('поток закрыт'));
@@ -1264,8 +1274,8 @@ const mergeMap3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const mergeMap4 = of(1, 2, 3).pipe(delay(2000));
 const mapTo = item$ => item$.pipe(toArray())
 const mergeMap$ = of(mergeMap1, mergeMap2, mergeMap3, mergeMap4).pipe(
-  tap(() => console.log(...arguments)),//возвращает три потока наблюдателей
-  mergeMap(mapTo)
+	tap(logAll),//возвращает три потока наблюдателей
+	mergeMap(mapTo)
 )
 
 //mergeMap$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('поток закрыт'));
@@ -1281,13 +1291,13 @@ const mergeMap$ = of(mergeMap1, mergeMap2, mergeMap3, mergeMap4).pipe(
 
 const groupSort = item => item.b + 1;
 const groupBy$ = of(
-  { a: 1, b: '2' },
-  { a: 1, b: '3' },
-  { a: 2, b: '3' },
-  { a: 1, b: '4' }
+	{ a: 1, b: '2' },
+	{ a: 1, b: '3' },
+	{ a: 2, b: '3' },
+	{ a: 1, b: '4' }
 ).pipe(
-  groupBy(groupSort),
-  mergeMap(item$ => item$.pipe(toArray()))
+	groupBy(groupSort),
+	mergeMap(item$ => item$.pipe(toArray()))
 )
 
 //groupBy$.subscribe((item) => console.log(JSON.stringify(item)))
@@ -1306,12 +1316,80 @@ const groupBy$ = of(
 
  */
 const pairwise$ = interval(100).pipe(
-  take(9),
-  pairwise()
+	take(9),
+	pairwise()
 )
 
 //pairwise$.subscribe((item) => console.log(JSON.stringify(item)))
 
+/**
+ * partition
+ * @deprecated заменяется filter
+ * отфильтровывает в массив true/false значения функции
+ * https://github.com/ReactiveX/rxjs/issues/2995
+ */
+
+/**
+ * switchAll
+ * выдаёт значения самого длинного входного потока после его закрытия
+ * закрывает все потоки, которые закрылись раньше
+ * Вывод:
+1
+2
+3
+0-закрыт
+0-2
+0-2
+202-2
+202-2
+404-2
+404-2
+606-2
+606-2
+808-2
+808-2
+2-закрыт
+поток закрыт
+ * 
+ * если включить отладку mergeAll:
+1
+2
+3
+0-закрыт
+0-1
+0-1
+101-1
+101-1
+0-2
+0-2
+202-1
+202-1
+202-2
+202-2
+303-1
+303-1
+404-1
+404-1
+1-закрыт
+404-2
+404-2
+606-2
+606-2
+808-2
+808-2
+2-закрыт
+поток закрыт
+
+ */
+const switchAll0 = of(1, 2, 3).pipe(endWith('0-закрыт'));
+const switchAll2 = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + '-1'), tap(logAll), endWith('1-закрыт'));
+const switchAll3 = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + '-2'), tap(logAll), endWith('2-закрыт'));
+const switchAll$ = of(switchAll0, switchAll2, switchAll3).pipe(
+	// mergeAll(), // для проверки асинхронности
+	switchAll()
+)
+
+// switchAll$.subscribe(item => console.log(item), null, () => console.log('поток закрыт'));
 
 
 //========================================================================================================================
@@ -1331,15 +1409,15 @@ startItem-604 forkItem-200
 поток закрыт
  */
 const exhaustMapFork$ = startItem => interval(100)
-  .pipe(
-    take(3),
-    map(item => `${startItem} forkItem-${item * 100}`)
-  );
+	.pipe(
+		take(3),
+		map(item => `${startItem} forkItem-${item * 100}`)
+	);
 
 const exhaustMap$ = interval(302).pipe(
-  take(3),
-  map(item => `startItem-${item * 302}`),
-  exhaustMap(exhaustMapFork$)
+	take(3),
+	map(item => `startItem-${item * 302}`),
+	exhaustMap(exhaustMapFork$)
 );
 //exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
 
@@ -1353,12 +1431,12 @@ const exhaustMap$ = interval(302).pipe(
 поток закрыт
  */
 const pluck$ = interval(100)
-  .pipe(
-    take(3),
-    map(item => { return { single: item, double: item * 2, nested: { triple: item * 3 } } }),//переделываем число в объект
-    //pluck('nested','triple'),//возвращаем в поток только item.nested.triple
-    pluck('double')//возвращаем в поток только item.double
-  );
+	.pipe(
+		take(3),
+		map(item => { return { single: item, double: item * 2, nested: { triple: item * 3 } } }),//переделываем число в объект
+		//pluck('nested','triple'),//возвращаем в поток только item.nested.triple
+		pluck('double')//возвращаем в поток только item.double
+	);
 
 //pluck$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
 
@@ -1380,15 +1458,15 @@ const pluck$ = interval(100)
 поток закрыт
  */
 const switchMapFork1$ = startItem => interval(101)
-  .pipe(
-    take(3),
-    map(item => `${startItem} forkItem-${item * 101}`)
-  );
+	.pipe(
+		take(3),
+		map(item => `${startItem} forkItem-${item * 101}`)
+	);
 
 const switchMap$ = interval(303).pipe(
-  take(3),
-  map(item => `startItem-${item * 303}`),
-  switchMap(switchMapFork1$)
+	take(3),
+	map(item => `startItem-${item * 303}`),
+	switchMap(switchMapFork1$)
 );
 
 //switchMap$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));

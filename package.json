@@ -2,7 +2,14 @@
   "name": "typescript-5i4anz",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "build": "tsc --build tsconfig.json && node index.js"
+  },
   "dependencies": {
     "rxjs": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^12.6.8",
+    "typescript": "^3.5.3"
   }
 }
