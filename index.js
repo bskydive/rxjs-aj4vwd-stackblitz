@@ -1065,7 +1065,7 @@ var pairwise$ = rxjs_1.interval(100).pipe(operators_1.take(9), operators_1.pairw
 поток закрыт
 
  */
-var switchAll0 = rxjs_1.of(1, 2, 3).pipe(operators_1.endWith('0-закрыт'));
+var switchAll0 = rxjs_1.of(1, 2, 3).pipe(operators_1.map(function (item) { return item * 1 + '-0'; }), operators_1.tap(logAll), operators_1.endWith('0-закрыт'));
 var switchAll2 = rxjs_1.interval(101).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll), operators_1.endWith('1-закрыт'));
 var switchAll3 = rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 202 + '-2'; }), operators_1.tap(logAll), operators_1.endWith('2-закрыт'));
 var switchAll$ = rxjs_1.of(switchAll0, switchAll2, switchAll3).pipe(
