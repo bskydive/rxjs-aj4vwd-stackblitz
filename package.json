@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc --build tsconfig.json && node index.js"
+    "b": "tsc --build tsconfig.json && node index.js"
   },
   "dependencies": {
     "rxjs": "latest"
