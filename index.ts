@@ -16,10 +16,9 @@ source.subscribe(x => console.log(x));
  * https://rxmarbles.com/ 
  * https://rxjs-dev.firebaseapp.com/api
  * https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
- * Конструктивная помощь приветствуется: https://stepanovv.ru/#id-contacts
+ * Конструктивная помощь приветствуется: https://stepanovv.ru/portfolio/portfolio.html#id-contacts
  * 
- * Поможет при изучении, как справочник.
- * А также разобраться почему не работает оператор, как живой код.
+ * Поможет при изучении как справочник, и разобраться почему не работает оператор.
  * Содержит полный список правильных способов import {}
  * 
  * Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
@@ -1312,6 +1311,8 @@ const pairwise$ = interval(100).pipe(
 )
 
 //pairwise$.subscribe((item) => console.log(JSON.stringify(item)))
+
+
 
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
