@@ -13,11 +13,11 @@ source.subscribe(x => console.log(x));
  * 
  * Библиотека живых примеров
  * Сделано как конспект при изучении различных материалов. 
- * https://www.learnrxjs.io/ 
- * http://reactivex.io/documentation/operators.html 
- * https://rxmarbles.com/ 
- * https://rxjs-dev.firebaseapp.com/api
- * https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
+	https://www.learnrxjs.io/ 
+	http://reactivex.io/documentation/operators.html 
+	https://rxmarbles.com/ 
+	https://rxjs-dev.firebaseapp.com/api
+	https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
  * Конструктивная помощь приветствуется: https://stepanovv.ru/portfolio/portfolio.html#id-contacts
  * 
  * Поможет при изучении как справочник, и разобраться почему не работает оператор.
@@ -35,9 +35,9 @@ source.subscribe(x => console.log(x));
  * $ - символ в конце для интеллигентного обозначения наблюдателя
  * Observable - объект наблюдения - по сути генерирует поток значений. Есть метод подписки(subscribe) на значения потоков, а также метод последовательной обработки потока(pipe()). Может порождать несколько потоков значений.
  * Observer - наблюдатели - объекты(функции), которые обрабатывают(принимают/генерируют) поток значений. 
- *  next()
- *  error()
- *  complete()
+	next()
+	error()
+	complete()
  * Subscriber - вид наблюдателя. Объект(функция), которая обрабатывает конечные результаты потока. Передаётся внутрь метода Observable.subscribe(subscriber)
  * pipe(аргументы) - организует последовательную передачу значений потока между аргументами-наблюдателями. Сделано для избегания конфликтов с методами объектов.
  * subscribe(item => console.log('значение потока', item), err => console.log('ошибка', err), () => console.log('поток закрыт штатно')); - запускает поток, принимает три аргумента для значений(next), ошибок(error), завершения потока(complete)
