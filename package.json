@@ -6,12 +6,10 @@
     "b": "tsc --build tsconfig.json && node index.js"
   },
   "dependencies": {
-    "rxjs": "6.3.3",
-    "tslib": "^1.10.0"
+    "rxjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
-    "tslib": "^1.10.0",
     "typescript": "^3.5.3"
   }
 }
