@@ -8,8 +8,9 @@ const source = of('World').pipe(
 source.subscribe(x => console.log(x));
 
 /**
- * ЧАВО
- * Это библиотека живых примеров
+ * !!! В данный момент работает в chrome, требует нажать кнопку 'install tslib'
+ * 
+ * Библиотека живых примеров
  * Сделано как конспект при изучении различных материалов. 
  * https://www.learnrxjs.io/ 
  * http://reactivex.io/documentation/operators.html 
@@ -17,6 +18,7 @@ source.subscribe(x => console.log(x));
  * https://rxjs-dev.firebaseapp.com/api
  * https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
  * Конструктивная помощь приветствуется: https://stepanovv.ru/portfolio/portfolio.html#id-contacts
+ * TODO написать тесты для определения отвалившихся операторов rxjs
  * 
  * Поможет при изучении как справочник, и разобраться почему не работает оператор.
  * Содержит полный список правильных способов import {}
@@ -28,9 +30,13 @@ source.subscribe(x => console.log(x));
  * * раскомментировать subscribe строку необходимого оператора
  * * открыть консоль встроенного браузера stackblitz
  * 
- * TODO сделать юнит-тесты
- * 
  * ЛИКБЕЗ
+ * Запуск локально:
+ * git clone https://github.com/bskydive/rxjs-aj4vwd-stackblitz.git
+ * cd rxjs-aj4vwd-stackblitz
+ * npm i
+ * npm run b
+ * 
  * $ - символ в конце для интеллигентного обозначения наблюдателя
  * Observable - объект наблюдения - по сути генерирует поток значений. Есть метод подписки(subscribe) на значения потоков, а также метод последовательной обработки потока(pipe()). Может порождать несколько потоков значений.
  * Observer - наблюдатели - объекты(функции), которые обрабатывают(принимают/генерирут) поток значений. 
