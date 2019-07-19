@@ -6,7 +6,8 @@
     "b": "tsc --build tsconfig.json && node index.js"
   },
   "dependencies": {
-    "rxjs": "latest"
+    "rxjs": "latest",
+    "tslib": "^1.10.0"
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
