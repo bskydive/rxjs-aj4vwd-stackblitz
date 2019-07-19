@@ -1,40 +1,66 @@
 "use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spread = (this && this.__spread) || function () {
+    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+    return ar;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = require("tslib");
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
 var source = rxjs_1.of('World').pipe(operators_1.map(function (x) { return "Hello " + x + "!"; }));
 source.subscribe(function (x) { return console.log(x); });
 /**
- * ЧАВО
- * Это библиотека живых примеров
+ * ===============================================
+ * ========== Библиотека живых примеров ==========
+ * ===============================================
+ *
+ * ========== ПОЧИТАЙКА: README.md ===============
+ *
  * Сделано как конспект при изучении различных материалов.
- * https://www.learnrxjs.io/
- * http://reactivex.io/documentation/operators.html
- * https://rxmarbles.com/
- * https://rxjs-dev.firebaseapp.com/api
- * https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
- * Конструктивная помощь приветствуется: https://stepanovv.ru/portfolio/portfolio.html#id-contacts
+    https://www.learnrxjs.io/
+    http://reactivex.io/documentation/operators.html
+    https://rxmarbles.com/
+    https://rxjs-dev.firebaseapp.com/api
+    https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
+    *
+    * Поможет при изучении как справочник, и разобраться почему не работает оператор.
+    * Содержит полный список правильных способов import {}
+    *
+    * Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
+    * Перед каждым примером есть небольшое описание и результат выполнения
+    * Если надо поменять поведение оператора необходимо:
+    * * обновить страницу stackblitz
+    * * раскомментировать subscribe строку необходимого оператора
+    * * открыть консоль встроенного браузера stackblitz
+    *
  *
- * Поможет при изучении как справочник, и разобраться почему не работает оператор.
- * Содержит полный список правильных способов import {}
+ * ========== Конструктивная помощь ===============
  *
- * Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
- * Перед каждым примером есть небольшое описание и результат выполнения
- * Если надо поменять поведение оператора необходимо:
- * * обновить страницу stackblitz
- * * раскомментировать subscribe строку необходимого оператора
- * * открыть консоль встроенного браузера stackblitz
+ * https://stepanovv.ru/portfolio/portfolio.html#id-contacts
  *
- * TODO сделать юнит-тесты
+ * ==================== ЛИКБЕЗ ====================
  *
- * ЛИКБЕЗ
  * $ - символ в конце для интеллигентного обозначения наблюдателя
  * Observable - объект наблюдения - по сути генерирует поток значений. Есть метод подписки(subscribe) на значения потоков, а также метод последовательной обработки потока(pipe()). Может порождать несколько потоков значений.
- * Observer - наблюдатели - объекты(функции), которые обрабатывают(принимают/генерирут) поток значений.
- * * next()
- * * error()
- * * complete()
+ * Observer - наблюдатели - объекты(функции), которые обрабатывают(принимают/генерируют) поток значений.
+    next()
+    error()
+    complete()
  * Subscriber - вид наблюдателя. Объект(функция), которая обрабатывает конечные результаты потока. Передаётся внутрь метода Observable.subscribe(subscriber)
  * pipe(аргументы) - организует последовательную передачу значений потока между аргументами-наблюдателями. Сделано для избегания конфликтов с методами объектов.
  * subscribe(item => console.log('значение потока', item), err => console.log('ошибка', err), () => console.log('поток закрыт штатно')); - запускает поток, принимает три аргумента для значений(next), ошибок(error), завершения потока(complete)
@@ -54,7 +80,7 @@ source.subscribe(function (x) { return console.log(x); });
  * https://github.com/microsoft/TypeScript/issues/1609
  */
 function logAll() {
-    console.log.apply(console, tslib_1.__spread(arguments));
+    console.log.apply(console, __spread(arguments));
 }
 /**
  * map
@@ -94,23 +120,23 @@ setTimeout(() => {
 //[0, 1, 2, 3, 4, 5, 6, 7, 8]
 //[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 //[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-var buffer$ = rxjs_1.interval(100).pipe(operators_1.buffer(rxjs_1.interval(1000)), operators_1.take(3), operators_1.map(function (item) { return tslib_1.__spread(['bufferInterval'], item); }));
+var buffer$ = rxjs_1.interval(100).pipe(operators_1.buffer(rxjs_1.interval(1000)), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferInterval'], item); }));
 //buffer$.subscribe(a => console.log(a));
 //[0, 1, 2]
 //[3, 4, 5]
 //[6, 7, 8]
-var bufferCount$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3), operators_1.take(3), operators_1.map(function (item) { return tslib_1.__spread(['bufferCount'], item); }));
+var bufferCount$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferCount'], item); }));
 //bufferCount$.subscribe(a => console.log(a));
 //[0, 1, 2]
 //[2, 3, 4]
 //[4, 5, 6]
 //стартует новый буфер каждое второе значение
-var bufferCountLength$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3, 2), operators_1.take(3), operators_1.map(function (item) { return tslib_1.__spread(['bufferCountFork'], item); }));
+var bufferCountLength$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3, 2), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferCountFork'], item); }));
 //bufferCountLength$.subscribe(a => console.log(a));
 //["bufferTime", 0]
 //["bufferTime", 0, 1, 2]
 //["bufferTime", 1, 2, 3]
-var bufferTime$ = rxjs_1.interval(100).pipe(operators_1.bufferTime(200, 100), operators_1.take(3), operators_1.map(function (item) { return tslib_1.__spread(['bufferTime'], item); }));
+var bufferTime$ = rxjs_1.interval(100).pipe(operators_1.bufferTime(200, 100), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferTime'], item); }));
 //bufferTime$.subscribe(a => console.log(a));
 /*
 0
@@ -143,7 +169,7 @@ bufferOpen
 var count = 0;
 var bufferOpen$ = rxjs_1.interval(400).pipe(operators_1.tap(function () { return console.log('bufferOpen', count); }));
 var bufferClose$ = function () { return rxjs_1.interval(300).pipe(operators_1.tap(function () { return console.log('bufferClose', count++); })); };
-var bufferToggle$ = rxjs_1.interval(100).pipe(operators_1.tap(function (item) { return console.log(item); }), operators_1.bufferToggle(bufferOpen$, bufferClose$), operators_1.take(3), operators_1.map(function (item) { return tslib_1.__spread(['bufferToggle'], item); }));
+var bufferToggle$ = rxjs_1.interval(100).pipe(operators_1.tap(function (item) { return console.log(item); }), operators_1.bufferToggle(bufferOpen$, bufferClose$), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferToggle'], item); }));
 //bufferToggle$.subscribe(a => console.log(a));
 //выбор времени закрытия буфера
 /*
@@ -165,10 +191,10 @@ var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
     }
 }), operators_1.map(function (item) {
     if (count < 5) {
-        return tslib_1.__spread(['bufferWhen'], item);
+        return __spread(['bufferWhen'], item);
     }
     else {
-        return tslib_1.__spread(['bufferWhenElse'], item);
+        return __spread(['bufferWhenElse'], item);
     }
 }));
 //bufferWhen$.subscribe(a => console.log(a));
@@ -182,7 +208,7 @@ var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
 ["window", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ["window", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 */
-var window$ = rxjs_1.interval(100).pipe(operators_1.window(rxjs_1.interval(1000)), operators_1.take(3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return tslib_1.__spread(['window'], item); })); }));
+var window$ = rxjs_1.interval(100).pipe(operators_1.window(rxjs_1.interval(1000)), operators_1.take(3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['window'], item); })); }));
 //window$.subscribe(a => console.log(a));
 /*
 windowCount(2)
@@ -199,7 +225,7 @@ windowCount(2,3)
 ["windowCount", 6, 7]
 ["windowCount", 9]
 */
-var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.windowCount(2, 3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return tslib_1.__spread(['windowCount'], item); })); }));
+var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.windowCount(2, 3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowCount'], item); })); }));
 //windowCount$.subscribe(a => console.log(a));
 /*
  * Дополнительный способ timer вместо interval
@@ -210,7 +236,7 @@ var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.w
 ["windowTime", 8]
  */
 var windowTime$ = rxjs_1.timer(0, 100)
-    .pipe(operators_1.take(9), operators_1.windowTime(200), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return tslib_1.__spread(['windowTime'], item); })); }));
+    .pipe(operators_1.take(9), operators_1.windowTime(200), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowTime'], item); })); }));
 //windowTime$.subscribe(a => console.log(a));
 /**
  *
@@ -236,7 +262,7 @@ windowOpen 2
 count = 0;
 var windowOpen$ = rxjs_1.timer(0, 400).pipe(operators_1.map(function () { return console.log('windowOpen', count); }));
 var windowClose$ = function () { return rxjs_1.timer(300).pipe(operators_1.map(function () { return console.log('windowClose', count++); })); };
-var windowToggle$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.tap(function (item) { return console.log(item); }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return tslib_1.__spread(['windowToggle'], item); })); }));
+var windowToggle$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.tap(function (item) { return console.log(item); }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowToggle'], item); })); }));
 //windowToggle$.subscribe(a => console.log(a));
 //выбор времени закрытия буфера
 /*
@@ -253,10 +279,10 @@ var windowWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
 }), operators_1.switchMap(function (item) { return item
     .pipe(operators_1.toArray(), operators_1.map(function (item) {
     if (count < 5) {
-        return tslib_1.__spread(['windowWhen'], item);
+        return __spread(['windowWhen'], item);
     }
     else {
-        return tslib_1.__spread(['windowWhenElse'], item);
+        return __spread(['windowWhenElse'], item);
     }
 })); }));
 //windowWhen$.subscribe(a => console.log(a));
