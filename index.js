@@ -1092,14 +1092,185 @@ var pairwise$ = rxjs_1.interval(100).pipe(operators_1.take(9), operators_1.pairw
 
  */
 var switchAll0 = rxjs_1.of(1, 2, 3).pipe(operators_1.map(function (item) { return item * 1 + '-0'; }), operators_1.tap(logAll), operators_1.endWith('0-закрыт'));
-var switchAll2 = rxjs_1.interval(101).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll), operators_1.endWith('1-закрыт'));
-var switchAll3 = rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 202 + '-2'; }), operators_1.tap(logAll), operators_1.endWith('2-закрыт'));
-var switchAll$ = rxjs_1.of(switchAll0, switchAll2, switchAll3).pipe(
+var switchAll1 = rxjs_1.interval(101).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll), operators_1.endWith('1-закрыт'));
+var switchAll2 = rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 202 + '-2'; }), operators_1.tap(logAll), operators_1.endWith('2-закрыт'));
+var switchAll$ = rxjs_1.of(switchAll0, switchAll1, switchAll2).pipe(
 // mergeAll(), // для проверки асинхронности
 operators_1.switchAll());
-// switchAll$.subscribe(item => console.log(item), null, () => console.log('поток закрыт'));
+// switchAll$.subscribe(item => console.log(item), null, () => console.log('switchAll поток закрыт'));
+/**
+ * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого
+ *
+ Hello World!
+1-0
+2-0
+3-0
+1000-1
+1000-2
+[ '1-0', '1000-1', '1000-2' ]
+1101-1
+1202-1
+1202-2
+[ '2-0', '1101-1', '1202-2' ]
+1303-1
+1404-1
+1404-2
+[ '3-0', '1202-1', '1404-2' ]
+1606-2
+[ '0-закрыт', '1303-1', '1606-2' ]
+поток закрыт
+ */
+var zipAll0 = rxjs_1.of(1, 2, 3).pipe(operators_1.map(function (item) { return item * 1 + '-0'; }), operators_1.tap(logAll), operators_1.endWith('0-закрыт'));
+var zipAll1 = rxjs_1.interval(101).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 101 + 1000 + '-1'; }), operators_1.tap(logAll), operators_1.endWith('1-закрыт'));
+var zipAll2 = rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.take(5), operators_1.map(function (item) { return item * 202 + 1000 + '-2'; }), operators_1.tap(logAll), operators_1.endWith('2-закрыт'));
+var zipAll$ = rxjs_1.of(zipAll0, zipAll1, zipAll2).pipe(
+// mergeAll(), // для проверки асинхронности
+operators_1.zipAll());
+// zipAll$.subscribe(item => console.log(item), null, () => console.log('zipAll поток закрыт'));
+//========================================================================================================================
+//==================================================OBSERVABLE TRANSFORMATION=============================================
+//========================================================================================================================
+//
+/**
+ * repeat
+ * Повторение значений одного входного потока
+ * Hello World!
+0-1
+101-1
+202-1
+303-1
+404-1
+1-закрыт
+0-1
+101-1
+202-1
+303-1
+404-1
+1-закрыт
+0-1
+101-1
+202-1
+303-1
+404-1
+1-закрыт
+поток закрыт
+ */
+var repeat1 = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('1-закрыт'));
+var repeat$ = repeat1.pipe(operators_1.repeat(3));
+// repeat$.subscribe(item => console.log(item), null, () => console.log('repeat поток закрыт'));
+/**
+ * repeatWhen
+ * Повторяет значения входного потока repeatWhen1 пока есть значения в контрольном потоке-функции repeatWhenControl
+ * Переподписывается на входной поток при каждом значении контрольного
+ *
+Hello World!
+0-1
+101-1
+202-1
+303-1
+404-1
+505-1
+606-1
+707-1
+808-1
+909-1
+1-закрыт
+1000-control
+0-1
+1202-control
+101-1
+0-1
+202-1
+1404-control
+101-1
+303-1
+0-1
+0-1
+202-1
+404-1
+101-1
+101-1
+303-1
+505-1
+202-1
+202-1
+404-1
+606-1
+303-1
+303-1
+505-1
+707-1
+404-1
+404-1
+606-1
+808-1
+505-1
+505-1
+707-1
+909-1
+1-закрыт
+поток закрыт
+
+ * Без повторения:
+Hello World!
+0-1
+101-1
+202-1
+303-1
+404-1
+505-1
+606-1
+707-1
+808-1
+909-1
+1-закрыт
+поток закрыт
+
+
+ */
+var repeatWhen1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var repeatWhenControl = function () { return rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.take(3), operators_1.map(function (item) { return item * 202 + 1000 + '-control'; }), operators_1.tap(logAll), operators_1.endWith('control-закрыт')); };
+var repeatWhen$ = repeatWhen1.pipe(operators_1.repeatWhen(repeatWhenControl));
+// repeatWhen$.subscribe(item => console.log(item), null, () => console.log('repeatWhen поток закрыт'));
+/**
+ * ignoreElements
+ * пропускает значения, оставляет сигналы
+ * Hello World!
+0-1
+101-1
+202-1
+0-2
+ошибка: 0-2
+ */
+var ignoreElements1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+// mergeAll(), ignoreElements(),
+operators_1.endWith('1-закрыт'));
+var ignoreElementsErr2 = rxjs_1.interval(404).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 404 + '-2'; }), operators_1.tap(logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.ignoreElements(), operators_1.endWith('err-закрыт'));
+var ignoreElementsErr3 = rxjs_1.interval(505).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 505 + '-3'; }), operators_1.tap(logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.ignoreElements(), operators_1.endWith('err2-закрыт'));
+var ignoreElements$ = rxjs_1.of(ignoreElements1, ignoreElementsErr2, ignoreElementsErr3).pipe(operators_1.mergeAll());
+//ignoreElements$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('ignoreElements поток закрыт'));
+/**
+ * finalize
+ * выполняет функцию finalizeFn
+ * функция без параметров!
+ */
+var finalizeFn = function (item) { return function () { return console.log('fin', item); }; }; //обёртка для вывода названия завершающегося потока
+var finalizeErr1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll), 
+// map(item => throwError(item)),
+// mergeAll(),
+operators_1.endWith('err1-закрыт'), operators_1.finalize(finalizeFn('1')));
+var finalizeErr2 = rxjs_1.interval(505).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 505 + '-2'; }), operators_1.tap(logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.endWith('err2-закрыт'), operators_1.finalize(finalizeFn('2')));
+var finalize$ = rxjs_1.of(finalizeErr1, finalizeErr2).pipe(operators_1.mergeAll(), operators_1.finalize(finalizeFn('main')));
+finalize$.subscribe(function (item) { return console.log(item); }, function (err) { return console.log('ошибка:', err); }, function () { return console.log('finalize поток закрыт'); });
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
+//========================================================================================================================
+//
+//========================================================================================================================
+//==================================================TIME, DURATION & VALUES===============================================
 //========================================================================================================================
 //
 /**

@@ -1,5 +1,5 @@
 import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith } from 'rxjs/operators';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize } from 'rxjs/operators';
 
 
 const source = of('World').pipe(
@@ -23,6 +23,16 @@ source.subscribe(x => console.log(x));
 	* 
 	* Поможет при изучении как справочник, и разобраться почему не работает оператор.
 	* Содержит полный список правильных способов import {}
+	* типовые примеры, которые легко понимать по аналогии и комбинировать
+	* входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
+	* время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
+	* выполняется как в консоли, так и в онлайн редакторе
+	* просто один файл. Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать.
+	* большое, очень большое количество операторов
+	* все примеры рабочие и готовы к копипасту
+	* примеры многопоточные
+	* живой код. Что-то, что можно открыть IDE
+	* объём работы конский, потому, извиняйте, не всё сделано одинаково хорошо. Ближе к концу сделано лучше.
 	* 
 	* Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
 	* Перед каждым примером есть небольшое описание и результат выполнения
@@ -1389,18 +1399,266 @@ const pairwise$ = interval(100).pipe(
 
  */
 const switchAll0 = of(1, 2, 3).pipe(map(item => item * 1 + '-0'), tap(logAll), endWith('0-закрыт'));
-const switchAll2 = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + '-1'), tap(logAll), endWith('1-закрыт'));
-const switchAll3 = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + '-2'), tap(logAll), endWith('2-закрыт'));
-const switchAll$ = of(switchAll0, switchAll2, switchAll3).pipe(
+const switchAll1 = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + '-1'), tap(logAll), endWith('1-закрыт'));
+const switchAll2 = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + '-2'), tap(logAll), endWith('2-закрыт'));
+const switchAll$ = of(switchAll0, switchAll1, switchAll2).pipe(
 	// mergeAll(), // для проверки асинхронности
 	switchAll()
 )
 
-// switchAll$.subscribe(item => console.log(item), null, () => console.log('поток закрыт'));
+// switchAll$.subscribe(item => console.log(item), null, () => console.log('switchAll поток закрыт'));
+
+/**
+ * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого
+ * 
+ Hello World!
+1-0
+2-0
+3-0
+1000-1
+1000-2
+[ '1-0', '1000-1', '1000-2' ]
+1101-1
+1202-1
+1202-2
+[ '2-0', '1101-1', '1202-2' ]
+1303-1
+1404-1
+1404-2
+[ '3-0', '1202-1', '1404-2' ]
+1606-2
+[ '0-закрыт', '1303-1', '1606-2' ]
+поток закрыт
+ */
+const zipAll0 = of(1, 2, 3).pipe(map(item => item * 1 + '-0'), tap(logAll), endWith('0-закрыт'));
+const zipAll1 = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + 1000 + '-1'), tap(logAll), endWith('1-закрыт'));
+const zipAll2 = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + 1000 + '-2'), tap(logAll), endWith('2-закрыт'));
+const zipAll$ = of(zipAll0, zipAll1, zipAll2).pipe(
+	// mergeAll(), // для проверки асинхронности
+	zipAll()
+)
+
+// zipAll$.subscribe(item => console.log(item), null, () => console.log('zipAll поток закрыт'));
+
+//========================================================================================================================
+//==================================================OBSERVABLE TRANSFORMATION=============================================
+//========================================================================================================================
+//
+
+/**
+ * repeat
+ * Повторение значений одного входного потока
+ * Hello World!
+0-1
+101-1
+202-1
+303-1
+404-1
+1-закрыт
+0-1
+101-1
+202-1
+303-1
+404-1
+1-закрыт
+0-1
+101-1
+202-1
+303-1
+404-1
+1-закрыт
+поток закрыт
+ */
+const repeat1 = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('1-закрыт'));
+
+const repeat$ = repeat1.pipe(
+	repeat(3)
+)
+
+// repeat$.subscribe(item => console.log(item), null, () => console.log('repeat поток закрыт'));
+
+/**
+ * repeatWhen
+ * Повторяет значения входного потока repeatWhen1 пока есть значения в контрольном потоке-функции repeatWhenControl
+ * Переподписывается на входной поток при каждом значении контрольного
+ * 
+Hello World!
+0-1
+101-1
+202-1
+303-1
+404-1
+505-1
+606-1
+707-1
+808-1
+909-1
+1-закрыт
+1000-control
+0-1
+1202-control
+101-1
+0-1
+202-1
+1404-control
+101-1
+303-1
+0-1
+0-1
+202-1
+404-1
+101-1
+101-1
+303-1
+505-1
+202-1
+202-1
+404-1
+606-1
+303-1
+303-1
+505-1
+707-1
+404-1
+404-1
+606-1
+808-1
+505-1
+505-1
+707-1
+909-1
+1-закрыт
+поток закрыт
+
+ * Без повторения:
+Hello World!
+0-1
+101-1
+202-1
+303-1
+404-1
+505-1
+606-1
+707-1
+808-1
+909-1
+1-закрыт
+поток закрыт
+
+
+ */
+const repeatWhen1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'));
+const repeatWhenControl = () => interval(202).pipe(
+	delay(1000),
+	take(3),
+	map(item => item * 202 + 1000 + '-control'),
+	tap(logAll),
+	endWith('control-закрыт')
+);
+const repeatWhen$ = repeatWhen1.pipe(
+	repeatWhen(repeatWhenControl)
+)
+
+// repeatWhen$.subscribe(item => console.log(item), null, () => console.log('repeatWhen поток закрыт'));
+
+
+/**
+ * ignoreElements
+ * пропускает значения, оставляет сигналы
+ * Hello World!
+0-1
+101-1
+202-1
+0-2
+ошибка: 0-2
+ */
+const ignoreElements1 = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	// mergeAll(), ignoreElements(),
+	endWith('1-закрыт'));
+
+const ignoreElementsErr2 = interval(404).pipe(
+	take(3),
+	map(item => item * 404 + '-2'),
+	tap(logAll),
+	map(item => throwError(item)),
+	mergeAll(), ignoreElements(),
+	endWith('err-закрыт'));
+
+const ignoreElementsErr3 = interval(505).pipe(
+	take(3),
+	map(item => item * 505 + '-3'),
+	tap(logAll),
+	map(item => throwError(item)),
+	mergeAll(), ignoreElements(),
+	endWith('err2-закрыт'));
+
+const ignoreElements$ = of(ignoreElements1, ignoreElementsErr2, ignoreElementsErr3).pipe(
+	mergeAll(),
+)
+
+//ignoreElements$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('ignoreElements поток закрыт'));
+
+/**
+ * finalize
+ * выполняет функцию finalizeFn
+ * функция без параметров!
+ Hello World!
+0-1
+0-1
+101-1
+101-1
+202-1
+202-1
+303-1
+303-1
+0-2
+ошибка: 0-2
+fin main
+fin 1
+fin 2
+ */
+const finalizeFn = item => () => console.log('fin', item);//обёртка для вывода названия завершающегося потока
+
+const finalizeErr1 = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-1'),
+	tap(logAll),
+	// map(item => throwError(item)),
+	// mergeAll(),
+	endWith('err1-закрыт'),
+	finalize(finalizeFn('1')),
+);
+
+const finalizeErr2 = interval(505).pipe(
+	take(3),
+	map(item => item * 505 + '-2'),
+	tap(logAll),
+	map(item => throwError(item)),
+	mergeAll(),
+	endWith('err2-закрыт'),
+	finalize(finalizeFn('2')),
+);
+
+const finalize$ = of(finalizeErr1, finalizeErr2).pipe(
+	mergeAll(),
+	finalize(finalizeFn('main')),
+)
+
+finalize$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('finalize поток закрыт'));
 
 
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
+//========================================================================================================================
+//
+
+//========================================================================================================================
+//==================================================TIME, DURATION & VALUES===============================================
 //========================================================================================================================
 //
 
