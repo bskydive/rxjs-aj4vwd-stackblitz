@@ -1389,38 +1389,164 @@ var sampleTime$ = rxjs_1.of(sampleTime1, sampleTime5).pipe(operators_1.mergeAll(
 // sampleTime$.subscribe(item => console.log(item), null, () => console.log('sampleTime поток закрыт'));
 /**
  * observeOn
- * Управляет приоритетами(очередями) выполнения потока.
+ * работает только в браузере/stackblitz
+ * Управляет приоритетами(очередями) выполнения потока. Похоже на применение setTimeout().
  * Перекрывает указанные вручную scheduler?: SchedulerLike
+ * порядок в цепочке pipe имеет значение, меняется порядок вызова у последующих операторов
+ *
  * Дополнительно:
  * node_modules/rxjs/internal/scheduler/queue.d.ts
  * node_modules/rxjs/internal/scheduler/async.d.ts
  * node_modules/rxjs/internal/scheduler/asap.d.ts
  * node_modules/rxjs/internal/scheduler/animationFrame.d.ts
+ * https://webdraftt.com/tutorial/rxjs/scheduler
+ * https://www.youtube.com/watch?v=8cV4ZvHXQL4
+ * http://reactivex.io/documentation/operators/observeon.html
+ * https://rxjs-dev.firebaseapp.com/api/operators/observeOn
+ * https://developer.mozilla.org/ru/docs/Web/JavaScript/EventLoop
  *
  *
+ * Hello World!
+0-2
+0-3
+0-1
+0-4
+101-1
+102-2
+103-3
+104-4
+202-1
+204-2
+206-3
+208-4
+303-1
+306-2
+309-3
+312-4
+404-1
+1-закрыт
+408-2
+2-закрыт
+412-3
+3-закрыт
+416-4
+4-закрыт
+observeOn поток закрыт
+Hello World!
+0-2
+0-3
+0-4
+0-1
+101-1
+102-2
+103-3
+104-4
+202-1
+204-2
+206-3
+208-4
+303-1
+306-2
+309-3
+312-4
+404-1
+1-закрыт
+408-2
+2-закрыт
+412-3
+3-закрыт
+416-4
+4-закрыт
+observeOn поток закрыт
+ *
+ * Hello World!
+0-1
+0-2
+0-3
+0-4
+0-5
+101-1
+102-2
+103-3
+104-4
+105-5
+202-1
+1-закрыт
+204-2
+2-закрыт
+206-3
+3-закрыт
+208-4
+4-закрыт
+210-5
+5-закрыт
+observeOn поток закрыт
  */
-var observeOn1 = rxjs_1.interval(101).pipe(operators_1.take(5), 
+var observeOn1 = rxjs_1.interval(101).pipe(operators_1.take(3), 
 // observeOn(asyncScheduler),
 operators_1.map(function (item) { return item * 101 + '-1'; }), 
 // tap(logAll),
 operators_1.endWith('1-закрыт'));
-var observeOn2 = rxjs_1.interval(102).pipe(operators_1.take(5), 
+var observeOn2 = rxjs_1.interval(102).pipe(operators_1.take(3), 
 // observeOn(asapScheduler),
 operators_1.map(function (item) { return item * 102 + '-2'; }), 
 // tap(logAll),
 operators_1.endWith('2-закрыт'));
-var observeOn3 = rxjs_1.interval(103).pipe(operators_1.take(5), 
+var observeOn3 = rxjs_1.interval(103).pipe(operators_1.take(3), 
 // observeOn(queueScheduler),
 operators_1.map(function (item) { return item * 103 + '-3'; }), 
 // tap(logAll),
 operators_1.endWith('3-закрыт'));
-var observeOn4 = rxjs_1.interval(104).pipe(operators_1.take(5), 
+var observeOn4 = rxjs_1.interval(104).pipe(operators_1.take(3), 
 // observeOn(animationFrameScheduler),
 operators_1.map(function (item) { return item * 104 + '-4'; }), 
 // tap(logAll),
 operators_1.endWith('4-закрыт'));
-var observeOn$ = rxjs_1.of(observeOn1, observeOn2, observeOn3, observeOn4).pipe(operators_1.mergeAll());
-observeOn$.subscribe(function (item) { return console.log(item); }, null, function () { return console.log('observeOn поток закрыт'); });
+var observeOn5 = rxjs_1.interval(105).pipe(
+// без observeOn считается, что приоритет immediate
+operators_1.take(3), operators_1.map(function (item) { return item * 105 + '-5'; }), 
+// tap(logAll),
+operators_1.endWith('5-закрыт'));
+var observeOn$ = rxjs_1.of(observeOn1, observeOn2, observeOn3, observeOn4, observeOn5).pipe(operators_1.mergeAll());
+// observeOn$.subscribe(item => console.log(item), null, () => console.log('observeOn поток закрыт'));
+/**
+ * subscribeOn
+ * работает только в браузере/stackblitz
+ * Управляет приоритетами(очередями) выполнения потока. Похоже на применение setTimeout().
+ * Перекрывает указанные вручную scheduler?: SchedulerLike
+ * порядок в цепочке pipe не имеет значения, меняется порядок вызова у всего потока
+ *
+ * http://reactivex.io/documentation/operators/subscribeon.html
+ * https://rxjs-dev.firebaseapp.com/api/operators/subscribeOn
+ *
+ */
+var subscribeOn1 = rxjs_1.interval(101).pipe(operators_1.take(3), 
+// subscribeOn(asyncScheduler),
+operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var subscribeOn2 = rxjs_1.interval(102).pipe(operators_1.take(3), 
+// subscribeOn(asapScheduler),
+operators_1.map(function (item) { return item * 102 + '-2'; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var subscribeOn3 = rxjs_1.interval(103).pipe(operators_1.take(3), 
+// subscribeOn(queueScheduler),
+operators_1.map(function (item) { return item * 103 + '-3'; }), 
+// tap(logAll),
+operators_1.endWith('3-закрыт'));
+var subscribeOn4 = rxjs_1.interval(104).pipe(operators_1.take(3), 
+// subscribeOn(animationFrameScheduler),
+operators_1.map(function (item) { return item * 104 + '-4'; }), 
+// tap(logAll),
+operators_1.endWith('4-закрыт'));
+var subscribeOn5 = rxjs_1.interval(105).pipe(
+// без subscribeOn считается, что приоритет immediate
+operators_1.take(3), operators_1.map(function (item) { return item * 105 + '-5'; }), 
+// tap(logAll),
+operators_1.endWith('5-закрыт'));
+var subscribeOn$ = rxjs_1.of(subscribeOn1, subscribeOn2, subscribeOn3, subscribeOn4, subscribeOn5).pipe(operators_1.mergeAll());
+subscribeOn$.subscribe(function (item) { return console.log(item); }, null, function () { return console.log('subscribeOn поток закрыт'); });
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
 //========================================================================================================================

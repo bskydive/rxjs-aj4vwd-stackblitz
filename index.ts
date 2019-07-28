@@ -1,5 +1,5 @@
-import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn } from 'rxjs/operators';
+import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler } from 'rxjs';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn } from 'rxjs/operators';
 
 
 const source = of('World').pipe(
@@ -1772,46 +1772,52 @@ const sampleTime$ = of(sampleTime1, sampleTime5).pipe(
 // sampleTime$.subscribe(item => console.log(item), null, () => console.log('sampleTime поток закрыт'));
 
 /**
- * observeOn - пример работает только в браузере/stackblitz
- * Управляет приоритетами(очередями) выполнения потока. 
+ * observeOn
+ * работает только в браузере/stackblitz
+ * Управляет приоритетами(очередями) выполнения потока. Похоже на применение setTimeout().
  * Перекрывает указанные вручную scheduler?: SchedulerLike
+ * порядок в цепочке pipe имеет значение, меняется порядок вызова у последующих операторов
  * 
  * Дополнительно:
  * node_modules/rxjs/internal/scheduler/queue.d.ts
  * node_modules/rxjs/internal/scheduler/async.d.ts
  * node_modules/rxjs/internal/scheduler/asap.d.ts
  * node_modules/rxjs/internal/scheduler/animationFrame.d.ts
+ * https://webdraftt.com/tutorial/rxjs/scheduler
+ * https://www.youtube.com/watch?v=8cV4ZvHXQL4
+ * http://reactivex.io/documentation/operators/observeon.html
+ * https://rxjs-dev.firebaseapp.com/api/operators/observeOn
+ * https://developer.mozilla.org/ru/docs/Web/JavaScript/EventLoop
  * 
- * Без приоритетов:
+ * 
+
+ * 
+ * Закоментировано observeOn
 Hello World!
 0-1
 0-2
 0-3
 0-4
+0-5
 101-1
 102-2
 103-3
 104-4
+105-5
 202-1
-204-2
-206-3
-208-4
-303-1
-306-2
-309-3
-312-4
-404-1
 1-закрыт
-408-2
+204-2
 2-закрыт
-412-3
+206-3
 3-закрыт
-416-4
+208-4
 4-закрыт
+210-5
+5-закрыт
 observeOn поток закрыт
  */
 const observeOn1 = interval(101).pipe(
-	take(5),
+	take(3),
 	// observeOn(asyncScheduler),
 	map(item => item * 101 + '-1'),
 	// tap(logAll),
@@ -1819,7 +1825,7 @@ const observeOn1 = interval(101).pipe(
 );
 
 const observeOn2 = interval(102).pipe(
-	take(5),
+	take(3),
 	// observeOn(asapScheduler),
 	map(item => item * 102 + '-2'),
 	// tap(logAll),
@@ -1827,7 +1833,7 @@ const observeOn2 = interval(102).pipe(
 );
 
 const observeOn3 = interval(103).pipe(
-	take(5),
+	take(3),
 	// observeOn(queueScheduler),
 	map(item => item * 103 + '-3'),
 	// tap(logAll),
@@ -1835,20 +1841,109 @@ const observeOn3 = interval(103).pipe(
 );
 
 const observeOn4 = interval(104).pipe(
-	take(5),
+	take(3),
 	// observeOn(animationFrameScheduler),
 	map(item => item * 104 + '-4'),
 	// tap(logAll),
 	endWith('4-закрыт')
 );
 
-const observeOn$ = of(observeOn1, observeOn2, observeOn3, observeOn4).pipe(
+const observeOn5 = interval(105).pipe(
+	// без observeOn считается, что приоритет immediate
+	take(3),
+	map(item => item * 105 + '-5'),
+	// tap(logAll),
+	endWith('5-закрыт')
+);
+
+const observeOn$ = of(observeOn1, observeOn2, observeOn3, observeOn4, observeOn5).pipe(
 	mergeAll(),
-	// map(item => item+'-sample500')
+	// map(item => item+'-observe')
 )
 
-observeOn$.subscribe(item => console.log(item), null, () => console.log('observeOn поток закрыт'));
+// observeOn$.subscribe(item => console.log(item), null, () => console.log('observeOn поток закрыт'));
 
+/**
+ * subscribeOn
+ * работает только в браузере/stackblitz
+ * Управляет приоритетами(очередями) выполнения потока. Похоже на применение setTimeout().
+ * Перекрывает указанные вручную scheduler?: SchedulerLike
+ * порядок в цепочке pipe не имеет значения, меняется порядок вызова у всего потока
+ * 
+ * http://reactivex.io/documentation/operators/subscribeon.html
+ * https://rxjs-dev.firebaseapp.com/api/operators/subscribeOn
+ * 
+ * 
+ * закоментировано subscribeOn
+ * Hello World!
+0-1
+0-2
+0-3
+0-4
+0-5
+101-1
+102-2
+103-3
+104-4
+105-5
+202-1
+1-закрыт
+204-2
+2-закрыт
+206-3
+3-закрыт
+208-4
+4-закрыт
+210-5
+5-закрыт
+subscribeOn поток закрыт
+ */
+const subscribeOn1 = interval(101).pipe(
+	take(3),
+	// subscribeOn(asyncScheduler),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+);
+
+const subscribeOn2 = interval(102).pipe(
+	take(3),
+	// subscribeOn(asapScheduler),
+	map(item => item * 102 + '-2'),
+	// tap(logAll),
+	endWith('2-закрыт'),
+);
+
+const subscribeOn3 = interval(103).pipe(
+	take(3),
+	// subscribeOn(queueScheduler),
+	map(item => item * 103 + '-3'),
+	// tap(logAll),
+	endWith('3-закрыт'),
+);
+
+const subscribeOn4 = interval(104).pipe(
+	take(3),
+	// subscribeOn(animationFrameScheduler),
+	map(item => item * 104 + '-4'),
+	// tap(logAll),
+	endWith('4-закрыт')
+);
+
+const subscribeOn5 = interval(105).pipe(
+	// без subscribeOn считается, что приоритет immediate
+	take(3),
+	map(item => item * 105 + '-5'),
+	// tap(logAll),
+	endWith('5-закрыт')
+);
+
+const subscribeOn$ = of(subscribeOn1, subscribeOn2, subscribeOn3, subscribeOn4, subscribeOn5).pipe(
+	mergeAll(),
+	// map(item => item+'-subscribe')
+)
+
+subscribeOn$.subscribe(item => console.log(item), null, () => console.log('subscribeOn поток закрыт'));
 
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
