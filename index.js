@@ -40,6 +40,16 @@ source.subscribe(function (x) { return console.log(x); });
     *
     * Поможет при изучении как справочник, и разобраться почему не работает оператор.
     * Содержит полный список правильных способов import {}
+    * типовые примеры, которые легко понимать по аналогии и комбинировать
+    * входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
+    * время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
+    * выполняется как в консоли, так и в онлайн редакторе
+    * просто один файл. Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать.
+    * большое, очень большое количество операторов
+    * все примеры рабочие и готовы к копипасту
+    * примеры многопоточные
+    * живой код. Что-то, что можно открыть IDE
+    * объём работы конский, потому, извиняйте, не всё сделано одинаково хорошо. Ближе к концу сделано лучше.
     *
     * Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
     * Перед каждым примером есть небольшое описание и результат выполнения
@@ -1256,6 +1266,20 @@ var ignoreElements$ = rxjs_1.of(ignoreElements1, ignoreElementsErr2, ignoreEleme
  * finalize
  * выполняет функцию finalizeFn
  * функция без параметров!
+ Hello World!
+0-1
+0-1
+101-1
+101-1
+202-1
+202-1
+303-1
+303-1
+0-2
+ошибка: 0-2
+fin main
+fin 1
+fin 2
  */
 var finalizeFn = function (item) { return function () { return console.log('fin', item); }; }; //обёртка для вывода названия завершающегося потока
 var finalizeErr1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll), 
@@ -1264,13 +1288,141 @@ var finalizeErr1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.m
 operators_1.endWith('err1-закрыт'), operators_1.finalize(finalizeFn('1')));
 var finalizeErr2 = rxjs_1.interval(505).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 505 + '-2'; }), operators_1.tap(logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.endWith('err2-закрыт'), operators_1.finalize(finalizeFn('2')));
 var finalize$ = rxjs_1.of(finalizeErr1, finalizeErr2).pipe(operators_1.mergeAll(), operators_1.finalize(finalizeFn('main')));
-finalize$.subscribe(function (item) { return console.log(item); }, function (err) { return console.log('ошибка:', err); }, function () { return console.log('finalize поток закрыт'); });
-//========================================================================================================================
-//==================================================TRANSFORM VALUES======================================================
-//========================================================================================================================
-//
+//finalize$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('finalize поток закрыт'));
 //========================================================================================================================
 //==================================================TIME, DURATION & VALUES===============================================
+//========================================================================================================================
+//
+/**
+ * auditTime
+ * возвращает предыдущее(текущее) значение из потока, имитированное до указанного интервала времени
+ * значение 500 меньше 505 и 1010, потому так мало значений
+ *
+ * Hello World!
+404-1
+1-закрыт
+1414-2
+auditTime поток закрыт
+
+ * Если раскомментировать tap
+ Hello World!
+0-1
+0-2
+101-1
+202-1
+202-2
+303-1
+404-1
+404-1-audit500
+404-1
+404-2
+505-1
+606-1
+606-2
+707-1
+808-1
+808-2
+909-1
+1-закрыт-audit500
+1-закрыт
+1010-2
+1212-2
+1414-2
+1414-2-audit500
+1414-2
+1616-2
+1818-2
+auditTime поток закрыт
+ */
+var auditTime1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var auditTime2 = rxjs_1.interval(202).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 202 + '-2'; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var auditTime$ = rxjs_1.of(auditTime1, auditTime2).pipe(operators_1.mergeAll(), operators_1.auditTime(500), operators_1.map(function (item) { return item + '-audit500'; }));
+// auditTime$.subscribe(item => console.log(item), null, () => console.log('auditTime поток закрыт'));
+/**
+ * sampleTime
+ * выводит крайнее значение из потока перед таймером.
+ * Если между таймерами не было значений - не выводит ничего, т.е. после вывода значения обнуляет свой кэш.
+ *
+ * Hello World!
+303-1
+808-1
+1-закрыт
+1010-5
+1515-5
+sampleTime поток закрыт
+ *
+ * Если раскомментировать tap
+ * Hello World!
+0-1
+101-1
+202-1
+303-1
+303-1-sample500
+0-5
+404-1
+505-1
+606-1
+707-1
+808-1
+808-1-sample500
+505-5
+909-1
+1-закрыт-sample500
+1010-5
+1010-5-sample500
+1515-5
+1515-5-sample500
+2020-5
+sampleTime поток закрыт
+ */
+var sampleTime1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var sampleTime5 = rxjs_1.interval(505).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 505 + '-5'; }), 
+// tap(logAll),
+operators_1.endWith('5-закрыт'));
+var sampleTime$ = rxjs_1.of(sampleTime1, sampleTime5).pipe(operators_1.mergeAll(), operators_1.sampleTime(500));
+// sampleTime$.subscribe(item => console.log(item), null, () => console.log('sampleTime поток закрыт'));
+/**
+ * observeOn
+ * Управляет приоритетами(очередями) выполнения потока.
+ * Перекрывает указанные вручную scheduler?: SchedulerLike
+ * Дополнительно:
+ * node_modules/rxjs/internal/scheduler/queue.d.ts
+ * node_modules/rxjs/internal/scheduler/async.d.ts
+ * node_modules/rxjs/internal/scheduler/asap.d.ts
+ * node_modules/rxjs/internal/scheduler/animationFrame.d.ts
+ *
+ *
+ */
+var observeOn1 = rxjs_1.interval(101).pipe(operators_1.take(5), 
+// observeOn(asyncScheduler),
+operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var observeOn2 = rxjs_1.interval(102).pipe(operators_1.take(5), 
+// observeOn(asapScheduler),
+operators_1.map(function (item) { return item * 102 + '-2'; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var observeOn3 = rxjs_1.interval(103).pipe(operators_1.take(5), 
+// observeOn(queueScheduler),
+operators_1.map(function (item) { return item * 103 + '-3'; }), 
+// tap(logAll),
+operators_1.endWith('3-закрыт'));
+var observeOn4 = rxjs_1.interval(104).pipe(operators_1.take(5), 
+// observeOn(animationFrameScheduler),
+operators_1.map(function (item) { return item * 104 + '-4'; }), 
+// tap(logAll),
+operators_1.endWith('4-закрыт'));
+var observeOn$ = rxjs_1.of(observeOn1, observeOn2, observeOn3, observeOn4).pipe(operators_1.mergeAll());
+observeOn$.subscribe(function (item) { return console.log(item); }, null, function () { return console.log('observeOn поток закрыт'); });
+//========================================================================================================================
+//==================================================TRANSFORM VALUES======================================================
 //========================================================================================================================
 //
 /**

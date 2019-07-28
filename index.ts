@@ -1,5 +1,5 @@
-import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize } from 'rxjs/operators';
+import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler } from 'rxjs';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn } from 'rxjs/operators';
 
 
 const source = of('World').pipe(
@@ -1649,7 +1649,205 @@ const finalize$ = of(finalizeErr1, finalizeErr2).pipe(
 	finalize(finalizeFn('main')),
 )
 
-finalize$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('finalize поток закрыт'));
+//finalize$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('finalize поток закрыт'));
+
+//========================================================================================================================
+//==================================================TIME, DURATION & VALUES===============================================
+//========================================================================================================================
+//
+
+/**
+ * auditTime
+ * возвращает предыдущее(текущее) значение из потока, имитированное до указанного интервала времени
+ * значение 500 меньше 505 и 1010, потому так мало значений
+ * 
+ * Hello World!
+404-1
+1-закрыт
+1414-2
+auditTime поток закрыт
+
+ * Если раскомментировать tap
+ Hello World!
+0-1
+0-2
+101-1
+202-1
+202-2
+303-1
+404-1
+404-1-audit500
+404-1
+404-2
+505-1
+606-1
+606-2
+707-1
+808-1
+808-2
+909-1
+1-закрыт-audit500
+1-закрыт
+1010-2
+1212-2
+1414-2
+1414-2-audit500
+1414-2
+1616-2
+1818-2
+auditTime поток закрыт
+ */
+const auditTime1 = interval(101).pipe(take(10),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'));
+const auditTime2 = interval(202).pipe(take(10),
+	map(item => item * 202 + '-2'),
+	// tap(logAll),
+	endWith('2-закрыт'));
+
+const auditTime$ = of(auditTime1, auditTime2).pipe(
+	mergeAll(),
+	auditTime(500),
+	map(item => item + '-audit500')
+)
+
+// auditTime$.subscribe(item => console.log(item), null, () => console.log('auditTime поток закрыт'));
+
+
+/**
+ * sampleTime
+ * выводит крайнее значение из потока перед таймером.
+ * Если между таймерами не было значений - не выводит ничего, т.е. после вывода значения обнуляет свой кэш.
+ * 
+ * Hello World!
+303-1
+808-1
+1-закрыт
+1010-5
+1515-5
+sampleTime поток закрыт
+ * 
+ * Если раскомментировать tap
+ * Hello World!
+0-1
+101-1
+202-1
+303-1
+303-1-sample500
+0-5
+404-1
+505-1
+606-1
+707-1
+808-1
+808-1-sample500
+505-5
+909-1
+1-закрыт-sample500
+1010-5
+1010-5-sample500
+1515-5
+1515-5-sample500
+2020-5
+sampleTime поток закрыт
+ */
+const sampleTime1 = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'));
+const sampleTime5 = interval(505).pipe(
+	take(5),
+	map(item => item * 505 + '-5'),
+	// tap(logAll),
+	endWith('5-закрыт'));
+
+const sampleTime$ = of(sampleTime1, sampleTime5).pipe(
+	mergeAll(),
+	sampleTime(500),
+	// map(item => item+'-sample500')
+)
+
+// sampleTime$.subscribe(item => console.log(item), null, () => console.log('sampleTime поток закрыт'));
+
+/**
+ * observeOn - пример работает только в браузере/stackblitz
+ * Управляет приоритетами(очередями) выполнения потока. 
+ * Перекрывает указанные вручную scheduler?: SchedulerLike
+ * 
+ * Дополнительно:
+ * node_modules/rxjs/internal/scheduler/queue.d.ts
+ * node_modules/rxjs/internal/scheduler/async.d.ts
+ * node_modules/rxjs/internal/scheduler/asap.d.ts
+ * node_modules/rxjs/internal/scheduler/animationFrame.d.ts
+ * 
+ * Без приоритетов:
+Hello World!
+0-1
+0-2
+0-3
+0-4
+101-1
+102-2
+103-3
+104-4
+202-1
+204-2
+206-3
+208-4
+303-1
+306-2
+309-3
+312-4
+404-1
+1-закрыт
+408-2
+2-закрыт
+412-3
+3-закрыт
+416-4
+4-закрыт
+observeOn поток закрыт
+ */
+const observeOn1 = interval(101).pipe(
+	take(5),
+	// observeOn(asyncScheduler),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+);
+
+const observeOn2 = interval(102).pipe(
+	take(5),
+	// observeOn(asapScheduler),
+	map(item => item * 102 + '-2'),
+	// tap(logAll),
+	endWith('2-закрыт'),
+);
+
+const observeOn3 = interval(103).pipe(
+	take(5),
+	// observeOn(queueScheduler),
+	map(item => item * 103 + '-3'),
+	// tap(logAll),
+	endWith('3-закрыт'),
+);
+
+const observeOn4 = interval(104).pipe(
+	take(5),
+	// observeOn(animationFrameScheduler),
+	map(item => item * 104 + '-4'),
+	// tap(logAll),
+	endWith('4-закрыт')
+);
+
+const observeOn$ = of(observeOn1, observeOn2, observeOn3, observeOn4).pipe(
+	mergeAll(),
+	// map(item => item+'-sample500')
+)
+
+observeOn$.subscribe(item => console.log(item), null, () => console.log('observeOn поток закрыт'));
 
 
 //========================================================================================================================
@@ -1657,10 +1855,6 @@ finalize$.subscribe(item => console.log(item), err => console.log('ошибка:
 //========================================================================================================================
 //
 
-//========================================================================================================================
-//==================================================TIME, DURATION & VALUES===============================================
-//========================================================================================================================
-//
 
 /**
  * exhaustMap
