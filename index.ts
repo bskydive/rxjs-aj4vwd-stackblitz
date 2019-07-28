@@ -1,5 +1,5 @@
 import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn } from 'rxjs/operators';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty } from 'rxjs/operators';
 
 
 const source = of('World').pipe(
@@ -14,33 +14,39 @@ source.subscribe(x => console.log(x));
  * 
  * ========== ПОЧИТАЙКА: README.md ===============
  * 
- * Сделано как конспект при изучении различных материалов. 
+ * Сделано как конспект при изучении различных материалов.
 	https://www.learnrxjs.io/ 
 	http://reactivex.io/documentation/operators.html 
 	https://rxmarbles.com/ 
 	https://rxjs-dev.firebaseapp.com/api
 	https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
-	* 
-	* Поможет при изучении как справочник, и разобраться почему не работает оператор.
-	* Содержит полный список правильных способов import {}
-	* типовые примеры, которые легко понимать по аналогии и комбинировать
-	* входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
-	* время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
-	* выполняется как в консоли, так и в онлайн редакторе
-	* просто один файл. Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать.
-	* большое, очень большое количество операторов
-	* все примеры рабочие и готовы к копипасту
-	* примеры многопоточные
-	* живой код. Что-то, что можно открыть IDE
-	* объём работы конский, потому, извиняйте, не всё сделано одинаково хорошо. Ближе к концу сделано лучше.
-	* 
-	* Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
-	* Перед каждым примером есть небольшое описание и результат выполнения
-	* Если надо поменять поведение оператора необходимо:
-	* * обновить страницу stackblitz
-	* * раскомментировать subscribe строку необходимого оператора
-	* * открыть консоль встроенного браузера stackblitz
-	* 
+ * 
+ * Поможет при изучении как справочник в поиске, и при отладке.
+ * Содержит полный список правильных способов import {}
+ * типовые примеры, которые легко комбинировать и сопоставлять
+ * входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
+ * время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
+ * в примерах расставлены закоментированные операторы логирования для отладки tap(logAll)
+ * выходная строка subscribe унифицирована для облегчения отладки
+ * унифицированные постфиксы '-1' | '-$' | '-dynamic' помогают в чтении вывода
+ * операторы endWith('...') помогают понять когда происходит завершение(отписка) потока
+ * выполняется как в консоли, так и в онлайн редакторе. Некоторые примеры работают только в браузере, когда необходимо его API
+ * просто один файл. Суровый простой "кирпич". Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать. Нет оглавления, но его можно построить поиском ctrl+shift+f '$.subscribe('. Любое другое удобство усложнит код, и потребует ещё более могучего времени на рефакторинг, поиск компромиссов.
+ * нет typescript, модульности и пр плюшек для ускорения работы над кодом. Основная работа в просмотре лекции и её конспектировании.
+ * большое, очень большое количество операторов
+ * все примеры рабочие и готовы к копипасту
+ * примеры многопоточные
+ * живой код. Что-то, что можно открыть IDE
+ * объём работы конский, потому, извиняйте, не всё сделано одинаково хорошо. Ближе к концу сделано лучше.
+ * чтобы заглушить ненужный входной поток достаточно сделать take(0)
+ * 
+ * Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
+ * Перед каждым примером есть небольшое описание и результат выполнения
+ * Если надо поменять поведение оператора необходимо:
+	 * обновить страницу stackblitz
+	 * раскомментировать subscribe строку необходимого оператора
+	 * открыть консоль встроенного браузера stackblitz
+ * 
  * 
  * ========== Конструктивная помощь ===============
  * 
@@ -237,9 +243,10 @@ const bufferWhen$ = interval(500).pipe(
 //========================================================================================================================
 
 /**
- * Возвращает новые поток(буфер) по таймеру, предыдущий закрывает
- */
-/*
+ * window
+ * "нарезка"
+ * Возвращает новый поток(буфер) по таймеру, предыдущий закрывает
+ 
 ["window", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ["window", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 */
@@ -254,7 +261,11 @@ const window$ = interval(100).pipe(
 //window$.subscribe(a => console.log(a));
 
 
-/*
+/**
+ * windowCount
+ * 
+ * Возвращает новый поток(буфер) по количеству значений, предыдущий закрывает
+ * 
 windowCount(2)
 ["windowCount", 0, 1]
 ["windowCount", 2, 3]
@@ -281,8 +292,10 @@ const windowCount$ = interval(100).pipe(
 
 
 
-/*
- * Дополнительный способ timer вместо interval
+/**
+ * WindowTime
+ * Возвращает новый поток(буфер) по таймеру, предыдущий закрывает
+ * timer вместо interval
 ["windowTime", 0, 1]
 ["windowTime", 2, 3]
 ["windowTime", 4, 5]
@@ -301,6 +314,8 @@ const windowTime$ = timer(0, 100)
 //windowTime$.subscribe(a => console.log(a));
 
 /**
+ * windowToggle
+ * 
  * 
 windowOpen 0
 0
@@ -336,9 +351,11 @@ const windowToggle$ = timer(0, 100).pipe(
 )
 //windowToggle$.subscribe(a => console.log(a));
 
-//выбор времени закрытия буфера
-/*
 
+/**
+ * windowWhen
+ * выбор времени закрытия буфера 
+ 
 */
 count = 0;
 const windowWhen$ = interval(500).pipe(
@@ -371,6 +388,7 @@ const windowWhen$ = interval(500).pipe(
 
 //
 /**
+ * catchError
  * Перехват потока при ошибке
  * Практическое применение: самописные обработчики ошибок, сервисы хранения ошибок типа ravenjs
 словил:ошибка ошибковна источик:Observable {_isScalar: false, source: {…}, operator: {…}}
@@ -394,7 +412,9 @@ const error$ = throwError('ошибка ошибковна')
 
 //
 /**
- * Можно подменять ошибку при пустом потоке
+ * errorHandler
+ * ошибка  при пустом потоке
+ * Можно подменять ошибку
  * Error {message: "no elements in sequence", name: "EmptyError"}
  */
 const errorHandler = () => console.log(`ничоси`);
@@ -408,6 +428,7 @@ const errorEmpty$ = of().pipe(
 
 //
 /**
+ * errorNext
  * Новый поток при ошибке
 0
 1
@@ -430,8 +451,9 @@ const errorSwitch$ = timer(0, 100).pipe(
 
 //errorSwitch$.subscribe(a => console.log(a), err=>console.log(err));
 
-//
 /**
+ * errorRetry
+ * 
  * Повторяет поток значений указанное количество раз при ошибке
 0
 1
@@ -501,7 +523,7 @@ const errorRetryWhen$ = timer(0, 100).pipe(
 
 //retryWhen
 const swallow = false;
-const sw$ = interval(200).pipe(
+const swallow$ = interval(200).pipe(
 	map(x => {
 		console.log('try: ' + x);
 		if (x === 1) {
@@ -542,7 +564,7 @@ const sw$ = interval(200).pipe(
 	})
 )
 
-//sw$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('completed'))
+//swallow$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('completed'))
 
 //
 /**
@@ -1790,7 +1812,28 @@ const sampleTime$ = of(sampleTime1, sampleTime5).pipe(
  * https://developer.mozilla.org/ru/docs/Web/JavaScript/EventLoop
  * 
  * 
-
+Hello World!
+0-2
+0-3
+0-1
+0-4
+0-5
+101-1
+102-2
+103-3
+105-5
+104-4
+202-1
+1-закрыт
+204-2
+2-закрыт
+206-3
+3-закрыт
+210-5
+5-закрыт
+208-4
+4-закрыт
+observeOn поток закрыт
  * 
  * Закоментировано observeOn
 Hello World!
@@ -1873,6 +1916,28 @@ const observeOn$ = of(observeOn1, observeOn2, observeOn3, observeOn4, observeOn5
  * http://reactivex.io/documentation/operators/subscribeon.html
  * https://rxjs-dev.firebaseapp.com/api/operators/subscribeOn
  * 
+Hello World!
+0-2
+0-3
+0-5
+0-1
+0-4
+102-2
+103-3
+105-5
+101-1
+104-4
+204-2
+2-закрыт
+206-3
+3-закрыт
+210-5
+5-закрыт
+202-1
+1-закрыт
+208-4
+4-закрыт
+subscribeOn поток закрыт
  * 
  * закоментировано subscribeOn
  * Hello World!
@@ -1943,13 +2008,547 @@ const subscribeOn$ = of(subscribeOn1, subscribeOn2, subscribeOn3, subscribeOn4, 
 	// map(item => item+'-subscribe')
 )
 
-subscribeOn$.subscribe(item => console.log(item), null, () => console.log('subscribeOn поток закрыт'));
+// subscribeOn$.subscribe(item => console.log(item), null, () => console.log('subscribeOn поток закрыт'));
+
+/**
+ * debounce
+ * "Спаморезка"
+ * Выводит крайнее значение из потока, если была пауза больше, чем интервал debounceSignal*
+ * Выводит крайнее значение, если ни одно не прошло в интервал debounceOver.
+ * Таймер стартует(переподписывается) каждое значение. Т.е. в простом случае debounce(interval(x)) debounce ждёт больших, чем интервал x промежутков между значениями потока для вывода. Т.е. игнорирует спам.
+ * Можно управлять интервалом динамически, см. debounceDynamic
+ * 
+Hello World!
+0-dynamic-$
+0-norm-$
+103-dynamic-$
+102-norm-$
+206-dynamic-$
+204-norm-$
+309-dynamic-$
+306-norm-$
+412-dynamic-$
+408-norm-$
+515-dynamic-$
+510-norm-$
+612-norm-$
+714-norm-$
+909-over-$
+over-закрыт-$
+816-norm-$
+918-norm-$
+norm-закрыт-$
+927-dynamic-$
+dynamic-закрыт-$
+debounce поток закрыт
+ */
+
+const debounceSignalOver = interval(2000)
+const debounceSignalNorm = interval(50)
+const debounceSignalDynamic = item => {
+	const TIMER = 5; // interval имитирует 0,1,2,3,4...
+	if (item > TIMER) {
+		return interval(500)
+	} else {
+		return interval(0)
+	}
+}
+
+const debounceOver = interval(101).pipe(
+	take(10),
+	debounce(item => debounceSignalOver),
+	map(item => item * 101 + '-over'),
+	// tap(logAll),
+	endWith('over-закрыт'),
+);
+
+const debounceNorm = interval(102).pipe(
+	take(10),
+	debounce(item => debounceSignalNorm),
+	map(item => item * 102 + '-norm'),
+	// tap(logAll),
+	endWith('norm-закрыт'),
+);
+
+const debounceDynamic = interval(103).pipe(
+	take(10),
+	debounce(item => debounceSignalDynamic(item)),
+	map(item => item * 103 + '-dynamic'),
+	// tap(logAll),
+	endWith('dynamic-закрыт'),
+);
+
+const debounce$ = of(debounceOver, debounceNorm, debounceDynamic).pipe(
+	mergeAll(),
+	// map(item => item+'-subscribe')
+)
+
+//debounce$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounce поток закрыт'));
+
+/**
+ * debounceTime
+ * "Спаморезка"
+ * Выводит крайнее значение из потока, если была пауза больше, чем интервал х в debounceTime(х)
+ * Выводит крайнее значение, если ни одно не прошло в интервал.
+ * Таймер стартует(переподписывается) каждое значение. Т.е. в простом случае debounceTime(x) ждёт больших, чем интервал x промежутков между значениями потока для вывода. Т.е. игнорирует спам.
+ * 
+ * 
+Hello World!
+0-dynamic-$
+0-norm-$
+103-dynamic-$
+102-norm-$
+206-dynamic-$
+204-norm-$
+309-dynamic-$
+306-norm-$
+412-dynamic-$
+408-norm-$
+515-dynamic-$
+510-norm-$
+612-norm-$
+714-norm-$
+909-over-$
+over-закрыт-$
+816-norm-$
+918-norm-$
+norm-закрыт-$
+927-dynamic-$
+dynamic-закрыт-$
+debounce поток закрыт
+ */
+
+const debounceTimeOver = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-over'),
+	// tap(logAll),
+	debounceTime(1000),
+	endWith('over-закрыт'),
+);
+
+const debounceTimeNorm = interval(102).pipe(
+	take(10),
+	map(item => item * 102 + '-norm'),
+	// tap(logAll),
+	debounceTime(50),
+	endWith('norm-закрыт'),
+);
+
+const debounceTime$ = of(debounceTimeOver, debounceTimeNorm).pipe(
+	mergeAll(),
+	// map(item => item+'-subscribe')
+)
+
+// debounceTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounceTime поток закрыт'));
+
+/**
+ * delay
+ * задержка имитации значений потока на указанный интервал или дату
+ * 
+ * Hello World!
+0-3-$
+103-3-$
+206-3-$
+309-3-$
+412-3-$
+515-3-$
+618-3-$
+721-3-$
+824-3-$
+927-3-$
+3-закрыт-$
+0-1-$
+0-2-$
+101-1-$
+102-2-$
+202-1-$
+1-закрыт-$
+204-2-$
+2-закрыт-$
+delay поток закрыт
+ */
+const delay1 = interval(101).pipe(
+	delay(1000),
+	take(3),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const delay2 = interval(102).pipe(
+	delay(new Date(Date.now()+1000)),
+	take(3),
+	map(item => item * 102 + '-2'),
+	// tap(logAll),
+	endWith('2-закрыт'),
+)
+
+const delay3 = interval(103).pipe(
+	// контрольный поток без задержек
+	take(10),
+	map(item => item * 103 + '-3'),
+	// tap(logAll),
+	endWith('3-закрыт'),
+)
+
+const delay$ = of(delay1, delay2, delay3).pipe(
+	mergeAll()
+)
+
+//delay$.subscribe(item => console.log(item + '-$'), null, () => console.log('delay поток закрыт'));
+
+/**
+ * delayWhen
+ * Задерживает мимтацию значений потока на указанный интервал
+ * 
+ * Hello World!
+0-1-$
+101-1-$
+200-2-$
+202-1-$
+303-1-$
+302-2-$
+404-1-$
+404-2-$
+505-1-$
+506-2-$
+606-1-$
+608-2-$
+707-1-$
+710-2-$
+808-1-$
+812-2-$
+909-1-$
+1-закрыт-$
+914-2-$
+1016-2-$
+1118-2-$
+2-закрыт-$
+delayWhen поток закрыт
+ */
+const delayWhen1 = interval(101).pipe(
+	// контрольный поток без задержек
+	take(10),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const delayWhen2 = interval(102).pipe(
+	delayWhen((item, index)=> interval(200)),
+	take(10),
+	map(item => item * 102 + 200 + '-2'),
+	// tap(logAll),
+	endWith('2-закрыт'),
+)
+
+const delayWhen$ = of(delayWhen1, delayWhen2).pipe(
+	mergeAll()
+)
+
+//delayWhen$.subscribe(item => console.log(item + '-$'), null, () => console.log('delayWhen поток закрыт'));
+
+
+/**
+ * throttleTime
+ * пропускает первое значение потока и задерживает остальные на указанное время.
+ * по окончании интервала начинает заново
+ * 
+ * Hello World!
+0-1-$
+300-2-$
+101-1-$
+202-1-$
+303-1-$
+606-2-$
+404-1-$
+505-1-$
+606-1-$
+912-2-$
+707-1-$
+808-1-$
+909-1-$
+1-закрыт-$
+1218-2-$
+1524-2-$
+1830-2-$
+2136-2-$
+2442-2-$
+2748-2-$
+3054-2-$
+2-закрыт-$
+throttleTime поток закрыт
+ */
+const throttleTime1 = interval(101).pipe(
+	// контрольный поток без задержек
+	take(10),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const throttleTime2 = interval(102).pipe(
+	throttleTime(300),
+	take(10),
+	map(item => item * 102 + 300 + '-2'),
+	// tap(logAll),
+	endWith('2-закрыт'),
+)
+
+const throttleTime$ = of(throttleTime1, throttleTime2).pipe(
+	mergeAll()
+)
+
+//throttleTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('throttleTime поток закрыт'));
+
+/**
+ * timeInterval
+ * оборачивает каждое значение в объект, добавляя поле со значением интервала во времени от предыдущего до текущего значения
+ * судя по всему, используется performance.now()
+ * 
+ * Hello World!
+{"value":"0-2","interval":105}-$
+{"value":"102-2","interval":104}-$
+{"value":"204-2","interval":102}-$
+{"value":"306-2","interval":103}-$
+{"value":"408-2","interval":102}-$
+"2-закрыт"-$
+timeInterval поток закрыт
+ */
+const timeInterval1 = interval(102).pipe(
+	take(5),
+	map(item => item * 102 + '-2'),
+	timeInterval(),
+	// tap(logAll),
+	endWith('2-закрыт'),
+)
+
+const timeInterval$ = of(timeInterval1).pipe(
+	mergeAll()
+)
+
+//timeInterval$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timeInterval поток закрыт'));
+
+/**
+ * timestamp
+ * оборачивает каждое значение в объект, добавляя время его имитации
+ * 
+ * Hello World!
+{"value":"0-1","timestamp":1564341146592}-$
+{"value":"0-2","timestamp":"2019-07-28T19:12:26.595Z"}-$
+{"value":"101-1","timestamp":1564341146694}-$
+{"value":"102-2","timestamp":"2019-07-28T19:12:26.698Z"}-$
+{"value":"202-1","timestamp":1564341146796}-$
+{"value":"204-2","timestamp":"2019-07-28T19:12:26.800Z"}-$
+{"value":"303-1","timestamp":1564341146898}-$
+{"value":"306-2","timestamp":"2019-07-28T19:12:26.902Z"}-$
+{"value":"404-1","timestamp":1564341147000}-$
+"1-закрыт"-$
+{"value":"408-2","timestamp":"2019-07-28T19:12:27.006Z"}-$
+"2-закрыт"-$
+timestamp поток закрыт
+ */
+const timestamp1 = interval(101).pipe(
+	take(5),
+	map(item => item * 101 + '-1'),
+	timestamp(),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const timestamp2 = interval(102).pipe(
+	// добавим немного человекочитаемости к дате
+	take(5),
+	map(item => item * 102 + '-2'),
+	timestamp(),
+	map(item => {return {value: item.value, timestamp: new Date(item.timestamp)}}),
+	// tap(logAll),
+	endWith('2-закрыт'),
+)
+
+const timestamp$ = of(timestamp1, timestamp2).pipe(
+	mergeAll()
+)
+
+//timestamp$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timestamp поток закрыт'));
 
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
 //========================================================================================================================
 //
 
+/**
+ * concatMap
+ * преобразует входное значение потока, сохраняя их порядок даже при задержке преобразования
+ * в отличии от map может возвращать потоки
+ * 
+ * Hello World!
+"0-1"-$
+"0-2"-$
+"0-21000"-$
+"101-1"-$
+"102-2"-$
+"102-21000"-$
+"202-1"-$
+["0-2","delay200"]-$
+"204-2"-$
+"204-21000"-$
+"303-1"-$
+"306-2"-$
+"306-21000"-$
+"404-1"-$
+["102-2","delay200"]-$
+"408-2"-$
+"408-21000"-$
+"2-закрыт"-$
+"505-1"-$
+["204-2","delay200"]-$
+"606-1"-$
+"707-1"-$
+["306-2","delay200"]-$
+"808-1"-$
+"909-1"-$
+"1-закрыт"-$
+["408-2","delay200"]-$
+"2-закрыт"-$
+concatMap поток закрыт
+ */
+const concatMap1 = interval(101).pipe(
+	// контрольный поток
+	take(10),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const concatMap2 = interval(102).pipe(
+	// просто меняем значение на массив
+	take(5),
+	map(item => item * 102 + '-2'),
+	concatMap((item, index) => [item, item + 1000]),
+	// tap(logAll),
+	endWith('2-закрыт'),
+)
+
+const concatMap3 = interval(103).pipe(
+	// добавляем задержку
+	take(5),
+	map(item => item * 103 + '-3'),
+	concatMap((item, index) => of([item, 'delay200']).pipe(delay(200))),
+	// tap(logAll),
+	endWith('3-закрыт'),
+)
+
+const concatMap$ = of(concatMap1, concatMap2, concatMap3).pipe(
+	mergeAll()
+)
+
+// concatMap$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('concatMap поток закрыт'));
+
+/**
+ * concatMapTo
+ * входные значения - это сигнальный поток для имитации значений внутреннего потока concatMapToInternal
+ * повторяет весь внутренний поток при каждом сигнале
+ * 
+ * Hello World!
+0-1-$
+101-1-$
+0-Internal-$
+202-1-$
+102-Internal-$
+303-1-$
+204-Internal-$
+Internal-закрыт-$
+404-1-$
+0-Internal-$
+505-1-$
+102-Internal-$
+606-1-$
+204-Internal-$
+Internal-закрыт-$
+707-1-$
+0-Internal-$
+808-1-$
+102-Internal-$
+909-1-$
+1-закрыт-$
+204-Internal-$
+Internal-закрыт-$
+0-Internal-$
+102-Internal-$
+204-Internal-$
+Internal-закрыт-$
+0-Internal-$
+102-Internal-$
+204-Internal-$
+Internal-закрыт-$
+Signal-закрыт-$
+concatMapTo поток закрыт
+ */
+const concatMapTo1 = interval(101).pipe(
+	// контрольный поток
+	take(10),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const concatMapToInternal = interval(102).pipe(
+	// внутренний поток для concatMap
+	take(3),
+	map(item => item * 102 + '-Internal'),
+	// tap(logAll),
+	endWith('Internal-закрыт'),
+)
+
+const concatMapToSignal = interval(103).pipe(
+	// имитируем значения из внутреннего потока 
+	take(5),
+	map(item => item * 103 + '-Signal'),
+	concatMapTo(concatMapToInternal),
+	// tap(logAll),
+	endWith('Signal-закрыт'),
+)
+
+const concatMapTo$ = of(concatMapTo1, concatMapToSignal).pipe(
+	mergeAll()
+)
+
+// concatMapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('concatMapTo поток закрыт'));
+
+/**
+ * defaultIfEmpty
+ * возвращает указанное значение defaultIfEmptyInternal, если поток завершился без значений
+ * 
+ * Hello World!
+1-$
+1-закрыт-$
+defaultIfEmpty поток закрыт
+ */
+
+const defaultIfEmptyInternal = '1'
+// const defaultIfEmptyInternal = 1
+
+const defaultIfEmpty1 = interval(103).pipe(
+	// имитируем значения из внутреннего потока 
+	take(0),
+	map(item => item * 103 + '-1'),
+	// tap(logAll),
+	defaultIfEmpty(defaultIfEmptyInternal),
+	endWith('1-закрыт'),
+)
+
+const defaultIfEmpty$ = of(defaultIfEmpty1).pipe(
+	mergeAll()
+)
+
+defaultIfEmpty$.subscribe(item => console.log(item + '-$'), null, () => console.log('defaultIfEmpty поток закрыт'));
+
+
+/**
+ * endWith
+ * 
+ */
 
 /**
  * exhaustMap
@@ -1973,7 +2572,7 @@ const exhaustMap$ = interval(302).pipe(
 	map(item => `startItem-${item * 302}`),
 	exhaustMap(exhaustMapFork$)
 );
-//exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
+//exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('exhaustMap поток закрыт'));
 
 /**
  * pluck(x:string)
@@ -1992,7 +2591,7 @@ const pluck$ = interval(100)
 		pluck('double')//возвращаем в поток только item.double
 	);
 
-//pluck$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
+//pluck$.subscribe(item => console.log(item), null, ()=> console.log('pluck поток закрыт'));
 
 /**
  * switchMap 
@@ -2023,4 +2622,4 @@ const switchMap$ = interval(303).pipe(
 	switchMap(switchMapFork1$)
 );
 
-//switchMap$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
+//switchMap$.subscribe(item => console.log(item), null, ()=> console.log('switchMap поток закрыт'));

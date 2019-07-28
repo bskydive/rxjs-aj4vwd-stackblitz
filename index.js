@@ -37,27 +37,33 @@ source.subscribe(function (x) { return console.log(x); });
     https://rxmarbles.com/
     https://rxjs-dev.firebaseapp.com/api
     https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook
-    *
-    * Поможет при изучении как справочник, и разобраться почему не работает оператор.
-    * Содержит полный список правильных способов import {}
-    * типовые примеры, которые легко понимать по аналогии и комбинировать
-    * входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
-    * время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
-    * выполняется как в консоли, так и в онлайн редакторе
-    * просто один файл. Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать.
-    * большое, очень большое количество операторов
-    * все примеры рабочие и готовы к копипасту
-    * примеры многопоточные
-    * живой код. Что-то, что можно открыть IDE
-    * объём работы конский, потому, извиняйте, не всё сделано одинаково хорошо. Ближе к концу сделано лучше.
-    *
-    * Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
-    * Перед каждым примером есть небольшое описание и результат выполнения
-    * Если надо поменять поведение оператора необходимо:
-    * * обновить страницу stackblitz
-    * * раскомментировать subscribe строку необходимого оператора
-    * * открыть консоль встроенного браузера stackblitz
-    *
+ *
+ * Поможет при изучении как справочник в поиске, и при отладке.
+ * Содержит полный список правильных способов import {}
+ * типовые примеры, которые легко комбинировать и сопоставлять
+ * входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
+ * время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
+ * в примерах расставлены закоментированные операторы логирования для отладки tap(logAll)
+ * выходная строка subscribe унифицирована для облегчения отладки
+ * унифицированные постфиксы '-1' | '-$' | '-dynamic' помогают в чтении вывода
+ * операторы endWith('...') помогают понять когда происходит завершение(отписка) потока
+ * выполняется как в консоли, так и в онлайн редакторе. Некоторые примеры работают только в браузере, когда необходимо его API
+ * просто один файл. Суровый простой "кирпич". Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать. Нет оглавления, но его можно построить поиском ctrl+shift+f '$.subscribe('. Любое другое удобство усложнит код, и потребует ещё более могучего времени на рефакторинг, поиск компромиссов.
+ * нет typescript, модульности и пр плюшек для ускорения работы над кодом. Основная работа в просмотре лекции и её конспектировании.
+ * большое, очень большое количество операторов
+ * все примеры рабочие и готовы к копипасту
+ * примеры многопоточные
+ * живой код. Что-то, что можно открыть IDE
+ * объём работы конский, потому, извиняйте, не всё сделано одинаково хорошо. Ближе к концу сделано лучше.
+ * чтобы заглушить ненужный входной поток достаточно сделать take(0)
+ *
+ * Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора
+ * Перед каждым примером есть небольшое описание и результат выполнения
+ * Если надо поменять поведение оператора необходимо:
+     * обновить страницу stackblitz
+     * раскомментировать subscribe строку необходимого оператора
+     * открыть консоль встроенного браузера stackblitz
+ *
  *
  * ========== Конструктивная помощь ===============
  *
@@ -212,15 +218,20 @@ var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
 //==================================================WINDOW================================================================
 //========================================================================================================================
 /**
- * Возвращает новые поток(буфер) по таймеру, предыдущий закрывает
- */
-/*
+ * window
+ * "нарезка"
+ * Возвращает новый поток(буфер) по таймеру, предыдущий закрывает
+ 
 ["window", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ["window", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 */
 var window$ = rxjs_1.interval(100).pipe(operators_1.window(rxjs_1.interval(1000)), operators_1.take(3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['window'], item); })); }));
 //window$.subscribe(a => console.log(a));
-/*
+/**
+ * windowCount
+ *
+ * Возвращает новый поток(буфер) по количеству значений, предыдущий закрывает
+ *
 windowCount(2)
 ["windowCount", 0, 1]
 ["windowCount", 2, 3]
@@ -237,8 +248,10 @@ windowCount(2,3)
 */
 var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.windowCount(2, 3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowCount'], item); })); }));
 //windowCount$.subscribe(a => console.log(a));
-/*
- * Дополнительный способ timer вместо interval
+/**
+ * WindowTime
+ * Возвращает новый поток(буфер) по таймеру, предыдущий закрывает
+ * timer вместо interval
 ["windowTime", 0, 1]
 ["windowTime", 2, 3]
 ["windowTime", 4, 5]
@@ -249,6 +262,8 @@ var windowTime$ = rxjs_1.timer(0, 100)
     .pipe(operators_1.take(9), operators_1.windowTime(200), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowTime'], item); })); }));
 //windowTime$.subscribe(a => console.log(a));
 /**
+ * windowToggle
+ *
  *
 windowOpen 0
 0
@@ -274,9 +289,10 @@ var windowOpen$ = rxjs_1.timer(0, 400).pipe(operators_1.map(function () { return
 var windowClose$ = function () { return rxjs_1.timer(300).pipe(operators_1.map(function () { return console.log('windowClose', count++); })); };
 var windowToggle$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.tap(function (item) { return console.log(item); }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowToggle'], item); })); }));
 //windowToggle$.subscribe(a => console.log(a));
-//выбор времени закрытия буфера
-/*
-
+/**
+ * windowWhen
+ * выбор времени закрытия буфера
+ 
 */
 count = 0;
 var windowWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.map(function (item) { return (count = item); }), operators_1.windowWhen(function () {
@@ -301,6 +317,7 @@ var windowWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
 //========================================================================================================================
 //
 /**
+ * catchError
  * Перехват потока при ошибке
  * Практическое применение: самописные обработчики ошибок, сервисы хранения ошибок типа ravenjs
 словил:ошибка ошибковна источик:Observable {_isScalar: false, source: {…}, operator: {…}}
@@ -319,7 +336,9 @@ var error$ = rxjs_1.throwError('ошибка ошибковна')
 //error$.subscribe(a => console.log(a), err => console.log('ошибка:', err), ()=>console.log('норм'));
 //
 /**
- * Можно подменять ошибку при пустом потоке
+ * errorHandler
+ * ошибка  при пустом потоке
+ * Можно подменять ошибку
  * Error {message: "no elements in sequence", name: "EmptyError"}
  */
 var errorHandler = function () { return console.log("\u043D\u0438\u0447\u043E\u0441\u0438"); };
@@ -329,6 +348,7 @@ var errorEmpty$ = rxjs_1.of().pipe(operators_1.throwIfEmpty() //без подм�
 //errorEmpty$.subscribe(a => console.log(a), err=>console.log(err));
 //
 /**
+ * errorNext
  * Новый поток при ошибке
 0
 1
@@ -346,8 +366,9 @@ var errorSwitch$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1.ma
     }
 }), operators_1.onErrorResumeNext(errorNext$));
 //errorSwitch$.subscribe(a => console.log(a), err=>console.log(err));
-//
 /**
+ * errorRetry
+ *
  * Повторяет поток значений указанное количество раз при ошибке
 0
 1
@@ -404,7 +425,7 @@ var errorRetryWhen$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1
 //errorRetryWhen$.subscribe(a => console.log(a));
 //retryWhen
 var swallow = false;
-var sw$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
+var swallow$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
     console.log('try: ' + x);
     if (x === 1) {
         throw 'error: ' + x;
@@ -434,7 +455,7 @@ var sw$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
         }));
     }
 }));
-//sw$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('completed'))
+//swallow$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('completed'))
 //
 /**
  * timeout
@@ -1406,60 +1427,31 @@ var sampleTime$ = rxjs_1.of(sampleTime1, sampleTime5).pipe(operators_1.mergeAll(
  * https://developer.mozilla.org/ru/docs/Web/JavaScript/EventLoop
  *
  *
- * Hello World!
-0-2
-0-3
-0-1
-0-4
-101-1
-102-2
-103-3
-104-4
-202-1
-204-2
-206-3
-208-4
-303-1
-306-2
-309-3
-312-4
-404-1
-1-закрыт
-408-2
-2-закрыт
-412-3
-3-закрыт
-416-4
-4-закрыт
-observeOn поток закрыт
 Hello World!
 0-2
 0-3
-0-4
 0-1
+0-4
+0-5
 101-1
 102-2
 103-3
+105-5
 104-4
 202-1
-204-2
-206-3
-208-4
-303-1
-306-2
-309-3
-312-4
-404-1
 1-закрыт
-408-2
+204-2
 2-закрыт
-412-3
+206-3
 3-закрыт
-416-4
+210-5
+5-закрыт
+208-4
 4-закрыт
 observeOn поток закрыт
  *
- * Hello World!
+ * Закоментировано observeOn
+Hello World!
 0-1
 0-2
 0-3
@@ -1519,6 +1511,52 @@ var observeOn$ = rxjs_1.of(observeOn1, observeOn2, observeOn3, observeOn4, obser
  * http://reactivex.io/documentation/operators/subscribeon.html
  * https://rxjs-dev.firebaseapp.com/api/operators/subscribeOn
  *
+Hello World!
+0-2
+0-3
+0-5
+0-1
+0-4
+102-2
+103-3
+105-5
+101-1
+104-4
+204-2
+2-закрыт
+206-3
+3-закрыт
+210-5
+5-закрыт
+202-1
+1-закрыт
+208-4
+4-закрыт
+subscribeOn поток закрыт
+ *
+ * закоментировано subscribeOn
+ * Hello World!
+0-1
+0-2
+0-3
+0-4
+0-5
+101-1
+102-2
+103-3
+104-4
+105-5
+202-1
+1-закрыт
+204-2
+2-закрыт
+206-3
+3-закрыт
+208-4
+4-закрыт
+210-5
+5-закрыт
+subscribeOn поток закрыт
  */
 var subscribeOn1 = rxjs_1.interval(101).pipe(operators_1.take(3), 
 // subscribeOn(asyncScheduler),
@@ -1546,11 +1584,395 @@ operators_1.take(3), operators_1.map(function (item) { return item * 105 + '-5';
 // tap(logAll),
 operators_1.endWith('5-закрыт'));
 var subscribeOn$ = rxjs_1.of(subscribeOn1, subscribeOn2, subscribeOn3, subscribeOn4, subscribeOn5).pipe(operators_1.mergeAll());
-subscribeOn$.subscribe(function (item) { return console.log(item); }, null, function () { return console.log('subscribeOn поток закрыт'); });
+// subscribeOn$.subscribe(item => console.log(item), null, () => console.log('subscribeOn поток закрыт'));
+/**
+ * debounce
+ * "Спаморезка"
+ * Выводит крайнее значение из потока, если была пауза больше, чем интервал debounceSignal*
+ * Выводит крайнее значение, если ни одно не прошло в интервал debounceOver.
+ * Таймер стартует(переподписывается) каждое значение. Т.е. в простом случае debounce(interval(x)) debounce ждёт больших, чем интервал x промежутков между значениями потока для вывода. Т.е. игнорирует спам.
+ * Можно управлять интервалом динамически, см. debounceDynamic
+ *
+Hello World!
+0-dynamic-$
+0-norm-$
+103-dynamic-$
+102-norm-$
+206-dynamic-$
+204-norm-$
+309-dynamic-$
+306-norm-$
+412-dynamic-$
+408-norm-$
+515-dynamic-$
+510-norm-$
+612-norm-$
+714-norm-$
+909-over-$
+over-закрыт-$
+816-norm-$
+918-norm-$
+norm-закрыт-$
+927-dynamic-$
+dynamic-закрыт-$
+debounce поток закрыт
+ */
+var debounceSignalOver = rxjs_1.interval(2000);
+var debounceSignalNorm = rxjs_1.interval(50);
+var debounceSignalDynamic = function (item) {
+    var TIMER = 5; // interval имитирует 0,1,2,3,4...
+    if (item > TIMER) {
+        return rxjs_1.interval(500);
+    }
+    else {
+        return rxjs_1.interval(0);
+    }
+};
+var debounceOver = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.debounce(function (item) { return debounceSignalOver; }), operators_1.map(function (item) { return item * 101 + '-over'; }), 
+// tap(logAll),
+operators_1.endWith('over-закрыт'));
+var debounceNorm = rxjs_1.interval(102).pipe(operators_1.take(10), operators_1.debounce(function (item) { return debounceSignalNorm; }), operators_1.map(function (item) { return item * 102 + '-norm'; }), 
+// tap(logAll),
+operators_1.endWith('norm-закрыт'));
+var debounceDynamic = rxjs_1.interval(103).pipe(operators_1.take(10), operators_1.debounce(function (item) { return debounceSignalDynamic(item); }), operators_1.map(function (item) { return item * 103 + '-dynamic'; }), 
+// tap(logAll),
+operators_1.endWith('dynamic-закрыт'));
+var debounce$ = rxjs_1.of(debounceOver, debounceNorm, debounceDynamic).pipe(operators_1.mergeAll());
+//debounce$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounce поток закрыт'));
+/**
+ * debounceTime
+ * "Спаморезка"
+ * Выводит крайнее значение из потока, если была пауза больше, чем интервал х в debounceTime(х)
+ * Выводит крайнее значение, если ни одно не прошло в интервал.
+ * Таймер стартует(переподписывается) каждое значение. Т.е. в простом случае debounceTime(x) ждёт больших, чем интервал x промежутков между значениями потока для вывода. Т.е. игнорирует спам.
+ *
+ *
+Hello World!
+0-dynamic-$
+0-norm-$
+103-dynamic-$
+102-norm-$
+206-dynamic-$
+204-norm-$
+309-dynamic-$
+306-norm-$
+412-dynamic-$
+408-norm-$
+515-dynamic-$
+510-norm-$
+612-norm-$
+714-norm-$
+909-over-$
+over-закрыт-$
+816-norm-$
+918-norm-$
+norm-закрыт-$
+927-dynamic-$
+dynamic-закрыт-$
+debounce поток закрыт
+ */
+var debounceTimeOver = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-over'; }), 
+// tap(logAll),
+operators_1.debounceTime(1000), operators_1.endWith('over-закрыт'));
+var debounceTimeNorm = rxjs_1.interval(102).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 102 + '-norm'; }), 
+// tap(logAll),
+operators_1.debounceTime(50), operators_1.endWith('norm-закрыт'));
+var debounceTime$ = rxjs_1.of(debounceTimeOver, debounceTimeNorm).pipe(operators_1.mergeAll());
+// debounceTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounceTime поток закрыт'));
+/**
+ * delay
+ * задержка имитации значений потока на указанный интервал или дату
+ *
+ * Hello World!
+0-3-$
+103-3-$
+206-3-$
+309-3-$
+412-3-$
+515-3-$
+618-3-$
+721-3-$
+824-3-$
+927-3-$
+3-закрыт-$
+0-1-$
+0-2-$
+101-1-$
+102-2-$
+202-1-$
+1-закрыт-$
+204-2-$
+2-закрыт-$
+delay поток закрыт
+ */
+var delay1 = rxjs_1.interval(101).pipe(operators_1.delay(1000), operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var delay2 = rxjs_1.interval(102).pipe(operators_1.delay(new Date(Date.now() + 1000)), operators_1.take(3), operators_1.map(function (item) { return item * 102 + '-2'; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var delay3 = rxjs_1.interval(103).pipe(
+// контрольный поток без задержек
+operators_1.take(10), operators_1.map(function (item) { return item * 103 + '-3'; }), 
+// tap(logAll),
+operators_1.endWith('3-закрыт'));
+var delay$ = rxjs_1.of(delay1, delay2, delay3).pipe(operators_1.mergeAll());
+//delay$.subscribe(item => console.log(item + '-$'), null, () => console.log('delay поток закрыт'));
+/**
+ * delayWhen
+ * Задерживает мимтацию значений потока на указанный интервал
+ *
+ * Hello World!
+0-1-$
+101-1-$
+200-2-$
+202-1-$
+303-1-$
+302-2-$
+404-1-$
+404-2-$
+505-1-$
+506-2-$
+606-1-$
+608-2-$
+707-1-$
+710-2-$
+808-1-$
+812-2-$
+909-1-$
+1-закрыт-$
+914-2-$
+1016-2-$
+1118-2-$
+2-закрыт-$
+delayWhen поток закрыт
+ */
+var delayWhen1 = rxjs_1.interval(101).pipe(
+// контрольный поток без задержек
+operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var delayWhen2 = rxjs_1.interval(102).pipe(operators_1.delayWhen(function (item, index) { return rxjs_1.interval(200); }), operators_1.take(10), operators_1.map(function (item) { return item * 102 + 200 + '-2'; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var delayWhen$ = rxjs_1.of(delayWhen1, delayWhen2).pipe(operators_1.mergeAll());
+//delayWhen$.subscribe(item => console.log(item + '-$'), null, () => console.log('delayWhen поток закрыт'));
+/**
+ * throttleTime
+ * пропускает первое значение потока и задерживает остальные на указанное время.
+ * по окончании интервала начинает заново
+ *
+ * Hello World!
+0-1-$
+300-2-$
+101-1-$
+202-1-$
+303-1-$
+606-2-$
+404-1-$
+505-1-$
+606-1-$
+912-2-$
+707-1-$
+808-1-$
+909-1-$
+1-закрыт-$
+1218-2-$
+1524-2-$
+1830-2-$
+2136-2-$
+2442-2-$
+2748-2-$
+3054-2-$
+2-закрыт-$
+throttleTime поток закрыт
+ */
+var throttleTime1 = rxjs_1.interval(101).pipe(
+// контрольный поток без задержек
+operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var throttleTime2 = rxjs_1.interval(102).pipe(operators_1.throttleTime(300), operators_1.take(10), operators_1.map(function (item) { return item * 102 + 300 + '-2'; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var throttleTime$ = rxjs_1.of(throttleTime1, throttleTime2).pipe(operators_1.mergeAll());
+//throttleTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('throttleTime поток закрыт'));
+/**
+ * timeInterval
+ * оборачивает каждое значение в объект, добавляя поле со значением интервала во времени от предыдущего до текущего значения
+ * судя по всему, используется performance.now()
+ *
+ * Hello World!
+{"value":"0-2","interval":105}-$
+{"value":"102-2","interval":104}-$
+{"value":"204-2","interval":102}-$
+{"value":"306-2","interval":103}-$
+{"value":"408-2","interval":102}-$
+"2-закрыт"-$
+timeInterval поток закрыт
+ */
+var timeInterval1 = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.timeInterval(), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var timeInterval$ = rxjs_1.of(timeInterval1).pipe(operators_1.mergeAll());
+//timeInterval$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timeInterval поток закрыт'));
+/**
+ * timestamp
+ * оборачивает каждое значение в объект, добавляя время его имитации
+ *
+ * Hello World!
+{"value":"0-1","timestamp":1564341146592}-$
+{"value":"0-2","timestamp":"2019-07-28T19:12:26.595Z"}-$
+{"value":"101-1","timestamp":1564341146694}-$
+{"value":"102-2","timestamp":"2019-07-28T19:12:26.698Z"}-$
+{"value":"202-1","timestamp":1564341146796}-$
+{"value":"204-2","timestamp":"2019-07-28T19:12:26.800Z"}-$
+{"value":"303-1","timestamp":1564341146898}-$
+{"value":"306-2","timestamp":"2019-07-28T19:12:26.902Z"}-$
+{"value":"404-1","timestamp":1564341147000}-$
+"1-закрыт"-$
+{"value":"408-2","timestamp":"2019-07-28T19:12:27.006Z"}-$
+"2-закрыт"-$
+timestamp поток закрыт
+ */
+var timestamp1 = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.timestamp(), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var timestamp2 = rxjs_1.interval(102).pipe(
+// добавим немного человекочитаемости к дате
+operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.timestamp(), operators_1.map(function (item) { return { value: item.value, timestamp: new Date(item.timestamp) }; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var timestamp$ = rxjs_1.of(timestamp1, timestamp2).pipe(operators_1.mergeAll());
+//timestamp$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timestamp поток закрыт'));
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
 //========================================================================================================================
 //
+/**
+ * concatMap
+ * преобразует входное значение потока, сохраняя их порядок даже при задержке преобразования
+ * в отличии от map может возвращать потоки
+ *
+ * Hello World!
+"0-1"-$
+"0-2"-$
+"0-21000"-$
+"101-1"-$
+"102-2"-$
+"102-21000"-$
+"202-1"-$
+["0-2","delay200"]-$
+"204-2"-$
+"204-21000"-$
+"303-1"-$
+"306-2"-$
+"306-21000"-$
+"404-1"-$
+["102-2","delay200"]-$
+"408-2"-$
+"408-21000"-$
+"2-закрыт"-$
+"505-1"-$
+["204-2","delay200"]-$
+"606-1"-$
+"707-1"-$
+["306-2","delay200"]-$
+"808-1"-$
+"909-1"-$
+"1-закрыт"-$
+["408-2","delay200"]-$
+"2-закрыт"-$
+concatMap поток закрыт
+ */
+var concatMap1 = rxjs_1.interval(101).pipe(
+// контрольный поток
+operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var concatMap2 = rxjs_1.interval(102).pipe(
+// просто меняем значение на массив
+operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.concatMap(function (item, index) { return [item, item + 1000]; }), 
+// tap(logAll),
+operators_1.endWith('2-закрыт'));
+var concatMap3 = rxjs_1.interval(103).pipe(
+// добавляем задержку
+operators_1.take(5), operators_1.map(function (item) { return item * 103 + '-3'; }), operators_1.concatMap(function (item, index) { return rxjs_1.of([item, 'delay200']).pipe(operators_1.delay(200)); }), 
+// tap(logAll),
+operators_1.endWith('3-закрыт'));
+var concatMap$ = rxjs_1.of(concatMap1, concatMap2, concatMap3).pipe(operators_1.mergeAll());
+// concatMap$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('concatMap поток закрыт'));
+/**
+ * concatMapTo
+ * входные значения - это сигнальный поток для имитации значений внутреннего потока concatMapToInternal
+ * повторяет весь внутренний поток при каждом сигнале
+ *
+ * Hello World!
+0-1-$
+101-1-$
+0-Internal-$
+202-1-$
+102-Internal-$
+303-1-$
+204-Internal-$
+Internal-закрыт-$
+404-1-$
+0-Internal-$
+505-1-$
+102-Internal-$
+606-1-$
+204-Internal-$
+Internal-закрыт-$
+707-1-$
+0-Internal-$
+808-1-$
+102-Internal-$
+909-1-$
+1-закрыт-$
+204-Internal-$
+Internal-закрыт-$
+0-Internal-$
+102-Internal-$
+204-Internal-$
+Internal-закрыт-$
+0-Internal-$
+102-Internal-$
+204-Internal-$
+Internal-закрыт-$
+Signal-закрыт-$
+concatMapTo поток закрыт
+ */
+var concatMapTo1 = rxjs_1.interval(101).pipe(
+// контрольный поток
+operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var concatMapToInternal = rxjs_1.interval(102).pipe(
+// внутренний поток для concatMap
+operators_1.take(3), operators_1.map(function (item) { return item * 102 + '-Internal'; }), 
+// tap(logAll),
+operators_1.endWith('Internal-закрыт'));
+var concatMapToSignal = rxjs_1.interval(103).pipe(
+// имитируем значения из внутреннего потока 
+operators_1.take(5), operators_1.map(function (item) { return item * 103 + '-Signal'; }), operators_1.concatMapTo(concatMapToInternal), 
+// tap(logAll),
+operators_1.endWith('Signal-закрыт'));
+var concatMapTo$ = rxjs_1.of(concatMapTo1, concatMapToSignal).pipe(operators_1.mergeAll());
+// concatMapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('concatMapTo поток закрыт'));
+/**
+ * defaultIfEmpty
+ * возвращает указанное значение defaultIfEmptyInternal, если поток завершился пустым
+ *
+ */
+var defaultIfEmptyInternal = '1';
+// const defaultIfEmptyInternal = 1
+var defaultIfEmpty1 = rxjs_1.interval(103).pipe(
+// имитируем значения из внутреннего потока 
+operators_1.take(0), operators_1.map(function (item) { return item * 103 + '-1'; }), 
+// tap(logAll),
+operators_1.defaultIfEmpty(defaultIfEmptyInternal), operators_1.endWith('1-закрыт'));
+var defaultIfEmpty$ = rxjs_1.of(defaultIfEmpty1).pipe(operators_1.mergeAll());
+defaultIfEmpty$.subscribe(function (item) { return console.log(item + '-$'); }, null, function () { return console.log('defaultIfEmpty поток закрыт'); });
 /**
  * exhaustMap
  * Пропускает входящие значения пока не завершится поток аргумента exhaustMapFork$
@@ -1565,7 +1987,7 @@ startItem-604 forkItem-200
 var exhaustMapFork$ = function (startItem) { return rxjs_1.interval(100)
     .pipe(operators_1.take(3), operators_1.map(function (item) { return startItem + " forkItem-" + item * 100; })); };
 var exhaustMap$ = rxjs_1.interval(302).pipe(operators_1.take(3), operators_1.map(function (item) { return "startItem-" + item * 302; }), operators_1.exhaustMap(exhaustMapFork$));
-//exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
+//exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('exhaustMap поток закрыт'));
 /**
  * pluck(x:string)
  * возвращает в поток конкретное свойство x из значений входного потока
@@ -1580,7 +2002,7 @@ var pluck$ = rxjs_1.interval(100)
 //pluck('nested','triple'),//возвращаем в поток только item.nested.triple
 operators_1.pluck('double') //возвращаем в поток только item.double
 );
-//pluck$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
+//pluck$.subscribe(item => console.log(item), null, ()=> console.log('pluck поток закрыт'));
 /**
  * switchMap
  * после каждого нового значения входящего потока interval(302)
@@ -1601,4 +2023,4 @@ operators_1.pluck('double') //возвращаем в поток только it
 var switchMapFork1$ = function (startItem) { return rxjs_1.interval(101)
     .pipe(operators_1.take(3), operators_1.map(function (item) { return startItem + " forkItem-" + item * 101; })); };
 var switchMap$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(function (item) { return "startItem-" + item * 303; }), operators_1.switchMap(switchMapFork1$));
-//switchMap$.subscribe(item => console.log(item), null, ()=> console.log('поток закрыт'));
+//switchMap$.subscribe(item => console.log(item), null, ()=> console.log('switchMap поток закрыт'));
