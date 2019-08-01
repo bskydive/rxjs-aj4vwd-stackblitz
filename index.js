@@ -1961,8 +1961,12 @@ var concatMapTo$ = rxjs_1.of(concatMapTo1, concatMapToSignal).pipe(operators_1.m
 // concatMapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('concatMapTo поток закрыт'));
 /**
  * defaultIfEmpty
- * возвращает указанное значение defaultIfEmptyInternal, если поток завершился пустым
+ * возвращает указанное значение defaultIfEmptyInternal, если поток завершился без значений
  *
+ * Hello World!
+1-$
+1-закрыт-$
+defaultIfEmpty поток закрыт
  */
 var defaultIfEmptyInternal = '1';
 // const defaultIfEmptyInternal = 1
@@ -1972,7 +1976,37 @@ operators_1.take(0), operators_1.map(function (item) { return item * 103 + '-1';
 // tap(logAll),
 operators_1.defaultIfEmpty(defaultIfEmptyInternal), operators_1.endWith('1-закрыт'));
 var defaultIfEmpty$ = rxjs_1.of(defaultIfEmpty1).pipe(operators_1.mergeAll());
-defaultIfEmpty$.subscribe(function (item) { return console.log(item + '-$'); }, null, function () { return console.log('defaultIfEmpty поток закрыт'); });
+//defaultIfEmpty$.subscribe(item => console.log(item + '-$'), null, () => console.log('defaultIfEmpty поток закрыт'));
+/**
+ * endWith
+ * Выводит указанное значение перед закрытием потока
+ *
+ * Hello World!
+0-1-$
+0-2-$
+101-1-$
+102-2-$
+202-1-$
+1-закрыт-$
+204-2-$
+endWith поток закрыт
+ */
+var endWith1 = rxjs_1.interval(101).pipe(operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.take(3), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var endWith2 = rxjs_1.interval(102).pipe(
+//неправильное положение оператора
+operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.endWith('2-закрыт'), operators_1.take(3)
+// tap(logAll),
+);
+var endWith$ = rxjs_1.of(endWith1, endWith2).pipe(operators_1.mergeAll());
+//endWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('endWith поток закрыт'));
+var startWith1 = rxjs_1.interval(101).pipe(operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.startWith('1-открыт'), operators_1.take(3), operators_1.endWith('1-закрыт'));
+var startWith2 = rxjs_1.interval(102).pipe(
+//неправильное положение оператора
+operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.take(3), operators_1.endWith('2-закрыт'), operators_1.startWith('2-открыт'));
+var startWith$ = rxjs_1.of(startWith1, startWith2).pipe(operators_1.mergeAll());
+startWith$.subscribe(function (item) { return console.log(item + '-$'); }, null, function () { return console.log('startWith поток закрыт'); });
 /**
  * exhaustMap
  * Пропускает входящие значения пока не завершится поток аргумента exhaustMapFork$

@@ -1,5 +1,5 @@
 import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty } from 'rxjs/operators';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith } from 'rxjs/operators';
 
 
 const source = of('World').pipe(
@@ -2542,13 +2542,84 @@ const defaultIfEmpty$ = of(defaultIfEmpty1).pipe(
 	mergeAll()
 )
 
-defaultIfEmpty$.subscribe(item => console.log(item + '-$'), null, () => console.log('defaultIfEmpty поток закрыт'));
+//defaultIfEmpty$.subscribe(item => console.log(item + '-$'), null, () => console.log('defaultIfEmpty поток закрыт'));
 
 
 /**
  * endWith
+ * Выводит указанное значение перед закрытием потока
  * 
+ * Hello World!
+0-1-$
+0-2-$
+101-1-$
+102-2-$
+202-1-$
+1-закрыт-$
+204-2-$
+endWith поток закрыт
  */
+
+const endWith1 = interval(101).pipe(
+	map(item => item * 101 + '-1'),
+	take(3),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const endWith2 = interval(102).pipe(
+	//неправильное положение оператора
+	map(item => item * 102 + '-2'),
+	endWith('2-закрыт'),
+	take(3)
+	// tap(logAll),
+)
+
+const endWith$ = of(endWith1, endWith2).pipe(
+	mergeAll()
+)
+
+//endWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('endWith поток закрыт'));
+
+/**
+ * startWith
+ * Пишет значения в поток сразу после его открытия
+ * 
+ * Hello World!
+1-открыт-$
+2-открыт-$
+0-1-$
+0-2-$
+101-1-$
+1-закрыт-$
+102-2-$
+204-2-$
+2-закрыт-$
+startWith поток закрыт
+ */
+const startWith1 = interval(101).pipe(
+	map(item => item * 101 + '-1'),
+	startWith('1-открыт'),
+	take(3),
+	endWith('1-закрыт'),
+	// tap(logAll),
+)
+
+const startWith2 = interval(102).pipe(
+	//неправильное положение оператора
+	map(item => item * 102 + '-2'),
+	take(3),
+	endWith('2-закрыт'),
+	startWith('2-открыт'),
+	// tap(logAll),
+)
+
+const startWith$ = of(startWith1, startWith2).pipe(
+	mergeAll()
+)
+
+startWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('startWith поток закрыт'));
+
 
 /**
  * exhaustMap
