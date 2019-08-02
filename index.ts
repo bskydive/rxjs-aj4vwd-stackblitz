@@ -1,5 +1,5 @@
-import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith } from 'rxjs/operators';
+import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler, empty, Notification } from 'rxjs';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith, expand, mapTo, mergeScan, reduce, mergeMapTo, switchMapTo, materialize, dematerialize } from 'rxjs/operators';
 
 
 const source = of('World').pipe(
@@ -564,9 +564,9 @@ const swallow$ = interval(200).pipe(
 	})
 )
 
-//swallow$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('completed'))
+//swallow$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('swallow completed'))
 
-//
+
 /**
  * timeout
  * прерывает поток ошибкой, если нет значения за время интервала
@@ -1296,7 +1296,7 @@ const withLatestFrom$ = interval(303).pipe(
 
 /**
  * mergeMap
- * Преобразует каждый поток функцией аргументом mapTo
+ * Преобразует каждый поток функцией аргументом mergeMapArray
  * В данном случае значения потоков аккумулируются в массив
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
@@ -1311,13 +1311,13 @@ const mergeMap1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const mergeMap2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const mergeMap3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const mergeMap4 = of(1, 2, 3).pipe(delay(2000));
-const mapTo = item$ => item$.pipe(toArray())
+const mergeMapArray = item$ => item$.pipe(toArray())
 const mergeMap$ = of(mergeMap1, mergeMap2, mergeMap3, mergeMap4).pipe(
 	tap(logAll),//возвращает три потока наблюдателей
-	mergeMap(mapTo)
+	mergeMap(mergeMapArray)
 )
 
-//mergeMap$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('поток закрыт'));
+//mergeMap$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('mergeMap поток закрыт'));
 
 /**
  * groupBy
@@ -2176,7 +2176,7 @@ const delay1 = interval(101).pipe(
 )
 
 const delay2 = interval(102).pipe(
-	delay(new Date(Date.now()+1000)),
+	delay(new Date(Date.now() + 1000)),
 	take(3),
 	map(item => item * 102 + '-2'),
 	// tap(logAll),
@@ -2235,7 +2235,7 @@ const delayWhen1 = interval(101).pipe(
 )
 
 const delayWhen2 = interval(102).pipe(
-	delayWhen((item, index)=> interval(200)),
+	delayWhen((item, index) => interval(200)),
 	take(10),
 	map(item => item * 102 + 200 + '-2'),
 	// tap(logAll),
@@ -2361,7 +2361,7 @@ const timestamp2 = interval(102).pipe(
 	take(5),
 	map(item => item * 102 + '-2'),
 	timestamp(),
-	map(item => {return {value: item.value, timestamp: new Date(item.timestamp)}}),
+	map(item => { return { value: item.value, timestamp: new Date(item.timestamp) } }),
 	// tap(logAll),
 	endWith('2-закрыт'),
 )
@@ -2618,7 +2618,7 @@ const startWith$ = of(startWith1, startWith2).pipe(
 	mergeAll()
 )
 
-startWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('startWith поток закрыт'));
+//startWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('startWith поток закрыт'));
 
 
 /**
@@ -2646,6 +2646,199 @@ const exhaustMap$ = interval(302).pipe(
 //exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('exhaustMap поток закрыт'));
 
 /**
+ * expand
+ * рекурсивная обработка значений
+ * 
+ * Hello World!
+0-$
+100-$
+200-$
+300-$
+400-$
+500-$
+1-$
+101-$
+201-$
+301-$
+401-$
+501-$
+2-$
+102-$
+202-$
+302-$
+402-$
+502-$
+2-закрыт-$
+expand поток закрыт
+ */
+const parserRecursive1 = item => {
+	if (item < 500) {
+		return of(item + 100);
+	} else {
+		return empty();
+	}
+}
+
+const expand1 = interval(501).pipe(
+	take(3),
+	expand(parserRecursive1),
+	endWith('2-закрыт'),
+	// tap(logAll),
+)
+
+const expand$ = of(expand1).pipe(
+	mergeAll()
+)
+
+//expand$.subscribe(item => console.log(item + '-$'), null, () => console.log('expand поток закрыт'));
+
+/**
+ * map
+ * описан в начале
+ */
+
+/**
+ * mapTo
+ * внешний поток значений - сигнальный, на каждое значение имитируется внутренняя функция
+ * 
+ * Hello World!
+0-1-$
+mapToInternal-$
+101-1-$
+mapToInternal-$
+202-1-$
+mapToInternal-$
+Signal-закрыт-$
+303-1-$
+404-1-$
+1-закрыт-$
+mapTo поток закрыт
+ */
+
+const mapTo1 = interval(101).pipe(
+	// контрольный поток
+	take(5),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const mapToSignal = interval(103).pipe(
+	take(3),
+	map(item => item * 103 + '-Signal'),
+	mapTo('mapToInternal'),
+	// tap(logAll),
+	endWith('Signal-закрыт'),
+)
+
+const mapTo$ = of(mapTo1, mapToSignal).pipe(
+	mergeAll()
+)
+
+//mapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('mapTo поток закрыт'));
+
+/**
+ * scan
+ * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+ * 
+ * Hello World!
+time: 0; item: 0; accumulator: 0
+0-$
+time: 101; item: 1; accumulator: 0
+1-$
+time: 202; item: 2; accumulator: 1
+3-$
+time: 303; item: 3; accumulator: 3
+6-$
+time: 404; item: 4; accumulator: 6
+10-$
+1-закрыт-$
+ */
+
+const scanAccumulator = (accumulator, item) => {
+	console.log(`time: ${item*101}; item: ${item}; accumulator: ${accumulator}`);
+	return item + accumulator
+};
+const scanAccumulatorInitial = 0;
+
+const scan1 = interval(101).pipe(
+	take(5),
+	scan(scanAccumulator, scanAccumulatorInitial),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const scan$ = of(scan1).pipe(
+	mergeAll()
+)
+
+//scan$.subscribe(item => console.log(item + '-$'), null, () => console.log('scan поток закрыт'));
+
+
+ /**
+  * mergeScan
+  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+  * имитирует наблюдаемый поток mergeScanInternal
+  * 
+  * Hello World!
+time: 0; item: 0; accumulator: 0
+0-internal-$
+11-internal-$
+22-internal-$
+1-закрыт-$
+time: 101; item: 1; accumulator: 1-закрыт
+0-internal-$
+11-internal-$
+22-internal-$
+1-закрыт-$
+time: 202; item: 2; accumulator: 1-закрыт
+0-internal-$
+11-internal-$
+22-internal-$
+1-закрыт-$
+time: 303; item: 3; accumulator: 1-закрыт
+0-internal-$
+11-internal-$
+22-internal-$
+1-закрыт-$
+time: 404; item: 4; accumulator: 1-закрыт
+0-internal-$
+11-internal-$
+22-internal-$
+1-закрыт-$
+2-закрыт-$
+mergeScan поток закрыт
+
+  */
+const mergeScanInternal = interval(11).pipe(
+	take(3),
+	map(item => item * 11 + '-internal'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const mergeScanAccumulator = (accumulator, item) => {
+	console.log(`time: ${item*101}; item: ${item}; accumulator: ${accumulator}`);
+	// return of(item + accumulator)
+	return mergeScanInternal
+};
+
+const mergeScanAccumulatorInitial = 0;
+
+const mergeScan1 = interval(102).pipe(
+	take(5),
+	mergeScan(mergeScanAccumulator, mergeScanAccumulatorInitial),
+	// tap(logAll),
+	endWith('2-закрыт'),
+)
+
+const mergeScan$ = of(mergeScan1).pipe(
+	mergeAll()
+)
+
+//mergeScan$.subscribe(item => console.log(item + '-$'), null, () => console.log('mergeScan поток закрыт'));
+
+/**
  * pluck(x:string)
  * возвращает в поток конкретное свойство x из значений входного потока
  * pluck(propertyName) аналогично map(item=>item.propertyName)
@@ -2665,10 +2858,46 @@ const pluck$ = interval(100)
 //pluck$.subscribe(item => console.log(item), null, ()=> console.log('pluck поток закрыт'));
 
 /**
+ * reduce
+ * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+ * возвращает итоговое значение один раз, когда входной поток завершится
+ * 
+Hello World!
+time: 0; item: 0; accumulator: 0
+time: 101; item: 1; accumulator: 0
+time: 202; item: 2; accumulator: 1
+time: 303; item: 3; accumulator: 3
+time: 404; item: 4; accumulator: 6
+10-$
+1-закрыт-$
+reduce поток закрыт
+ */
+
+const reduceAccumulator = (accumulator, item) => {
+	console.log(`time: ${item*101}; item: ${item}; accumulator: ${accumulator}`);
+	return item + accumulator
+};
+const reduceAccumulatorInitial = 0;
+
+const reduce1 = interval(101).pipe(
+	take(5),
+	reduce(reduceAccumulator, reduceAccumulatorInitial),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const reduce$ = of(reduce1).pipe(
+	mergeAll()
+)
+
+//reduce$.subscribe(item => console.log(item + '-$'), null, () => console.log('reduce поток закрыт'));
+
+
+/**
  * switchMap 
  * после каждого нового значения входящего потока interval(302)
- * выполняет функцию аргумент switchMapFork$, который возвращает новый поток
- * предыдущий поток из switchMapFork$ закрывается, потому рекомендуется только для чтения значений
+ * выполняет функцию аргумент switchMapFork1$, который возвращает новый поток
+ * предыдущий поток из switchMapFork1$ закрывается, потому рекомендуется только для чтения значений
  * https://www.learnrxjs.io/operators/transformation/switchmap.html
 "startItem-0 forkItem-0"
 "startItem-0 forkItem-100"
@@ -2694,3 +2923,217 @@ const switchMap$ = interval(303).pipe(
 );
 
 //switchMap$.subscribe(item => console.log(item), null, ()=> console.log('switchMap поток закрыт'));
+
+/**
+ * mergeMapTo
+ * Выводит вместо входящего значения потока наблюдаемый поток mergeMapToInternal
+ * 
+Hello World!
+Observable {
+  _isScalar: false,
+  source:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator: TakeOperator { total: 10 } },
+  operator: MapOperator { project: [Function], thisArg: undefined } }
+Observable {
+  _isScalar: false,
+  source:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator: TakeOperator { total: 5 } },
+  operator: MapOperator { project: [Function], thisArg: undefined } }
+Observable {
+  _isScalar: false,
+  source:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator: TakeOperator { total: 3 } },
+  operator: MapOperator { project: [Function], thisArg: undefined } }
+Observable {
+  _isScalar: false,
+  source: Observable { _isScalar: false, _subscribe: [Function] },
+  operator:
+   DelayOperator {
+     delay: 2000,
+     scheduler:
+      AsyncScheduler {
+        SchedulerAction: [Function: AsyncAction],
+        now: [Function],
+        actions: [],
+        active: false,
+        scheduled: undefined } } }
+получил:  0-internal
+получил:  0-internal
+получил:  0-internal
+получил:  0-internal
+получил:  11-internal
+получил:  11-internal
+получил:  11-internal
+получил:  11-internal
+получил:  22-internal
+получил:  22-internal
+получил:  22-internal
+получил:  22-internal
+mergeMapTo поток закрыт
+ */
+const mergeMapTo1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const mergeMapTo2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const mergeMapTo3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const mergeMapTo4 = of(1, 2, 3).pipe(delay(2000));
+
+const mergeMapToInternal = interval(11).pipe(take(3), map(item => item * 11 + '-internal'));
+
+
+const mergeMapTo$ = of(mergeMapTo1, mergeMapTo2, mergeMapTo3, mergeMapTo4).pipe(
+	tap(logAll),//возвращает три потока наблюдателей
+	mergeMapTo(mergeMapToInternal)
+)
+
+// mergeMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('mergeMapTo поток закрыт'));
+
+/**
+ * switchMapTo
+ * Выводит вместо входящего значения потока наблюдаемый поток switchMapToInternal
+ * закрывает предыдущий поток, если на вход пришёл новый, т.е. значения теряются.
+ * Рекомендуется только для чтения
+ * 
+ * Hello World!
+Observable {
+  _isScalar: false,
+  source:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator: TakeOperator { total: 10 } },
+  operator: MapOperator { project: [Function], thisArg: undefined } }
+Observable {
+  _isScalar: false,
+  source:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator: TakeOperator { total: 5 } },
+  operator: MapOperator { project: [Function], thisArg: undefined } }
+Observable {
+  _isScalar: false,
+  source:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator: TakeOperator { total: 3 } },
+  operator: MapOperator { project: [Function], thisArg: undefined } }
+Observable {
+  _isScalar: false,
+  source: Observable { _isScalar: false, _subscribe: [Function] },
+  operator:
+   DelayOperator {
+     delay: 2000,
+     scheduler:
+      AsyncScheduler {
+        SchedulerAction: [Function: AsyncAction],
+        now: [Function],
+        actions: [],
+        active: false,
+        scheduled: undefined } } }
+получил:  0-internal
+получил:  11-internal
+получил:  22-internal
+switchMapTo поток закрыт
+ */
+
+const switchMapTo1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const switchMapTo2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const switchMapTo3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const switchMapTo4 = of(1, 2, 3).pipe(delay(2000));
+
+const switchMapToInternal = interval(11).pipe(take(3), map(item => item * 11 + '-internal'));
+
+
+const switchMapTo$ = of(switchMapTo1, switchMapTo2, switchMapTo3, switchMapTo4).pipe(
+	tap(logAll),//возвращает три потока наблюдателей
+	switchMapTo(switchMapToInternal)
+)
+
+//switchMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('switchMapTo поток закрыт'));
+
+/**
+ * materialize
+ * Конвертирует входное(имитированное) значение потока в объект-оповещение (emission object to notification object)
+ * Указывается тип оповещения: next, close, error
+ * Используется для сохранения(сериализации) в json
+ * 
+ * Hello World!
+получил:  Notification {
+  kind: 'N',
+  value:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator:
+      MergeMapOperator { project: [Function: identity], concurrent: 1 } },
+  error: undefined,
+  hasValue: true }
+получил:  Notification {
+  kind: 'N',
+  value:
+   Observable {
+     _isScalar: false,
+     source: Observable { _isScalar: false, _subscribe: [Function] },
+     operator: MapOperator { project: [Function], thisArg: undefined } },
+  error: undefined,
+  hasValue: true }
+получил:  Notification { kind: 'C', value: undefined, error: undefined, hasValue: false }
+materialize поток закрыт
+ */
+
+const materialize1 = interval(101).pipe(take(3), map(item => item * 101 + '-1'), endWith('1-закрыто'));
+const materialize2 = of(1).pipe(map(item => throwError('ошибка')));
+
+const materialize$ = of(materialize1, materialize2).pipe(
+	// tap(logAll),
+	materialize()
+)
+
+// materialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('materialize поток закрыт'));
+
+
+/**
+ * dematerialize
+ * Конвертирует объект-оповещение в значение
+ * Используется для восстановления(десериализации) сохранённого ранее в json значения
+ * 
+ *Hello World!
+получил:  Observable { _isScalar: false, _subscribe: [Function] }//<-- это ошибка
+получил:  2-закрыто
+получил:  Notification { kind: 'N', value: 0, error: undefined, hasValue: true }
+получил:  Notification { kind: 'C', value: undefined, error: undefined, hasValue: false }
+получил:  3-закрыто
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  1-закрыто
+dematerialize поток закрыт
+ */
+
+const dematerialize1 = interval(101).pipe(take(3), map(item => item * 101 + '-1'), endWith('1-закрыто'));
+const dematerialize2 = of(1).pipe(map(item => throwError('ошибка')), endWith('2-закрыто'));
+const dematerialize3 = of(Notification.createNext(0), Notification.createComplete()).pipe(endWith('3-закрыто'));
+
+const dematerialize$ = of(dematerialize1, dematerialize2, dematerialize3).pipe(
+	// tap(logAll),
+	materialize(),
+	dematerialize(),
+	mergeAll()
+)
+
+//dematerialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('dematerialize поток закрыт'));
+
+
+
+/**
+ * forkJoin, merge, concat, race, zip, iif
+ */
