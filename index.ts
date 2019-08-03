@@ -1,11 +1,11 @@
-import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler, empty, Notification } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith, expand, mapTo, mergeScan, reduce, mergeMapTo, switchMapTo, materialize, dematerialize } from 'rxjs/operators';
+import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler, empty, Notification, Subject, from, ConnectableObservable } from 'rxjs';
+import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith, expand, mapTo, mergeScan, reduce, mergeMapTo, switchMapTo, materialize, dematerialize, multicast, publish, share, shareReplay, publishBehavior, publishLast, publishReplay } from 'rxjs/operators';
 
 
-const source = of('World').pipe(
+const helloSource = of('World').pipe(
 	map(x => `Hello ${x}!`)
 );
-source.subscribe(x => console.log(x));
+helloSource.subscribe(x => console.log(x));
 
 /**
  * ===============================================
@@ -94,8 +94,8 @@ function logAll() {
 const map$ = interval(100).pipe(
 	take(3),
 	map(item => ['преобразуй это: ', item]),
-	tap(item => ['фига с два: ', item]),//не возвращает ничего
-	tap(item => console.log('отладь меня: ', item)),//используется для отладки
+	tap(item => ['фига с два: ', item]), //не возвращает ничего
+	tap(item => console.log('отладь меня: ', item)), //используется для отладки
 )
 
 /**
@@ -104,20 +104,22 @@ const map$ = interval(100).pipe(
  */
 //map$.subscribe(item => console.log('раз:', item));//без задержек
 
-/*
-setTimeout(() => {
+/* 
+const mapTimeout1 = setTimeout(() => {
   map$.subscribe(item => console.log('два', item), err => console.log('два', err), () => console.log('два', 'конец'));
+  clearInterval(mapTimeout1)
 }, 1000);//с задержкой в 1 сек
-*/
-/*
-setTimeout(() => {
-  map$.subscribe({
-    next: item => console.log('три', item),
-    error: err => console.log('три', err),
-    complete: () => console.log('три', 'конец')
-  })
+ */
+
+/* const mapTimeout2 = setTimeout(() => {
+	map$.subscribe({
+		next: item => console.log('три', item),
+		error: err => console.log('три', err),
+		complete: () => console.log('три', 'конец')
+	})
+	clearInterval(mapTimeout2);
 }, 2000);//с задержкой в 2 сек
-*/
+ */
 
 //========================================================================================================================
 //==================================================BUFFER================================================================
@@ -125,10 +127,11 @@ setTimeout(() => {
 
 /**
  * Кэширует и возвращает пачку значений
+ * [0, 1, 2, 3, 4, 5, 6, 7, 8]
+[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
  */
-//[0, 1, 2, 3, 4, 5, 6, 7, 8]
-//[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-//[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+
 const buffer$ = interval(100).pipe(
 	buffer(interval(1000)),
 	take(3),
@@ -136,9 +139,14 @@ const buffer$ = interval(100).pipe(
 )
 //buffer$.subscribe(a => console.log(a));
 
-//[0, 1, 2]
-//[3, 4, 5]
-//[6, 7, 8]
+/**
+ * bufferCount
+ * 
+ * [0, 1, 2]
+[3, 4, 5]
+[6, 7, 8]
+ */
+
 const bufferCount$ = interval(100).pipe(
 	bufferCount(3),
 	take(3),
@@ -146,10 +154,14 @@ const bufferCount$ = interval(100).pipe(
 )
 //bufferCount$.subscribe(a => console.log(a));
 
-//[0, 1, 2]
-//[2, 3, 4]
-//[4, 5, 6]
-//стартует новый буфер каждое второе значение
+/**
+ * bufferCount(length)
+ * стартует новый буфер каждое второе значение
+[0, 1, 2]
+[2, 3, 4]
+[4, 5, 6]
+ */
+
 const bufferCountLength$ = interval(100).pipe(
 	bufferCount(3, 2),
 	take(3),
@@ -157,9 +169,14 @@ const bufferCountLength$ = interval(100).pipe(
 )
 //bufferCountLength$.subscribe(a => console.log(a));
 
-//["bufferTime", 0]
-//["bufferTime", 0, 1, 2]
-//["bufferTime", 1, 2, 3]
+/**
+ * bufferTime
+ * 
+ * ["bufferTime", 0]
+["bufferTime", 0, 1, 2]
+["bufferTime", 1, 2, 3]
+ */
+
 const bufferTime$ = interval(100).pipe(
 	bufferTime(200, 100),
 	take(3),
@@ -167,7 +184,9 @@ const bufferTime$ = interval(100).pipe(
 )
 //bufferTime$.subscribe(a => console.log(a));
 
-/*
+/**
+ * bufferToggle
+ * асинхронный старт и стоп буфера
 0
 1
 2
@@ -194,10 +213,10 @@ bufferOpen
 11
 12
 */
-//асинхронный старт и стоп буфера
-let count = 0;
-const bufferOpen$ = interval(400).pipe(tap(() => console.log('bufferOpen', count)))
-const bufferClose$ = () => interval(300).pipe(tap(() => console.log('bufferClose', count++)))
+
+let bufferToggleCount = 0;
+const bufferOpen$ = interval(400).pipe(tap(() => console.log('bufferOpen', bufferToggleCount)))
+const bufferClose$ = () => interval(300).pipe(tap(() => console.log('bufferClose', bufferToggleCount++)))
 
 const bufferToggle$ = interval(100).pipe(
 	tap(item => console.log(item)),
@@ -207,8 +226,10 @@ const bufferToggle$ = interval(100).pipe(
 )
 //bufferToggle$.subscribe(a => console.log(a));
 
-//выбор времени закрытия буфера
-/*
+
+/**
+ * bufferWhen
+ * выбор времени закрытия буфера
 ["bufferWhen", 0]
 ["bufferWhen", 1, 2, 3]
 ["bufferWhenElse", 4, 5]
@@ -217,18 +238,17 @@ const bufferToggle$ = interval(100).pipe(
 ["bufferWhenElse", 8]
 ["bufferWhenElse", 9]
 */
-count = 0;
+let bufferWhenCount = 0;
 const bufferWhen$ = interval(500).pipe(
 	take(10),
-	map(item => (count = item)),
+	map(item => (bufferWhenCount = item)),
 	bufferWhen(() => {
-		if (count < 5) {
+		if (bufferWhenCount < 5) {
 			return interval(1000)
-		}
-		else { return interval(500) }
+		} else { return interval(500) }
 	}),
 	map(item => {
-		if (count < 5) {
+		if (bufferWhenCount < 5) {
 			return ['bufferWhen', ...item]
 		} else {
 			return ['bufferWhenElse', ...item]
@@ -255,7 +275,7 @@ const window$ = interval(100).pipe(
 	take(3),
 	switchMap(item => item.pipe(
 		toArray(),
-		map(item => ['window', ...item]))
+		map(item1 => ['window', ...item1]))
 	),
 )
 //window$.subscribe(a => console.log(a));
@@ -285,7 +305,7 @@ const windowCount$ = interval(100).pipe(
 	windowCount(2, 3),
 	switchMap(item => item.pipe(
 		toArray(),
-		map(item => ['windowCount', ...item]))
+		map(item1 => ['windowCount', ...item1]))
 	),
 )
 //windowCount$.subscribe(a => console.log(a));
@@ -308,7 +328,7 @@ const windowTime$ = timer(0, 100)
 		windowTime(200),
 		switchMap(item => item.pipe(
 			toArray(),
-			map(item => ['windowTime', ...item]))
+			map(item1 => ['windowTime', ...item1]))
 		),
 	)
 //windowTime$.subscribe(a => console.log(a));
@@ -336,9 +356,9 @@ windowOpen 2
 9
 ["windowToggle", 8, 9]
  */
-count = 0;
-const windowOpen$ = timer(0, 400).pipe(map(() => console.log('windowOpen', count)))
-const windowClose$ = () => timer(300).pipe(map(() => console.log('windowClose', count++)))
+let windowToggleCount = 0;
+const windowOpen$ = timer(0, 400).pipe(map(() => console.log('windowOpen', windowToggleCount)))
+const windowClose$ = () => timer(300).pipe(map(() => console.log('windowClose', windowToggleCount++)))
 
 const windowToggle$ = timer(0, 100).pipe(
 	take(10),
@@ -346,7 +366,7 @@ const windowToggle$ = timer(0, 100).pipe(
 	windowToggle(windowOpen$, windowClose$),
 	switchMap(item => item.pipe(
 		toArray(),
-		map(item => ['windowToggle', ...item]))
+		map(item1 => ['windowToggle', ...item1]))
 	),
 )
 //windowToggle$.subscribe(a => console.log(a));
@@ -357,24 +377,23 @@ const windowToggle$ = timer(0, 100).pipe(
  * выбор времени закрытия буфера 
  
 */
-count = 0;
+let windowWhenCount = 0;
 const windowWhen$ = interval(500).pipe(
 	take(10),
-	map(item => (count = item)),
+	map(item => (windowWhenCount = item)),
 	windowWhen(() => {
-		if (count < 5) {
+		if (windowWhenCount < 5) {
 			return interval(1000)
-		}
-		else { return interval(500) }
+		} else { return interval(500) }
 	}),
 	switchMap(item => item
 		.pipe(
 			toArray(),
-			map(item => {
-				if (count < 5) {
-					return ['windowWhen', ...item]
+			map(item1 => {
+				if (windowWhenCount < 5) {
+					return ['windowWhen', ...item1]
 				} else {
-					return ['windowWhenElse', ...item]
+					return ['windowWhenElse', ...item1]
 				}
 			})
 		)
@@ -521,9 +540,24 @@ const errorRetryWhen$ = timer(0, 100).pipe(
 )
 //errorRetryWhen$.subscribe(a => console.log(a));
 
-//retryWhen
+/* 
+ * retryWhen
+
+Hello World!
+try: 0
+получил:  0
+try: 1
+error: 1
+retry whole source: 1
+try: 0
+получил:  0
+try: 1
+error: 1
+fail
+ошибка: error
+*/
 const swallow = false;
-const swallow$ = interval(200).pipe(
+const retryWhen$ = interval(200).pipe(
 	map(x => {
 		console.log('try: ' + x);
 		if (x === 1) {
@@ -564,8 +598,7 @@ const swallow$ = interval(200).pipe(
 	})
 )
 
-//swallow$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('swallow completed'))
-
+//retryWhen$.subscribe((item) => console.log('получил: ', item), err => console.log('ошибка: ' + err), () => console.log('retryWhen поток закрыт'));
 
 /**
  * timeout
@@ -595,7 +628,7 @@ const timeOut$ = interval(102).pipe(
 /**
  * timeoutWith
  * стартует новый поток, если нет значения за время интервала
- * также можно указать дату вметсо интервала, но можно наступить на локализацию
+ * также можно указать дату вместо интервала, но можно наступить на локализацию
 ещё 0
 ещё 100
 1
@@ -1126,7 +1159,7 @@ const combine1$ = interval(101).pipe(take(10), map(item => item * 101));
 const combine2$ = interval(202).pipe(take(5), map(item => item * 202));
 const combine3$ = interval(303).pipe(take(3), map(item => item * 303));
 const combineAll$ = of(combine1$, combine2$, combine3$).pipe(
-	tap(logAll),//возвращает три потока наблюдателей
+	tap(logAll), //возвращает три потока наблюдателей
 	combineAll()
 )
 
@@ -1187,7 +1220,7 @@ const concat1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const concat2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const concat3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const concatAll$ = of(concat1, concat2, concat3).pipe(
-	tap(logAll),//возвращает три потока наблюдателей
+	tap(logAll), //возвращает три потока наблюдателей
 	concatAll()
 )
 
@@ -1216,7 +1249,7 @@ const exhaust2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const exhaust3 = interval(2000).pipe(take(3), map(item => item * 303 + '-3'));
 const exhaust4 = of(1, 2, 3).pipe(delay(2000));
 const exhaust$ = of(exhaust1, exhaust2, exhaust3, exhaust4).pipe(
-	tap(logAll),//возвращает три потока наблюдателей
+	tap(logAll), //возвращает три потока наблюдателей
 	exhaust()
 )
 
@@ -1258,7 +1291,7 @@ const mergeAll2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const mergeAll3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const mergeAll4 = of(1, 2, 3).pipe(delay(2000));
 const mergeAll$ = of(mergeAll1, mergeAll2, mergeAll3, mergeAll4).pipe(
-	tap(logAll),//возвращает три потока наблюдателей
+	tap(logAll), //возвращает три потока наблюдателей
 	mergeAll()
 )
 
@@ -1313,7 +1346,7 @@ const mergeMap3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const mergeMap4 = of(1, 2, 3).pipe(delay(2000));
 const mergeMapArray = item$ => item$.pipe(toArray())
 const mergeMap$ = of(mergeMap1, mergeMap2, mergeMap3, mergeMap4).pipe(
-	tap(logAll),//возвращает три потока наблюдателей
+	tap(logAll), //возвращает три потока наблюдателей
 	mergeMap(mergeMapArray)
 )
 
@@ -2756,7 +2789,7 @@ time: 404; item: 4; accumulator: 6
  */
 
 const scanAccumulator = (accumulator, item) => {
-	console.log(`time: ${item*101}; item: ${item}; accumulator: ${accumulator}`);
+	console.log(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
 	return item + accumulator
 };
 const scanAccumulatorInitial = 0;
@@ -2775,12 +2808,12 @@ const scan$ = of(scan1).pipe(
 //scan$.subscribe(item => console.log(item + '-$'), null, () => console.log('scan поток закрыт'));
 
 
- /**
-  * mergeScan
-  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
-  * имитирует наблюдаемый поток mergeScanInternal
-  * 
-  * Hello World!
+/**
+ * mergeScan
+ * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+ * имитирует наблюдаемый поток mergeScanInternal
+ * 
+ * Hello World!
 time: 0; item: 0; accumulator: 0
 0-internal-$
 11-internal-$
@@ -2809,7 +2842,7 @@ time: 404; item: 4; accumulator: 1-закрыт
 2-закрыт-$
 mergeScan поток закрыт
 
-  */
+ */
 const mergeScanInternal = interval(11).pipe(
 	take(3),
 	map(item => item * 11 + '-internal'),
@@ -2818,7 +2851,7 @@ const mergeScanInternal = interval(11).pipe(
 )
 
 const mergeScanAccumulator = (accumulator, item) => {
-	console.log(`time: ${item*101}; item: ${item}; accumulator: ${accumulator}`);
+	console.log(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
 	// return of(item + accumulator)
 	return mergeScanInternal
 };
@@ -2850,8 +2883,8 @@ const mergeScan$ = of(mergeScan1).pipe(
 const pluck$ = interval(100)
 	.pipe(
 		take(3),
-		map(item => { return { single: item, double: item * 2, nested: { triple: item * 3 } } }),//переделываем число в объект
-		//pluck('nested','triple'),//возвращаем в поток только item.nested.triple
+		map(item => { return { single: item, double: item * 2, nested: { triple: item * 3 } } }), //переделываем число в объект
+		//pluck('nested','triple'), //возвращаем в поток только item.nested.triple
 		pluck('double')//возвращаем в поток только item.double
 	);
 
@@ -2874,7 +2907,7 @@ reduce поток закрыт
  */
 
 const reduceAccumulator = (accumulator, item) => {
-	console.log(`time: ${item*101}; item: ${item}; accumulator: ${accumulator}`);
+	console.log(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
 	return item + accumulator
 };
 const reduceAccumulatorInitial = 0;
@@ -2989,7 +3022,7 @@ const mergeMapToInternal = interval(11).pipe(take(3), map(item => item * 11 + '-
 
 
 const mergeMapTo$ = of(mergeMapTo1, mergeMapTo2, mergeMapTo3, mergeMapTo4).pipe(
-	tap(logAll),//возвращает три потока наблюдателей
+	tap(logAll), //возвращает три потока наблюдателей
 	mergeMapTo(mergeMapToInternal)
 )
 
@@ -3054,7 +3087,7 @@ const switchMapToInternal = interval(11).pipe(take(3), map(item => item * 11 + '
 
 
 const switchMapTo$ = of(switchMapTo1, switchMapTo2, switchMapTo3, switchMapTo4).pipe(
-	tap(logAll),//возвращает три потока наблюдателей
+	tap(logAll), //возвращает три потока наблюдателей
 	switchMapTo(switchMapToInternal)
 )
 
@@ -3132,6 +3165,418 @@ const dematerialize$ = of(dematerialize1, dematerialize2, dematerialize3).pipe(
 
 //dematerialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('dematerialize поток закрыт'));
 
+//========================================================================================================================
+//==================================================MULTICAST=============================================================
+//========================================================================================================================
+//
+
+/**
+ * multicast
+ * Конвертирует поток в ConnectableObservable
+ * Перенаправляет входящие потоки multicastIn в специальный поток(прокси) multicastProxy
+ * Позволяет одновременно стартовать все потоки через прокси методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! в примере нет эмуляции задержки старта одного из входных потоков
+ * 
+ * https://www.learnrxjs.io/operators/multicasting/multicast.html
+ * https://blog.angularindepth.com/rxjs-multicasts-secret-760e1a2b176e
+ * http://reactivex.io/documentation/operators/publish.html
+ * 
+ * 
+
+Hello World!
+0-поток1-подписка1
+0-поток2-подписка1
+101-поток1-подписка1
+102-поток2-подписка1
+202-поток1-подписка1
+поток1-закрыто-подписка1
+204-поток2-подписка1
+поток2-закрыто-подписка1
+подписка1-закрыта
+0-поток1-подписка2
+0-поток2-подписка2
+101-поток1-подписка2
+102-поток2-подписка2
+202-поток1-подписка2
+поток1-закрыто-подписка2
+204-поток2-подписка2
+поток2-закрыто-подписка2
+подписка2-закрыта
+ */
+
+const multicastIn1 = interval(101).pipe(
+	take(3),
+	map(item => item * 101 + '-поток1'),
+	endWith('поток1-закрыто')
+);
+const multicastIn2 = interval(102).pipe(
+	take(3),
+	map(item => item * 102 + '-поток2'),
+	endWith('поток2-закрыто')
+);
+
+const multicastProxy$ = new Subject();
+
+
+// традиционный пример, который работает без костылей
+const multicastObserver = observer => {
+	console.log('новый подписчик!');
+	let countItem = 0;
+	const interval1 = setInterval(
+		() => {
+			console.log('генерируем: ' + countItem);
+			if (countItem <= 3) {
+				observer.next(countItem++);
+			} else {
+				console.log('остановка генератора multicast');
+				clearInterval(interval1);
+			}
+		}, 101);
+}
+
+const multicast$ = Observable.create(multicastObserver).pipe(
+	// const multicast$ = publish()(of(multicastIn1, multicastIn2).pipe( // пример костыля - в этом случае .connect() не работает как надо, потоки стартуют раньше .connect()
+	// tap(logAll),
+	multicast(multicastProxy$), //если закомментировать, потоки стартуют по .subscribe вместо .connect
+);
+
+multicast$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('multicast подписка1-закрыта'));
+multicast$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('multicast подписка2-закрыта'));
+
+// multicast$.connect();
+
+/**
+ * share
+ * подписывается на входящий поток share1, когда подписываются на него share$
+ * отписывается, если все отписались от него share$
+ * делает поток горячим - новые подписчики получают значения только с момента своей подписки
+ * используется для websocket
+ * 
+ * 
+Hello World!
+получил1:  0-1
+получил1:  101-1
+получил1:  202-1
+получил1:  303-1
+получил1:  404-1
+получил1:  505-1
+получил1:  606-1
+получил2:  606-1 // вместо 0 получили 606
+получил1:  707-1
+получил2:  707-1
+получил1:  808-1
+получил2:  808-1
+получил1:  909-1
+получил2:  909-1
+получил1:  1-закрыто
+получил2:  1-закрыто
+share1 поток закрыт
+share2 поток закрыт
+ */
+const share1 = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-1'),
+	endWith('1-закрыто')
+);
+
+const share$ = share1.pipe(
+	share(),
+	// tap(logAll),
+)
+
+//!!! контрольный подписчик
+// share$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('share1 поток закрыт'));
+
+const shareTimeout = setTimeout(() => {
+	// опаздываем на 700
+	// share$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('share2 поток закрыт'));
+	clearInterval(shareTimeout);
+}, 700);
+
+/**
+ * shareReply
+ * подписывается на входящий поток share1, когда подписываются на него share$
+ * отписывается, если все отписались от него share$
+ * делает поток горячим - новые подписчики получают значения только с момента своей подписки, включая буфер из указанного количества значений shareReplayBufferSize
+ * используется для websocket
+ * 
+ * Hello World!
+получил1:  0-1
+получил1:  101-1
+получил1:  202-1
+получил1:  303-1
+получил1:  404-1
+получил1:  505-1
+получил2:  303-1 // вместо 606 получили 303
+получил2:  404-1
+получил2:  505-1
+получил1:  606-1
+получил2:  606-1
+получил1:  707-1
+получил2:  707-1
+получил1:  808-1
+получил2:  808-1
+получил1:  909-1
+получил2:  909-1
+получил1:  1-закрыто
+получил2:  1-закрыто
+shareReplay1 поток закрыт
+shareReplay2 поток закрыт
+ */
+const shareReplay1 = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-1'),
+	endWith('1-закрыто')
+);
+const shareReplayBufferSize = 3;
+
+const shareReplay$ = shareReplay1.pipe(
+	shareReplay(shareReplayBufferSize),
+	// tap(logAll),
+)
+
+//!!! контрольный подписчик
+// shareReplay$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('shareReplay1 поток закрыт'));
+
+const shareReplayTimeout = setTimeout(() => {
+	// опаздываем на 700
+	// shareReplay$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('shareReplay2 поток закрыт'));
+	clearInterval(shareReplayTimeout)
+}, 700);
+
+/**
+ * publish
+ * Конвертирует поток в ConnectableObservable
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! в примере нет эмуляции задержки старта одного из входных потоков
+ * в отличии от multicast нет аргумента-прокси
+ * 
+ * 
+Hello World!
+новый подписчик!
+генерируем: 0
+0-подписка1
+генерируем: 1
+1-подписка1
+генерируем: 2
+2-подписка1
+генерируем: 3
+3-подписка1
+генерируем: 4
+остановка генератора
+0-подписка2
+1-подписка2
+2-подписка2
+3-подписка2
+
+ */
+
+// традиционный подход, который работает без костылей
+const publishObserver = observer => {
+	console.log('новый подписчик!');
+	let countItem = 0;
+	const interval1 = setInterval(
+		() => {
+			console.log('генерируем: ' + countItem);
+			if (countItem <= 3) {
+				observer.next(countItem++);
+			} else {
+				console.log('остановка генератора publish');
+				clearInterval(interval1);
+			}
+		}, 101);
+}
+
+const publish$ = Observable.create(publishObserver).pipe(
+	// tap(logAll),
+	publish(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
+);
+
+publish$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publish подписка1-закрыта'));
+publish$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publish подписка2-закрыта'));
+
+// publish$.connect();
+
+
+
+/**
+ * publishBehavior
+ * Конвертирует поток в ConnectableObservable
+ * Имитирует вначале итогового потока указанное значение publishBehaviorInitialValue
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! имитирует  указанное значение publishBehaviorInitialValue раньше .connect
+ * 
+ * Hello World!
+новый подписчик!
+start-подписка1
+новый подписчик!
+генерируем: 0
+0-подписка1
+генерируем: 0
+0-подписка1
+генерируем: 1
+1-подписка1
+генерируем: 1
+1-подписка1
+генерируем: 2
+2-подписка1
+генерируем: 2
+2-подписка1
+генерируем: 3
+3-подписка1
+генерируем: 3
+3-подписка1
+генерируем: 4
+остановка генератора
+генерируем: 4
+остановка генератора
+start-подписка2
+0-подписка2
+0-подписка2
+1-подписка2
+1-подписка2
+2-подписка2
+2-подписка2
+3-подписка2
+3-подписка2
+ */
+const publishBehaviorObserver = observer => {
+	console.log('новый подписчик!');
+	let countItem = 0;
+	const interval1 = setInterval(
+		() => {
+			console.log('генерируем: ' + countItem);
+			if (countItem <= 3) {
+				observer.next(countItem++);
+			} else {
+				console.log('остановка генератора publishBehavior');
+				clearInterval(interval1);
+			}
+		}, 101);
+}
+
+const publishBehaviorInitialValue = 'publishBehaviorInitialValue'
+
+const publishBehavior$ = Observable.create(publishBehaviorObserver).pipe(
+	// tap(logAll),
+	publishBehavior(publishBehaviorInitialValue), //если закомментировать, потоки стартуют по .subscribe вместо .connect
+);
+
+// ! раскомментировать 3 строки
+// publishBehavior$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishBehavior подписка1-закрыта'));
+// publishBehavior$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishBehavior подписка2-закрыта'));
+// publishBehavior$.connect();
+
+/**
+ * publishLast
+ * Конвертирует поток в ConnectableObservable
+ * Имитирует только крайнее значение входного потока
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! работает с pipe, но требуется указывать as ConnectableObservable<any>;
+ * 
+ * 
+Hello World!
+1-закрыт-подписка1
+1-закрыт-подписка2
+publishLast подписка1-закрыта
+publishLast подписка2-закрыта
+ */
+
+const publishLast1 = interval(101).pipe(
+	// контрольный поток
+	take(3),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const publishLast$ = of(publishLast1).pipe(
+	// tap(logAll),
+	mergeAll(),
+	publishLast(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
+) as ConnectableObservable<any>;
+
+publishLast$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishLast подписка1-закрыта'));
+const publishLastTimeout = setInterval(() => {
+	publishLast$.subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishLast подписка2-закрыта'));
+	clearInterval(publishLastTimeout);
+}, 300);
+
+// publishLast$.connect();
+
+/**
+ * publishReplay
+ * Конвертирует поток в ConnectableObservable
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * После .connect имитирует все значения входного потока для подписчика
+ * Если .connect после закытия входного потока, то имитирует только указанное количество значений publishReplayCount входного потока
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * 
+ * Hello World!
+0-1-подписка1
+101-1-подписка1
+0-1-подписка2
+101-1-подписка2
+202-1-подписка1
+202-1-подписка2
+1-закрыт-подписка1
+1-закрыт-подписка2
+publishReplay подписка1-закрыта
+publishReplay подписка2-закрыта
+0-1-подписка3
+101-1-подписка3
+202-1-подписка3
+1-закрыт-подписка3
+publishReplay подписка3-закрыта
+ */
+
+const publishReplay1 = interval(101).pipe(
+	// контрольный поток
+	take(3),
+	map(item => item * 101 + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт'),
+)
+
+const publishReplay$ = of(publishReplay1).pipe(
+	// tap(logAll),
+	mergeAll(),
+	publishReplay(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
+) as ConnectableObservable<any>;
+
+publishReplay$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishReplay подписка1-закрыта'));
+
+const publishReplayTimeout1 = setInterval(() => {
+	publishReplay$.subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishReplay подписка2-закрыта'));
+	clearInterval(publishReplayTimeout1);
+}, 300);
+
+const publishReplayTimeout2 = setInterval(() => {
+	publishReplay$.subscribe((item) => console.log(item + '-подписка3'), null, () => console.log('publishReplay подписка3-закрыта'));
+	clearInterval(publishReplayTimeout2);
+}, 500);
+
+// publishReplay$.connect();
+
+//========================================================================================================================
+//==================================================UTILITY===============================================================
+//========================================================================================================================
+//
+
+/**
+ *
+ */
+
+//====
 
 
 /**

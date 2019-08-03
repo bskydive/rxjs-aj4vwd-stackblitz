@@ -22,8 +22,8 @@ var __spread = (this && this.__spread) || function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
-var source = rxjs_1.of('World').pipe(operators_1.map(function (x) { return "Hello " + x + "!"; }));
-source.subscribe(function (x) { return console.log(x); });
+var helloSource = rxjs_1.of('World').pipe(operators_1.map(function (x) { return "Hello " + x + "!"; }));
+helloSource.subscribe(function (x) { return console.log(x); });
 /**
  * ===============================================
  * ========== Библиотека живых примеров ==========
@@ -114,47 +114,61 @@ operators_1.tap(function (item) { return console.log('отладь меня: ', 
  */
 //map$.subscribe(item => console.log('раз:', item));//без задержек
 /*
-setTimeout(() => {
+const mapTimeout1 = setTimeout(() => {
   map$.subscribe(item => console.log('два', item), err => console.log('два', err), () => console.log('два', 'конец'));
+  clearInterval(mapTimeout1)
 }, 1000);//с задержкой в 1 сек
-*/
-/*
-setTimeout(() => {
-  map$.subscribe({
-    next: item => console.log('три', item),
-    error: err => console.log('три', err),
-    complete: () => console.log('три', 'конец')
-  })
+ */
+/* const mapTimeout2 = setTimeout(() => {
+    map$.subscribe({
+        next: item => console.log('три', item),
+        error: err => console.log('три', err),
+        complete: () => console.log('три', 'конец')
+    })
+    clearInterval(mapTimeout2);
 }, 2000);//с задержкой в 2 сек
-*/
+ */
 //========================================================================================================================
 //==================================================BUFFER================================================================
 //========================================================================================================================
 /**
  * Кэширует и возвращает пачку значений
+ * [0, 1, 2, 3, 4, 5, 6, 7, 8]
+[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
  */
-//[0, 1, 2, 3, 4, 5, 6, 7, 8]
-//[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-//[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 var buffer$ = rxjs_1.interval(100).pipe(operators_1.buffer(rxjs_1.interval(1000)), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferInterval'], item); }));
 //buffer$.subscribe(a => console.log(a));
-//[0, 1, 2]
-//[3, 4, 5]
-//[6, 7, 8]
+/**
+ * bufferCount
+ *
+ * [0, 1, 2]
+[3, 4, 5]
+[6, 7, 8]
+ */
 var bufferCount$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferCount'], item); }));
 //bufferCount$.subscribe(a => console.log(a));
-//[0, 1, 2]
-//[2, 3, 4]
-//[4, 5, 6]
-//стартует новый буфер каждое второе значение
+/**
+ * bufferCount(length)
+ * стартует новый буфер каждое второе значение
+[0, 1, 2]
+[2, 3, 4]
+[4, 5, 6]
+ */
 var bufferCountLength$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3, 2), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferCountFork'], item); }));
 //bufferCountLength$.subscribe(a => console.log(a));
-//["bufferTime", 0]
-//["bufferTime", 0, 1, 2]
-//["bufferTime", 1, 2, 3]
+/**
+ * bufferTime
+ *
+ * ["bufferTime", 0]
+["bufferTime", 0, 1, 2]
+["bufferTime", 1, 2, 3]
+ */
 var bufferTime$ = rxjs_1.interval(100).pipe(operators_1.bufferTime(200, 100), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferTime'], item); }));
 //bufferTime$.subscribe(a => console.log(a));
-/*
+/**
+ * bufferToggle
+ * асинхронный старт и стоп буфера
 0
 1
 2
@@ -181,14 +195,14 @@ bufferOpen
 11
 12
 */
-//асинхронный старт и стоп буфера
-var count = 0;
-var bufferOpen$ = rxjs_1.interval(400).pipe(operators_1.tap(function () { return console.log('bufferOpen', count); }));
-var bufferClose$ = function () { return rxjs_1.interval(300).pipe(operators_1.tap(function () { return console.log('bufferClose', count++); })); };
+var bufferToggleCount = 0;
+var bufferOpen$ = rxjs_1.interval(400).pipe(operators_1.tap(function () { return console.log('bufferOpen', bufferToggleCount); }));
+var bufferClose$ = function () { return rxjs_1.interval(300).pipe(operators_1.tap(function () { return console.log('bufferClose', bufferToggleCount++); })); };
 var bufferToggle$ = rxjs_1.interval(100).pipe(operators_1.tap(function (item) { return console.log(item); }), operators_1.bufferToggle(bufferOpen$, bufferClose$), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferToggle'], item); }));
 //bufferToggle$.subscribe(a => console.log(a));
-//выбор времени закрытия буфера
-/*
+/**
+ * bufferWhen
+ * выбор времени закрытия буфера
 ["bufferWhen", 0]
 ["bufferWhen", 1, 2, 3]
 ["bufferWhenElse", 4, 5]
@@ -197,16 +211,16 @@ var bufferToggle$ = rxjs_1.interval(100).pipe(operators_1.tap(function (item) { 
 ["bufferWhenElse", 8]
 ["bufferWhenElse", 9]
 */
-count = 0;
-var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.map(function (item) { return (count = item); }), operators_1.bufferWhen(function () {
-    if (count < 5) {
+var bufferWhenCount = 0;
+var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.map(function (item) { return (bufferWhenCount = item); }), operators_1.bufferWhen(function () {
+    if (bufferWhenCount < 5) {
         return rxjs_1.interval(1000);
     }
     else {
         return rxjs_1.interval(500);
     }
 }), operators_1.map(function (item) {
-    if (count < 5) {
+    if (bufferWhenCount < 5) {
         return __spread(['bufferWhen'], item);
     }
     else {
@@ -225,7 +239,7 @@ var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
 ["window", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ["window", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 */
-var window$ = rxjs_1.interval(100).pipe(operators_1.window(rxjs_1.interval(1000)), operators_1.take(3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['window'], item); })); }));
+var window$ = rxjs_1.interval(100).pipe(operators_1.window(rxjs_1.interval(1000)), operators_1.take(3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['window'], item1); })); }));
 //window$.subscribe(a => console.log(a));
 /**
  * windowCount
@@ -246,7 +260,7 @@ windowCount(2,3)
 ["windowCount", 6, 7]
 ["windowCount", 9]
 */
-var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.windowCount(2, 3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowCount'], item); })); }));
+var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.windowCount(2, 3), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['windowCount'], item1); })); }));
 //windowCount$.subscribe(a => console.log(a));
 /**
  * WindowTime
@@ -259,7 +273,7 @@ var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.w
 ["windowTime", 8]
  */
 var windowTime$ = rxjs_1.timer(0, 100)
-    .pipe(operators_1.take(9), operators_1.windowTime(200), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowTime'], item); })); }));
+    .pipe(operators_1.take(9), operators_1.windowTime(200), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['windowTime'], item1); })); }));
 //windowTime$.subscribe(a => console.log(a));
 /**
  * windowToggle
@@ -284,31 +298,31 @@ windowOpen 2
 9
 ["windowToggle", 8, 9]
  */
-count = 0;
-var windowOpen$ = rxjs_1.timer(0, 400).pipe(operators_1.map(function () { return console.log('windowOpen', count); }));
-var windowClose$ = function () { return rxjs_1.timer(300).pipe(operators_1.map(function () { return console.log('windowClose', count++); })); };
-var windowToggle$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.tap(function (item) { return console.log(item); }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item) { return __spread(['windowToggle'], item); })); }));
+var windowToggleCount = 0;
+var windowOpen$ = rxjs_1.timer(0, 400).pipe(operators_1.map(function () { return console.log('windowOpen', windowToggleCount); }));
+var windowClose$ = function () { return rxjs_1.timer(300).pipe(operators_1.map(function () { return console.log('windowClose', windowToggleCount++); })); };
+var windowToggle$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.tap(function (item) { return console.log(item); }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item) { return item.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['windowToggle'], item1); })); }));
 //windowToggle$.subscribe(a => console.log(a));
 /**
  * windowWhen
  * выбор времени закрытия буфера
  
 */
-count = 0;
-var windowWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.map(function (item) { return (count = item); }), operators_1.windowWhen(function () {
-    if (count < 5) {
+var windowWhenCount = 0;
+var windowWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.map(function (item) { return (windowWhenCount = item); }), operators_1.windowWhen(function () {
+    if (windowWhenCount < 5) {
         return rxjs_1.interval(1000);
     }
     else {
         return rxjs_1.interval(500);
     }
 }), operators_1.switchMap(function (item) { return item
-    .pipe(operators_1.toArray(), operators_1.map(function (item) {
-    if (count < 5) {
-        return __spread(['windowWhen'], item);
+    .pipe(operators_1.toArray(), operators_1.map(function (item1) {
+    if (windowWhenCount < 5) {
+        return __spread(['windowWhen'], item1);
     }
     else {
-        return __spread(['windowWhenElse'], item);
+        return __spread(['windowWhenElse'], item1);
     }
 })); }));
 //windowWhen$.subscribe(a => console.log(a));
@@ -423,9 +437,24 @@ var errorRetryWhen$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1
     );
 }));
 //errorRetryWhen$.subscribe(a => console.log(a));
-//retryWhen
+/*
+ * retryWhen
+
+Hello World!
+try: 0
+получил:  0
+try: 1
+error: 1
+retry whole source: 1
+try: 0
+получил:  0
+try: 1
+error: 1
+fail
+ошибка: error
+*/
 var swallow = false;
-var swallow$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
+var retryWhen$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
     console.log('try: ' + x);
     if (x === 1) {
         throw 'error: ' + x;
@@ -455,7 +484,7 @@ var swallow$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
         }));
     }
 }));
-//swallow$.subscribe(  a => console.log('success: ' + a),  err => console.log('error: ' + err),  () => console.log('swallow completed'))
+//retryWhen$.subscribe((item) => console.log('получил: ', item), err => console.log('ошибка: ' + err), () => console.log('retryWhen поток закрыт'));
 /**
  * timeout
  * прерывает поток ошибкой, если нет значения за время интервала
@@ -479,7 +508,7 @@ operators_1.catchError(function (err, caught) {
 /**
  * timeoutWith
  * стартует новый поток, если нет значения за время интервала
- * также можно указать дату вметсо интервала, но можно наступить на локализацию
+ * также можно указать дату вместо интервала, но можно наступить на локализацию
 ещё 0
 ещё 100
 1
@@ -2192,7 +2221,7 @@ var mergeScan$ = rxjs_1.of(mergeScan1).pipe(operators_1.mergeAll());
  */
 var pluck$ = rxjs_1.interval(100)
     .pipe(operators_1.take(3), operators_1.map(function (item) { return { single: item, double: item * 2, nested: { triple: item * 3 } }; }), //переделываем число в объект
-//pluck('nested','triple'),//возвращаем в поток только item.nested.triple
+//pluck('nested','triple'), //возвращаем в поток только item.nested.triple
 operators_1.pluck('double') //возвращаем в поток только item.double
 );
 //pluck$.subscribe(item => console.log(item), null, ()=> console.log('pluck поток закрыт'));
@@ -2403,7 +2432,12 @@ operators_1.materialize());
  * Конвертирует объект-оповещение в значение
  * Используется для восстановления(десериализации) сохранённого ранее в json значения
  *
- * получил:  Observable { _isScalar: false, _subscribe: [Function] }
+ *Hello World!
+получил:  Observable { _isScalar: false, _subscribe: [Function] }//<-- это ошибка
+получил:  2-закрыто
+получил:  Notification { kind: 'N', value: 0, error: undefined, hasValue: true }
+получил:  Notification { kind: 'C', value: undefined, error: undefined, hasValue: false }
+получил:  3-закрыто
 получил:  0-1
 получил:  101-1
 получил:  202-1
@@ -2416,7 +2450,328 @@ var dematerialize3 = rxjs_1.of(rxjs_1.Notification.createNext(0), rxjs_1.Notific
 var dematerialize$ = rxjs_1.of(dematerialize1, dematerialize2, dematerialize3).pipe(
 // tap(logAll),
 operators_1.materialize(), operators_1.dematerialize(), operators_1.mergeAll());
-dematerialize$.subscribe(function (item) { return console.log('получил: ', item); }, null, function () { return console.log('dematerialize поток закрыт'); });
+//dematerialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('dematerialize поток закрыт'));
+//========================================================================================================================
+//==================================================MULTICAST=============================================================
+//========================================================================================================================
+//
+/**
+ * multicast
+ * Конвертирует поток в ConnectableObservable
+ * Перенаправляет входящие потоки multicastIn в специальный поток(прокси) multicastProxy
+ * Позволяет одновременно стартовать все потоки через прокси методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! в примере нет эмуляции задержки старта одного из входных потоков
+ *
+ * https://www.learnrxjs.io/operators/multicasting/multicast.html
+ * https://blog.angularindepth.com/rxjs-multicasts-secret-760e1a2b176e
+ * http://reactivex.io/documentation/operators/publish.html
+ *
+ *
+
+Hello World!
+0-поток1-подписка1
+0-поток2-подписка1
+101-поток1-подписка1
+102-поток2-подписка1
+202-поток1-подписка1
+поток1-закрыто-подписка1
+204-поток2-подписка1
+поток2-закрыто-подписка1
+подписка1-закрыта
+0-поток1-подписка2
+0-поток2-подписка2
+101-поток1-подписка2
+102-поток2-подписка2
+202-поток1-подписка2
+поток1-закрыто-подписка2
+204-поток2-подписка2
+поток2-закрыто-подписка2
+подписка2-закрыта
+ */
+var multicastIn1 = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-поток1'; }), operators_1.endWith('поток1-закрыто'));
+var multicastIn2 = rxjs_1.interval(102).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 102 + '-поток2'; }), operators_1.endWith('поток2-закрыто'));
+var multicastProxy$ = new rxjs_1.Subject();
+// традиционный пример, который работает без костылей
+var multicastObserver = function (observer) {
+    console.log('новый подписчик!');
+    var countItem = 0;
+    var interval1 = setInterval(function () {
+        console.log('генерируем: ' + countItem);
+        if (countItem <= 3) {
+            observer.next(countItem++);
+        }
+        else {
+            console.log('остановка генератора multicast');
+            clearInterval(interval1);
+        }
+    }, 101);
+};
+var multicast$ = rxjs_1.Observable.create(multicastObserver).pipe(
+// const multicast$ = publish()(of(multicastIn1, multicastIn2).pipe( // пример костыля - в этом случае .connect() не работает как надо, потоки стартуют раньше .connect()
+// tap(logAll),
+operators_1.multicast(multicastProxy$));
+multicast$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('multicast подписка1-закрыта'); });
+multicast$.pipe(operators_1.delay(1000)).subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('multicast подписка2-закрыта'); });
+// multicast$.connect();
+/**
+ * share
+ * подписывается на входящий поток share1, когда подписываются на него share$
+ * отписывается, если все отписались от него share$
+ * делает поток горячим - новые подписчики получают значения только с момента своей подписки
+ * используется для websocket
+ *
+ *
+Hello World!
+получил1:  0-1
+получил1:  101-1
+получил1:  202-1
+получил1:  303-1
+получил1:  404-1
+получил1:  505-1
+получил1:  606-1
+получил2:  606-1 // вместо 0 получили 606
+получил1:  707-1
+получил2:  707-1
+получил1:  808-1
+получил2:  808-1
+получил1:  909-1
+получил2:  909-1
+получил1:  1-закрыто
+получил2:  1-закрыто
+share1 поток закрыт
+share2 поток закрыт
+ */
+var share1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('1-закрыто'));
+var share$ = share1.pipe(operators_1.share());
+//!!! контрольный подписчик
+// share$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('share1 поток закрыт'));
+var shareTimeout = setTimeout(function () {
+    // опаздываем на 700
+    // share$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('share2 поток закрыт'));
+    clearInterval(shareTimeout);
+}, 700);
+/**
+ * shareReply
+ * подписывается на входящий поток share1, когда подписываются на него share$
+ * отписывается, если все отписались от него share$
+ * делает поток горячим - новые подписчики получают значения только с момента своей подписки, включая буфер из указанного количества значений shareReplayBufferSize
+ * используется для websocket
+ *
+ * Hello World!
+получил1:  0-1
+получил1:  101-1
+получил1:  202-1
+получил1:  303-1
+получил1:  404-1
+получил1:  505-1
+получил2:  303-1 // вместо 606 получили 303
+получил2:  404-1
+получил2:  505-1
+получил1:  606-1
+получил2:  606-1
+получил1:  707-1
+получил2:  707-1
+получил1:  808-1
+получил2:  808-1
+получил1:  909-1
+получил2:  909-1
+получил1:  1-закрыто
+получил2:  1-закрыто
+shareReplay1 поток закрыт
+shareReplay2 поток закрыт
+ */
+var shareReplay1 = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('1-закрыто'));
+var shareReplayBufferSize = 3;
+var shareReplay$ = shareReplay1.pipe(operators_1.shareReplay(shareReplayBufferSize));
+//!!! контрольный подписчик
+// shareReplay$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('shareReplay1 поток закрыт'));
+var shareReplayTimeout = setTimeout(function () {
+    // опаздываем на 700
+    // shareReplay$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('shareReplay2 поток закрыт'));
+    clearInterval(shareReplayTimeout);
+}, 700);
+/**
+ * publish
+ * Конвертирует поток в ConnectableObservable
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! в примере нет эмуляции задержки старта одного из входных потоков
+ * в отличии от multicast нет аргумента-прокси
+ *
+ *
+Hello World!
+новый подписчик!
+генерируем: 0
+0-подписка1
+генерируем: 1
+1-подписка1
+генерируем: 2
+2-подписка1
+генерируем: 3
+3-подписка1
+генерируем: 4
+остановка генератора
+0-подписка2
+1-подписка2
+2-подписка2
+3-подписка2
+
+ */
+// традиционный подход, который работает без костылей
+var publishObserver = function (observer) {
+    console.log('новый подписчик!');
+    var countItem = 0;
+    var interval1 = setInterval(function () {
+        console.log('генерируем: ' + countItem);
+        if (countItem <= 3) {
+            observer.next(countItem++);
+        }
+        else {
+            console.log('остановка генератора publish');
+            clearInterval(interval1);
+        }
+    }, 101);
+};
+var publish$ = rxjs_1.Observable.create(publishObserver).pipe(
+// tap(logAll),
+operators_1.publish());
+publish$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('publish подписка1-закрыта'); });
+publish$.pipe(operators_1.delay(1000)).subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('publish подписка2-закрыта'); });
+// publish$.connect();
+/**
+ * publishBehavior
+ * Конвертирует поток в ConnectableObservable
+ * Имитирует вначале итогового потока указанное значение publishBehaviorInitialValue
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! имитирует  указанное значение publishBehaviorInitialValue раньше .connect
+ *
+ * Hello World!
+новый подписчик!
+start-подписка1
+новый подписчик!
+генерируем: 0
+0-подписка1
+генерируем: 0
+0-подписка1
+генерируем: 1
+1-подписка1
+генерируем: 1
+1-подписка1
+генерируем: 2
+2-подписка1
+генерируем: 2
+2-подписка1
+генерируем: 3
+3-подписка1
+генерируем: 3
+3-подписка1
+генерируем: 4
+остановка генератора
+генерируем: 4
+остановка генератора
+start-подписка2
+0-подписка2
+0-подписка2
+1-подписка2
+1-подписка2
+2-подписка2
+2-подписка2
+3-подписка2
+3-подписка2
+ */
+var publishBehaviorObserver = function (observer) {
+    console.log('новый подписчик!');
+    var countItem = 0;
+    var interval1 = setInterval(function () {
+        console.log('генерируем: ' + countItem);
+        if (countItem <= 3) {
+            observer.next(countItem++);
+        }
+        else {
+            console.log('остановка генератора publishBehavior');
+            clearInterval(interval1);
+        }
+    }, 101);
+};
+var publishBehaviorInitialValue = 'publishBehaviorInitialValue';
+var publishBehavior$ = rxjs_1.Observable.create(publishBehaviorObserver).pipe(
+// tap(logAll),
+operators_1.publishBehavior(publishBehaviorInitialValue));
+// ! раскомментировать 3 строки
+// publishBehavior$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishBehavior подписка1-закрыта'));
+// publishBehavior$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishBehavior подписка2-закрыта'));
+// publishBehavior$.connect();
+/**
+ * publishLast
+ * Конвертирует поток в ConnectableObservable
+ * Имитирует только крайнее значение входного потока
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ * ! работает с pipe, но требуется указывать as ConnectableObservable<any>;
+ *
+ *
+Hello World!
+1-закрыт-подписка1
+1-закрыт-подписка2
+publishLast подписка1-закрыта
+publishLast подписка2-закрыта
+ */
+var publishLast1 = rxjs_1.interval(101).pipe(
+// контрольный поток
+operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var publishLast$ = rxjs_1.of(publishLast1).pipe(
+// tap(logAll),
+operators_1.mergeAll(), operators_1.publishLast());
+publishLast$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('publishLast подписка1-закрыта'); });
+var publishLastTimeout = setInterval(function () {
+    publishLast$.subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('publishLast подписка2-закрыта'); });
+    clearInterval(publishLastTimeout);
+}, 300);
+// publishLast$.connect();
+/**
+ * publishReplay
+ * Конвертирует поток в ConnectableObservable
+ * Позволяет одновременно стартовать все потоки через методом connect()
+ * После .connect имитирует все значения входного потока для подписчика
+ * Если .connect после закытия входного потока, то имитирует только указанное количество значений publishReplayCount входного потока
+ * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
+ * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
+ *
+ */
+var publishReplay1 = rxjs_1.interval(101).pipe(
+// контрольный поток
+operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }), 
+// tap(logAll),
+operators_1.endWith('1-закрыт'));
+var publishReplay$ = rxjs_1.of(publishReplay1).pipe(
+// tap(logAll),
+operators_1.mergeAll(), operators_1.publishReplay());
+publishReplay$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('publishReplay подписка1-закрыта'); });
+var publishReplayTimeout1 = setInterval(function () {
+    publishReplay$.subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('publishReplay подписка2-закрыта'); });
+    clearInterval(publishReplayTimeout1);
+}, 300);
+var publishReplayTimeout2 = setInterval(function () {
+    publishReplay$.subscribe(function (item) { return console.log(item + '-подписка3'); }, null, function () { return console.log('publishReplay подписка3-закрыта'); });
+    clearInterval(publishReplayTimeout2);
+}, 500);
+publishReplay$.connect();
+//========================================================================================================================
+//==================================================UTILITY===============================================================
+//========================================================================================================================
+//
+/**
+ *
+ */
+//====
 /**
  * forkJoin, merge, concat, race, zip, iif
- */ 
+ */
