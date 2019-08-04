@@ -23,7 +23,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
 var helloSource$ = rxjs_1.of('World').pipe(operators_1.map(function (x) { return "Hello " + x + "!"; }));
-helloSource$.subscribe(function (x) { return console.log(x); });
+helloSource$.subscribe(function (x) { return logAll(x); });
 /**
  * ===============================================
  * ========== Библиотека живых примеров ==========
@@ -79,7 +79,7 @@ helloSource$.subscribe(function (x) { return console.log(x); });
     complete()
  * Subscriber - вид наблюдателя. Объект(функция), которая обрабатывает конечные результаты потока. Передаётся внутрь метода Observable.subscribe(subscriber)
  * pipe(аргументы) - организует последовательную передачу значений потока между аргументами-наблюдателями. Сделано для избегания конфликтов с методами объектов.
- * subscribe(item => console.log('значение потока', item), err => console.log('ошибка', err), () => console.log('поток закрыт штатно')); - запускает поток, принимает три аргумента для значений(next), ошибок(error), завершения потока(complete)
+ * subscribe(item => logAll('значение потока', item), err => logAll('ошибка', err), () => logAll('поток закрыт штатно')); - запускает поток, принимает три аргумента для значений(next), ошибок(error), завершения потока(complete)
  * scan -
  *
  * Виды операторов по типу операций со значеними:
@@ -94,8 +94,14 @@ helloSource$.subscribe(function (x) { return console.log(x); });
 /**
  * Чтобы обойти ошибку TS2496: The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5. Consider using a standard function expression.
  * https://github.com/microsoft/TypeScript/issues/1609
+ * Чтобы не светились ошибки использования console.log
+ * Здесь логирование применимо, на проде - нет
  */
 function logAll() {
+    var args = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        args[_i] = arguments[_i];
+    }
     console.log.apply(console, __spread(arguments));
 }
 /**
@@ -107,23 +113,23 @@ function logAll() {
  * take - останавливает поток после получения указанного количества значений
  */
 var map$ = rxjs_1.interval(100).pipe(operators_1.take(3), operators_1.map(function (item) { return ['преобразуй это: ', item]; }), operators_1.tap(function (item) { return ['фига с два: ', item]; }), //не возвращает ничего
-operators_1.tap(function (item) { return console.log('отладь меня: ', item); }));
+operators_1.tap(function (item) { return logAll('отладь меня: ', item); }));
 /**
  * Три работающих варианта подписки
  * разведены во времени, чтобы не перемешивать вывод в консоль
  */
-//map$.subscribe(item => console.log('раз:', item));//без задержек
+//map$.subscribe(item => logAll('раз:', item));//без задержек
 /*
 const mapTimeout1 = setTimeout(() => {
-  map$.subscribe(item => console.log('два', item), err => console.log('два', err), () => console.log('два', 'конец'));
+  map$.subscribe(item => logAll('два', item), err => logAll('два', err), () => logAll('два', 'конец'));
   clearInterval(mapTimeout1)
 }, 1000);//с задержкой в 1 сек
  */
 /* const mapTimeout2 = setTimeout(() => {
     map$.subscribe({
-        next: item => console.log('три', item),
-        error: err => console.log('три', err),
-        complete: () => console.log('три', 'конец')
+        next: item => logAll('три', item),
+        error: err => logAll('три', err),
+        complete: () => logAll('три', 'конец')
     })
     clearInterval(mapTimeout2);
 }, 2000);//с задержкой в 2 сек
@@ -138,7 +144,7 @@ const mapTimeout1 = setTimeout(() => {
 [9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
  */
 var buffer$ = rxjs_1.interval(100).pipe(operators_1.buffer(rxjs_1.interval(1000)), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferInterval'], item); }));
-//buffer$.subscribe(a => console.log(a));
+buffer$.subscribe(function (a) { return logAll(a); });
 /**
  * bufferCount
  *
@@ -147,7 +153,7 @@ var buffer$ = rxjs_1.interval(100).pipe(operators_1.buffer(rxjs_1.interval(1000)
 [6, 7, 8]
  */
 var bufferCount$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferCount'], item); }));
-//bufferCount$.subscribe(a => console.log(a));
+//bufferCount$.subscribe(a => logAll(a));
 /**
  * bufferCount(length)
  * стартует новый буфер каждое второе значение
@@ -156,7 +162,7 @@ var bufferCount$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3), operato
 [4, 5, 6]
  */
 var bufferCountLength$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3, 2), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferCountFork'], item); }));
-//bufferCountLength$.subscribe(a => console.log(a));
+//bufferCountLength$.subscribe(a => logAll(a));
 /**
  * bufferTime
  *
@@ -165,7 +171,7 @@ var bufferCountLength$ = rxjs_1.interval(100).pipe(operators_1.bufferCount(3, 2)
 ["bufferTime", 1, 2, 3]
  */
 var bufferTime$ = rxjs_1.interval(100).pipe(operators_1.bufferTime(200, 100), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferTime'], item); }));
-//bufferTime$.subscribe(a => console.log(a));
+//bufferTime$.subscribe(a => logAll(a));
 /**
  * bufferToggle
  * асинхронный старт и стоп буфера
@@ -196,10 +202,10 @@ bufferOpen
 12
 */
 var bufferToggleCount = 0;
-var bufferOpen$ = rxjs_1.interval(400).pipe(operators_1.tap(function () { return console.log('bufferOpen', bufferToggleCount); }));
-var bufferClose$ = function () { return rxjs_1.interval(300).pipe(operators_1.tap(function () { return console.log('bufferClose', bufferToggleCount++); })); };
-var bufferToggle$ = rxjs_1.interval(100).pipe(operators_1.tap(function (item) { return console.log(item); }), operators_1.bufferToggle(bufferOpen$, bufferClose$), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferToggle'], item); }));
-//bufferToggle$.subscribe(a => console.log(a));
+var bufferOpen$ = rxjs_1.interval(400).pipe(operators_1.tap(function () { return logAll('bufferOpen', bufferToggleCount); }));
+var bufferClose$ = function () { return rxjs_1.interval(300).pipe(operators_1.tap(function () { return logAll('bufferClose', bufferToggleCount++); })); };
+var bufferToggle$ = rxjs_1.interval(100).pipe(operators_1.tap(function (item) { return logAll(item); }), operators_1.bufferToggle(bufferOpen$, bufferClose$), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferToggle'], item); }));
+//bufferToggle$.subscribe(a => logAll(a));
 /**
  * bufferWhen
  * выбор времени закрытия буфера
@@ -227,7 +233,7 @@ var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
         return __spread(['bufferWhenElse'], item);
     }
 }));
-//bufferWhen$.subscribe(a => console.log(a));
+//bufferWhen$.subscribe(a => logAll(a));
 //========================================================================================================================
 //==================================================WINDOW================================================================
 //========================================================================================================================
@@ -240,7 +246,7 @@ var bufferWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
 ["window", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 */
 var window$ = rxjs_1.interval(100).pipe(operators_1.window(rxjs_1.interval(1000)), operators_1.take(3), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['window'], item1); })); }));
-//window$.subscribe(a => console.log(a));
+//window$.subscribe(a => logAll(a));
 /**
  * windowCount
  *
@@ -261,7 +267,7 @@ windowCount(2,3)
 ["windowCount", 9]
 */
 var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.windowCount(2, 3), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['windowCount'], item1); })); }));
-//windowCount$.subscribe(a => console.log(a));
+//windowCount$.subscribe(a => logAll(a));
 /**
  * WindowTime
  * Возвращает новый поток(буфер) по таймеру, предыдущий закрывает
@@ -274,7 +280,7 @@ var windowCount$ = rxjs_1.interval(100).pipe(operators_1.take(10), operators_1.w
  */
 var windowTime$ = rxjs_1.timer(0, 100)
     .pipe(operators_1.take(9), operators_1.windowTime(200), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['windowTime'], item1); })); }));
-//windowTime$.subscribe(a => console.log(a));
+//windowTime$.subscribe(a => logAll(a));
 /**
  * windowToggle
  *
@@ -299,10 +305,10 @@ windowOpen 2
 ["windowToggle", 8, 9]
  */
 var windowToggleCount = 0;
-var windowOpen$ = rxjs_1.timer(0, 400).pipe(operators_1.map(function () { return console.log('windowOpen', windowToggleCount); }));
-var windowClose$ = function () { return rxjs_1.timer(300).pipe(operators_1.map(function () { return console.log('windowClose', windowToggleCount++); })); };
-var windowToggle$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.tap(function (item) { return console.log(item); }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['windowToggle'], item1); })); }));
-//windowToggle$.subscribe(a => console.log(a));
+var windowOpen$ = rxjs_1.timer(0, 400).pipe(operators_1.map(function () { return logAll('windowOpen', windowToggleCount); }));
+var windowClose$ = function () { return rxjs_1.timer(300).pipe(operators_1.map(function () { return logAll('windowClose', windowToggleCount++); })); };
+var windowToggle$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.tap(function (item) { return logAll(item); }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray(), operators_1.map(function (item1) { return __spread(['windowToggle'], item1); })); }));
+//windowToggle$.subscribe(a => logAll(a));
 /**
  * windowWhen
  * выбор времени закрытия буфера
@@ -324,7 +330,7 @@ var windowWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
         return __spread(['windowWhenElse'], item1);
     }
 })); }));
-//windowWhen$.subscribe(a => console.log(a));
+//windowWhen$.subscribe(a => logAll(a));
 //========================================================================================================================
 //==================================================ERRORS================================================================
 //========================================================================================================================
@@ -340,13 +346,13 @@ var windowWhen$ = rxjs_1.interval(500).pipe(operators_1.take(10), operators_1.ma
  */
 var error$ = rxjs_1.throwError('ошибка ошибковна')
     .pipe(operators_1.catchError(function (err, caught$) {
-    console.log('словил:', err, 'источик:', caught$); //перехватчик ошибок
+    logAll('словил:', err, 'источик:', caught$); //перехватчик ошибок
     return rxjs_1.throwError("\u0432\u0435\u0440\u043D\u0443\u043B \u0432\u0437\u0430\u0434 " + err); //генерируем новую ошибку вместо текущей
 }), operators_1.catchError(function (err, caught$) {
-    console.log('положь где взял:', err, 'источик:', caught$); //перехватчик ошибок работает последовательно
+    logAll('положь где взял:', err, 'источик:', caught$); //перехватчик ошибок работает последовательно
     return rxjs_1.of('янеошибка'); //подмена ошибки значением
 }));
-//error$.subscribe(a => console.log(a), err => console.log('ошибка:', err), ()=>console.log('норм'));
+//error$.subscribe(a => logAll(a), err => logAll('ошибка:', err), ()=>logAll('норм'));
 //
 /**
  * errorHandler
@@ -354,11 +360,11 @@ var error$ = rxjs_1.throwError('ошибка ошибковна')
  * Можно подменять ошибку
  * Error {message: "no elements in sequence", name: "EmptyError"}
  */
-var errorHandler = function () { return console.log('ничоси'); };
+var errorHandler = function () { return logAll('ничоси'); };
 var errorEmpty$ = rxjs_1.of().pipe(operators_1.throwIfEmpty() //без подмены
 //throwIfEmpty(errorHandler)//подмена ошибки
 );
-//errorEmpty$.subscribe(a => console.log(a), err=>console.log(err));
+//errorEmpty$.subscribe(a => logAll(a), err=>logAll(err));
 //
 /**
  * errorNext
@@ -378,7 +384,7 @@ var errorSwitch$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1.ma
         return item;
     }
 }), operators_1.onErrorResumeNext(errorNext$));
-//errorSwitch$.subscribe(a => console.log(a), err=>console.log(err));
+//errorSwitch$.subscribe(a => logAll(a), err=>logAll(err));
 /**
  * errorRetry
  *
@@ -405,7 +411,7 @@ var errorRetry$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1.map
         return item;
     }
 }), operators_1.retry(2));
-//errorRetry$.subscribe(a => console.log(a));
+//errorRetry$.subscribe(a => logAll(a));
 /**
  * retryWhen
  * повторяет поток пока не будет получен complete/error внутри аргумента наблюдателя retryCondition$
@@ -431,11 +437,11 @@ var errorRetryWhen$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1
     }
 }), operators_1.retryWhen(function (retryCondition$) {
     return retryCondition$.pipe(operators_1.map(function (item) {
-        console.log('словили: ' + item);
+        logAll('словили: ' + item);
     }), operators_1.take(3) //отправляет complete после 3 повторов
     );
 }));
-//errorRetryWhen$.subscribe(a => console.log(a));
+//errorRetryWhen$.subscribe(a => logAll(a));
 /*
  * retryWhen
 
@@ -454,36 +460,36 @@ fail
 */
 var swallow = false;
 var retryWhen$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
-    console.log('try: ' + x);
+    logAll('try: ' + x);
     if (x === 1) {
         throw 'error: ' + x;
     }
     return x;
 }), operators_1.retryWhen(function (errors$) {
     if (swallow) {
-        return errors$.pipe(operators_1.tap(function (err) { return console.log(err); }), operators_1.scan(function (acc) { return acc + 1; }, 0), operators_1.tap(function (retryCount) {
+        return errors$.pipe(operators_1.tap(function (err) { return logAll(err); }), operators_1.scan(function (acc) { return acc + 1; }, 0), operators_1.tap(function (retryCount) {
             if (retryCount === 2) {
-                console.log('swallowing error and stop');
+                logAll('swallowing error and stop');
             }
             else {
-                console.log('retry all: ' + retryCount);
+                logAll('retry all: ' + retryCount);
             }
             return retryCount;
         }), operators_1.takeWhile(function (errCount) { return errCount < 2; }));
     }
     else {
-        return errors$.pipe(operators_1.tap(function (err) { return console.log(err); }), operators_1.scan(function (acc) { return acc + 1; }, 0), operators_1.tap(function (retryCount) {
+        return errors$.pipe(operators_1.tap(function (err) { return logAll(err); }), operators_1.scan(function (acc) { return acc + 1; }, 0), operators_1.tap(function (retryCount) {
             if (retryCount === 2) {
-                console.log('fail');
+                logAll('fail');
                 throw 'error';
             }
             else {
-                console.log('retry whole source: ' + retryCount);
+                logAll('retry whole source: ' + retryCount);
             }
         }));
     }
 }));
-//retryWhen$.subscribe((item) => console.log('получил: ', item), err => console.log('ошибка: ' + err), () => console.log('retryWhen поток закрыт'));
+//retryWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка: ' + err), () => logAll('retryWhen поток закрыт'));
 /**
  * timeout
  * прерывает поток ошибкой, если нет значения за время интервала
@@ -493,17 +499,17 @@ Error {message: "Timeout has occurred", name: "TimeoutError"}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 complete
  */
-var errorMsg = function () { return console.log('error'); };
-var timeOut$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.tap(function (value) { return console.log(value * 102); }), operators_1.timeout(100), // таймер
+var errorMsg = function () { return logAll('error'); };
+var timeOut$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.tap(function (value) { return logAll(value * 102); }), operators_1.timeout(100), // таймер
 operators_1.catchError(function (err, caught$) {
     if (err.name === 'TimeoutError') {
         // обрабатываем событие таймера
-        console.log('Таймер сработал');
+        logAll('Таймер сработал');
     }
     ;
     return rxjs_1.of(err, caught$);
 }));
-//timeOut$.subscribe(a => console.log(a), err => (console.log('ошибка: ' + err)), () => console.log('complete'));
+//timeOut$.subscribe(a => logAll(a), err => (logAll('ошибка: ' + err)), () => logAll('complete'));
 /**
  * timeoutWith
  * стартует новый поток, если нет значения за время интервала
@@ -522,7 +528,7 @@ var timeOutWith$ = new rxjs_1.Observable(function (observer) {
     setTimeout(function () { return observer.next('ещё 202'); }, 202); //заменить на 200, чтобы не было прерывания
     setTimeout(function () { return observer.complete(); }, 300);
 }).pipe(operators_1.timeoutWith(101, timeOutWithFallback$));
-//timeOutWith$.subscribe(a => console.log(a), err=>(console.log('ошибка: '+err)), ()=>console.log('complete'));
+//timeOutWith$.subscribe(a => logAll(a), err=>(logAll('ошибка: '+err)), ()=>logAll('complete'));
 //========================================================================================================================
 //==================================================FILTERING ONE=========================================================
 //========================================================================================================================
@@ -535,7 +541,7 @@ var timeOutWith$ = new rxjs_1.Observable(function (observer) {
 4
  */
 var skip$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1.skip(2));
-//skip$.subscribe(a => console.log(a));
+//skip$.subscribe(a => logAll(a));
 /**
  * skipLast
  * скрывает указанное количество значений с конца
@@ -547,7 +553,7 @@ var skip$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1.skip(2));
 3
  */
 var skipLast$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(10), operators_1.skipLast(5));
-//skipLast$.subscribe(a => console.log(a));
+//skipLast$.subscribe(a => logAll(a));
 /**
  * skipUntil
  * скрывает значения потока до момента получения первого значения из аргумента наблюдателя
@@ -557,7 +563,7 @@ var skipLast$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(10), operators_1.ski
 5
  */
 var skipUntil$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(6), operators_1.skipUntil(rxjs_1.timer(3000)));
-//skipUntil$.subscribe(a => console.log(a));
+//skipUntil$.subscribe(a => logAll(a));
 /**
  * skipWhile
  * скрывает поток пока получает true из аргумента функции
@@ -567,7 +573,7 @@ var skipUntil$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(6), operators_1.ski
 5
  */
 var skipWhile$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.skipWhile(function (item) { return item !== 3; }));
-//skipWhile$.subscribe(a => console.log(a));
+//skipWhile$.subscribe(a => logAll(a));
 /**
  * take
  * возвращает указанное количество значений
@@ -578,7 +584,7 @@ var skipWhile$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.skip
 4
  */
 var take$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5));
-//take$.subscribe(a => console.log(a));
+//take$.subscribe(a => logAll(a));
 /**
  * takeLast
  * возвращает указанное количество значений с конца
@@ -590,7 +596,7 @@ var take$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5));
 5
  */
 var takeLast$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(6), operators_1.takeLast(3));
-//takeLast$.subscribe(a => console.log(a));
+//takeLast$.subscribe(a => logAll(a));
 /**
  * takeUntil
  * Возвращает поток до момента получения первого значения из аргумента наблюдателя takeUntilComplete$
@@ -611,7 +617,7 @@ const takeUntil$ = timer(0, 1000).pipe(
     takeUntil(takeUntilComplete$)
 )
 
-//takeUntil$.subscribe(a => console.log(a), err => console.log('error', err), () => console.log('поток закрыт')); */
+//takeUntil$.subscribe(a => logAll(a), err => logAll('error', err), () => logAll('поток закрыт')); */
 /**
  * takeWhile
  * возвращает поток пока получает true из аргумента функции
@@ -621,7 +627,7 @@ const takeUntil$ = timer(0, 1000).pipe(
 2
  */
 var takeWhile$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.takeWhile(function (item) { return item !== 3; }));
-//takeWhile$.subscribe(a => console.log(a));
+//takeWhile$.subscribe(a => logAll(a));
 /**
  * distinct
  * возвращает только уникальные значения
@@ -634,7 +640,7 @@ var takeWhile$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.take
 5
  */
 var distinct$ = rxjs_1.of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(operators_1.distinct());
-//distinct$.subscribe(a => console.log(a));
+//distinct$.subscribe(a => logAll(a));
 /**
  * distinct с функцией предварительной обработки значений
  * возвращает только уникальные значения
@@ -645,7 +651,7 @@ var distinct$ = rxjs_1.of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(operators_1.distinct()
 {a: 2, b: "3"}
  */
 var distinctFunc$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3' }, { a: 1, b: '4' }).pipe(operators_1.distinct(function (item) { return item.a; }));
-//distinctFunc$.subscribe(a => console.log(a));
+//distinctFunc$.subscribe(a => logAll(a));
 /**
  * distinctUntilChanged
  * возвращает только уникальные значения в пределах текущего и предыдущего
@@ -659,7 +665,7 @@ var distinctFunc$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3'
 5
  */
 var distinctUntilChanged$ = rxjs_1.of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(operators_1.distinctUntilChanged());
-//distinctUntilChanged$.subscribe(a => console.log(a));
+//distinctUntilChanged$.subscribe(a => logAll(a));
 /**
  * distinctUntilKeyChanged
  * возвращает только уникальные значения в пределах текущего и предыдущего
@@ -674,7 +680,7 @@ var distinctUntilChanged$ = rxjs_1.of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(operators_
 var distinctUntilKeyChanged$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3' }, { a: 1, b: '4' }).pipe(
 //distinctUntilKeyChanged('a')
 operators_1.distinctUntilKeyChanged('b'));
-//distinctUntilKeyChanged$.subscribe(a => console.log(a));
+//distinctUntilKeyChanged$.subscribe(a => logAll(a));
 /**
  * filter
  * возвращает значения потока, если аргумент функция вернул true
@@ -683,7 +689,7 @@ operators_1.distinctUntilKeyChanged('b'));
 4
  */
 var filter$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.filter(function (item) { return item % 2 === 0; }));
-//filter$.subscribe(a => console.log(a));
+//filter$.subscribe(a => logAll(a));
 /**
  * sample
  * возвращает первое значение потока interval после получения очередного значения из аргумента наблюдателя sampleProbe$
@@ -704,8 +710,8 @@ var filter$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.filter(
 complete
  */
 var sampleProbe$ = rxjs_1.interval(300);
-var sample$ = rxjs_1.interval(102).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 102; }), operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.sample(sampleProbe$));
-//sample$.subscribe(a => console.log(a), err=>(console.log('ошибка: '+err)), ()=>console.log('complete'));
+var sample$ = rxjs_1.interval(102).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 102; }), operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.sample(sampleProbe$));
+//sample$.subscribe(a => logAll(a), err=>(logAll('ошибка: '+err)), ()=>logAll('complete'));
 /**
  * audit
  *
@@ -729,11 +735,11 @@ var sample$ = rxjs_1.interval(102).pipe(operators_1.take(10), operators_1.map(fu
 обработал: 918
  */
 var auditProbe$ = function (item) {
-    console.log('обработал: ' + item);
+    logAll('обработал: ' + item);
     return rxjs_1.interval(300);
 };
-var audit$ = rxjs_1.timer(0, 102).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 102; }), operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.audit(auditProbe$));
-//audit$.subscribe(a => console.log(a));
+var audit$ = rxjs_1.timer(0, 102).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 102; }), operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.audit(auditProbe$));
+//audit$.subscribe(a => logAll(a));
 /**
  * throttle
  * отбирает первое значение из потока между таймерами(300)
@@ -758,11 +764,11 @@ var audit$ = rxjs_1.timer(0, 102).pipe(operators_1.take(10), operators_1.map(fun
 обработал: 918
  */
 var throttleProbe$ = function (item) {
-    console.log('обработал: ' + item);
+    logAll('обработал: ' + item);
     return rxjs_1.timer(300);
 };
-var throttle$ = rxjs_1.timer(0, 102).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 102; }), operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.throttle(throttleProbe$));
-//throttle$.subscribe(a => console.log(a));
+var throttle$ = rxjs_1.timer(0, 102).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 102; }), operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.throttle(throttleProbe$));
+//throttle$.subscribe(a => logAll(a));
 //========================================================================================================================
 //==================================================FILTERING MULTIPLE====================================================
 //========================================================================================================================
@@ -774,10 +780,10 @@ var throttle$ = rxjs_1.timer(0, 102).pipe(operators_1.take(10), operators_1.map(
 получил: 0
 0
  */
-var first$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 100; }), operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.first()
+var first$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 100; }), operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.first()
 //first(item=>item % 2 === 0)//вернёт первое чётное число
 );
-//first$.subscribe(a => console.log(a));
+//first$.subscribe(a => logAll(a));
 /**
  * last
  * Возвращает крайнее значение из потока
@@ -795,10 +801,10 @@ var first$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.map(fun
 получил: 900
 900
  */
-var last$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 100; }), operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.last()
+var last$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 100; }), operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.last()
 //last(item=>item % 2 === 0)//вернёт первое чётное число
 );
-//last$.subscribe(a => console.log(a));
+//last$.subscribe(a => logAll(a));
 /**
  * min
  * возвращает минимальное значение из потока
@@ -812,7 +818,7 @@ var last$ = rxjs_1.timer(0, 100).pipe(operators_1.take(10), operators_1.map(func
 получил: 6
 0
  */
-var min$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return console.log('получил: ' + item); }), 
+var min$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return logAll('получил: ' + item); }), 
 //min()//вернёт минимальное число -2
 operators_1.min(function (item1, item2) {
     if (Math.abs(item1) > Math.abs(item2)) {
@@ -823,7 +829,7 @@ operators_1.min(function (item1, item2) {
     }
     ;
 }));
-//min$.subscribe(a => console.log(a));
+//min$.subscribe(a => logAll(a));
 /**
  * max
  * возвращает максимальное значение из потока
@@ -837,32 +843,32 @@ operators_1.min(function (item1, item2) {
 получил: 6
 6
  */
-var max$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.max() //вернёт максиимальное число 6
+var max$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.max() //вернёт максиимальное число 6
 //max((item1, item2) => {
 //    if (Math.abs(item1) < Math.abs(item2)) { return 1 } else { return -1 };
 //  })
 );
-//max$.subscribe(a => console.log(a));
+//max$.subscribe(a => logAll(a));
 /**
  * возвращает элемент по индексу в потоке
 4
  */
-var elementAt$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.elementAt(3));
-//elementAt$.subscribe(a => console.log(a));
+var elementAt$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.elementAt(3));
+//elementAt$.subscribe(a => logAll(a));
 /**
  * возвращает элемент потока, если функция аргумент findProbe возвращает true
 0
  */
 var findProbe = function (item) { return item === 0; };
-var find$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.find(findProbe));
-//find$.subscribe(a => console.log(a));
+var find$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.find(findProbe));
+//find$.subscribe(a => logAll(a));
 /**
  * возвращает индекс элемента потока, если функция аргумент findIndexProbe возвращает true
 2
  */
 var findIndexProbe = function (item) { return item === 0; };
-var findIndex$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.findIndex(findIndexProbe));
-//findIndex$.subscribe(a => console.log(a));
+var findIndex$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.findIndex(findIndexProbe));
+//findIndex$.subscribe(a => logAll(a));
 /**
  * single
  * возвращает значение потока, если функция аргумент singleProbe возвращает true
@@ -873,8 +879,8 @@ var findIndex$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (it
 var singleProbe = function (item) { return item === 0; };
 //const singleProbe = item=>item>0;//ошибка
 //const singleProbe = item=>item===10;//undefined
-var single$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return console.log('получил: ' + item); }), operators_1.single(singleProbe));
-//single$.subscribe(a => console.log(a));
+var single$ = rxjs_1.of(-2, -1, 0, 4, 5, 6).pipe(operators_1.tap(function (item) { return logAll('получил: ' + item); }), operators_1.single(singleProbe));
+//single$.subscribe(a => logAll(a));
 //========================================================================================================================
 //==================================================GROUPING OBSERVABLES==================================================
 //========================================================================================================================
@@ -906,7 +912,7 @@ var combine2$ = rxjs_1.interval(202).pipe(operators_1.take(5), operators_1.map(f
 var combine3$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 303; }));
 var combineAll$ = rxjs_1.of(combine1$, combine2$, combine3$).pipe(operators_1.tap(logAll), //возвращает три потока наблюдателей
 operators_1.combineAll());
-//combineAll$.subscribe(() => console.log( ...arguments))
+//combineAll$.subscribe(() => logAll( ...arguments))
 /**
  * combineLatest
  * возвращает крайние значения combineXX$
@@ -960,10 +966,10 @@ var concat2$ = rxjs_1.interval(202).pipe(operators_1.take(5), operators_1.map(fu
 var concat3$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 303 + '-3'; }));
 var concatAll$ = rxjs_1.of(concat1$, concat2$, concat3$).pipe(operators_1.tap(logAll), //возвращает три потока наблюдателей
 operators_1.concatAll());
-//concatAll$.subscribe((item) => console.log('получил: ',item))
+//concatAll$.subscribe((item) => logAll('получил: ',item))
 /**
  * exhaust
- * Возвращает значения потока, который первый их прислал. Остальные потоки блокируются, пока первый поток не закончися
+ * Возвращает значения потока, который первый их прислал. Остальные потоки блокируются, пока первый поток не закончится
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
@@ -985,7 +991,7 @@ var exhaust3$ = rxjs_1.interval(2000).pipe(operators_1.take(3), operators_1.map(
 var exhaust4$ = rxjs_1.of(1, 2, 3).pipe(operators_1.delay(2000));
 var exhaust$ = rxjs_1.of(exhaust1$, exhaust2$, exhaust3$, exhaust4$).pipe(operators_1.tap(logAll), //возвращает три потока наблюдателей
 operators_1.exhaust());
-//exhaust$.subscribe((item) => console.log('получил: ',...arguments))
+//exhaust$.subscribe((item) => logAll('получил: ',...arguments))
 /**
  * mergeAll
  * ВОзвращает все значения всех потоков
@@ -1023,7 +1029,7 @@ var mergeAll3$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(
 var mergeAll4$ = rxjs_1.of(1, 2, 3).pipe(operators_1.delay(2000));
 var mergeAll$ = rxjs_1.of(mergeAll1$, mergeAll2$, mergeAll3$, mergeAll4$).pipe(operators_1.tap(logAll), //возвращает три потока наблюдателей
 operators_1.mergeAll());
-//mergeAll$.subscribe((item) => console.log('получил: ',item))
+//mergeAll$.subscribe((item) => logAll('получил: ',item))
 /**
  * withLatestFrom
  * Возвращает массив текущих(предыдущих/крайних) значений потоков после получения значений из основного(сигнального) потока источника
@@ -1039,7 +1045,7 @@ var withLatestFrom2$ = rxjs_1.interval(202).pipe(operators_1.take(5), operators_
 var withLatestFrom3$ = rxjs_1.of(1);
 //const withLatestFrom3 = of(1).pipe(delay(1000));
 var withLatestFrom$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 303 + '-3'; }), operators_1.withLatestFrom(withLatestFrom1$, withLatestFrom2$, withLatestFrom3$));
-//withLatestFrom$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('поток закрыт'));
+//withLatestFrom$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('поток закрыт'));
 //========================================================================================================================
 //==================================================GROUPING VALUES=======================================================
 //========================================================================================================================
@@ -1064,7 +1070,7 @@ var mergeMap4$ = rxjs_1.of(1, 2, 3).pipe(operators_1.delay(2000));
 var mergeMapArray = function (item$) { return item$.pipe(operators_1.toArray()); };
 var mergeMap$ = rxjs_1.of(mergeMap1$, mergeMap2$, mergeMap3$, mergeMap4$).pipe(operators_1.tap(logAll), //возвращает три потока наблюдателей
 operators_1.mergeMap(mergeMapArray));
-//mergeMap$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('mergeMap поток закрыт'));
+//mergeMap$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMap поток закрыт'));
 /**
  * groupBy
  * Возвращает несколько потоков из значений, сгруппированных по возврату функции groupSort
@@ -1075,7 +1081,7 @@ operators_1.mergeMap(mergeMapArray));
  */
 var groupSort = function (item) { return item.b + 1; };
 var groupBy$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3' }, { a: 1, b: '4' }).pipe(operators_1.groupBy(groupSort), operators_1.mergeMap(function (item$) { return item$.pipe(operators_1.toArray()); }));
-//groupBy$.subscribe((item) => console.log(JSON.stringify(item)))
+//groupBy$.subscribe((item) => logAll(JSON.stringify(item)))
 /**
  * pairwise
  * Возвращает массивы текущего и предыдущего значений потока
@@ -1090,7 +1096,7 @@ var groupBy$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3' }, {
 
  */
 var pairwise$ = rxjs_1.interval(100).pipe(operators_1.take(9), operators_1.pairwise());
-//pairwise$.subscribe((item) => console.log(JSON.stringify(item)))
+//pairwise$.subscribe((item) => logAll(JSON.stringify(item)))
 /**
  * partition
  * @deprecated заменяется filter
@@ -1155,7 +1161,7 @@ var switchAll2$ = rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1
 var switchAll$ = rxjs_1.of(switchAll0$, switchAll1$, switchAll2$).pipe(
 // mergeAll(), // для проверки асинхронности
 operators_1.switchAll());
-// switchAll$.subscribe(item => console.log(item), null, () => console.log('switchAll поток закрыт'));
+// switchAll$.subscribe(item => logAll(item), null, () => logAll('switchAll поток закрыт'));
 /**
  * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого
  *
@@ -1184,7 +1190,7 @@ var zipAll2$ = rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.ta
 var zipAll$ = rxjs_1.of(zipAll0$, zipAll1$, zipAll2$).pipe(
 // mergeAll(), // для проверки асинхронности
 operators_1.zipAll());
-// zipAll$.subscribe(item => console.log(item), null, () => console.log('zipAll поток закрыт'));
+// zipAll$.subscribe(item => logAll(item), null, () => logAll('zipAll поток закрыт'));
 //========================================================================================================================
 //==================================================OBSERVABLE TRANSFORMATION=============================================
 //========================================================================================================================
@@ -1215,7 +1221,7 @@ operators_1.zipAll());
  */
 var repeat1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('1-закрыт'));
 var repeat$ = repeat1$.pipe(operators_1.repeat(3));
-// repeat$.subscribe(item => console.log(item), null, () => console.log('repeat поток закрыт'));
+// repeat$.subscribe(item => logAll(item), null, () => logAll('repeat поток закрыт'));
 /**
  * repeatWhen
  * Повторяет значения входного потока repeatWhen1 пока есть значения в контрольном потоке-функции repeatWhenControl
@@ -1291,7 +1297,7 @@ var repeatWhen1$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.m
 operators_1.endWith('1-закрыт'));
 var repeatWhenControl = function () { return rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.take(3), operators_1.map(function (item) { return (item * 202 + 1000) + '-control'; }), operators_1.tap(logAll), operators_1.endWith('control-закрыт')); };
 var repeatWhen$ = repeatWhen1$.pipe(operators_1.repeatWhen(repeatWhenControl));
-// repeatWhen$.subscribe(item => console.log(item), null, () => console.log('repeatWhen поток закрыт'));
+// repeatWhen$.subscribe(item => logAll(item), null, () => logAll('repeatWhen поток закрыт'));
 /**
  * ignoreElements
  * пропускает значения, оставляет сигналы
@@ -1309,7 +1315,7 @@ operators_1.endWith('1-закрыт'));
 var ignoreElementsErr2$ = rxjs_1.interval(404).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 404 + '-2'; }), operators_1.tap(logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.ignoreElements(), operators_1.endWith('err-закрыт'));
 var ignoreElementsErr3$ = rxjs_1.interval(505).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 505 + '-3'; }), operators_1.tap(logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.ignoreElements(), operators_1.endWith('err2-закрыт'));
 var ignoreElements$ = rxjs_1.of(ignoreElements1$, ignoreElementsErr2$, ignoreElementsErr3$).pipe(operators_1.mergeAll());
-//ignoreElements$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('ignoreElements поток закрыт'));
+//ignoreElements$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('ignoreElements поток закрыт'));
 /**
  * finalize
  * выполняет функцию finalizeFn
@@ -1329,14 +1335,14 @@ fin main
 fin 1
 fin 2
  */
-var finalizeFn = function (item) { return function () { return console.log('fin', item); }; }; //обёртка для вывода названия завершающегося потока
+var finalizeFn = function (item) { return function () { return logAll('fin', item); }; }; //обёртка для вывода названия завершающегося потока
 var finalizeErr1$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll), 
 // map(item => throwError(item)),
 // mergeAll(),
 operators_1.endWith('err1-закрыт'), operators_1.finalize(finalizeFn('1')));
 var finalizeErr2$ = rxjs_1.interval(505).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 505 + '-2'; }), operators_1.tap(logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.endWith('err2-закрыт'), operators_1.finalize(finalizeFn('2')));
 var finalize$ = rxjs_1.of(finalizeErr1$, finalizeErr2$).pipe(operators_1.mergeAll(), operators_1.finalize(finalizeFn('main')));
-//finalize$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('finalize поток закрыт'));
+//finalize$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('finalize поток закрыт'));
 //========================================================================================================================
 //==================================================TIME, DURATION & VALUES===============================================
 //========================================================================================================================
@@ -1389,7 +1395,7 @@ var auditTime2$ = rxjs_1.interval(202).pipe(operators_1.take(10), operators_1.ma
 // tap(logAll),
 operators_1.endWith('2-закрыт'));
 var auditTime$ = rxjs_1.of(auditTime1$, auditTime2$).pipe(operators_1.mergeAll(), operators_1.auditTime(500), operators_1.map(function (item) { return item + '-audit500'; }));
-// auditTime$.subscribe(item => console.log(item), null, () => console.log('auditTime поток закрыт'));
+// auditTime$.subscribe(item => logAll(item), null, () => logAll('auditTime поток закрыт'));
 /**
  * sampleTime
  * выводит крайнее значение из потока перед таймером.
@@ -1434,7 +1440,7 @@ var sampleTime5$ = rxjs_1.interval(505).pipe(operators_1.take(5), operators_1.ma
 // tap(logAll),
 operators_1.endWith('5-закрыт'));
 var sampleTime$ = rxjs_1.of(sampleTime1$, sampleTime5$).pipe(operators_1.mergeAll(), operators_1.sampleTime(500));
-// sampleTime$.subscribe(item => console.log(item), null, () => console.log('sampleTime поток закрыт'));
+// sampleTime$.subscribe(item => logAll(item), null, () => logAll('sampleTime поток закрыт'));
 /**
  * observeOn
  * работает только в браузере/stackblitz
@@ -1527,7 +1533,7 @@ operators_1.take(3), operators_1.map(function (item) { return item * 105 + '-5';
 // tap(logAll),
 operators_1.endWith('5-закрыт'));
 var observeOn$ = rxjs_1.of(observeOn1$, observeOn2$, observeOn3$, observeOn4$, observeOn5$).pipe(operators_1.mergeAll());
-// observeOn$.subscribe(item => console.log(item), null, () => console.log('observeOn поток закрыт'));
+// observeOn$.subscribe(item => logAll(item), null, () => logAll('observeOn поток закрыт'));
 /**
  * subscribeOn
  * работает только в браузере/stackblitz
@@ -1611,7 +1617,7 @@ operators_1.take(3), operators_1.map(function (item) { return item * 105 + '-5';
 // tap(logAll),
 operators_1.endWith('5-закрыт'));
 var subscribeOn$ = rxjs_1.of(subscribeOn1$, subscribeOn2$, subscribeOn3$, subscribeOn4$, subscribeOn5$).pipe(operators_1.mergeAll());
-// subscribeOn$.subscribe(item => console.log(item), null, () => console.log('subscribeOn поток закрыт'));
+// subscribeOn$.subscribe(item => logAll(item), null, () => logAll('subscribeOn поток закрыт'));
 /**
  * debounce
  * "Спаморезка"
@@ -1665,7 +1671,7 @@ var debounceDynamic$ = rxjs_1.interval(103).pipe(operators_1.take(10), operators
 // tap(logAll),
 operators_1.endWith('dynamic-закрыт'));
 var debounce$ = rxjs_1.of(debounceOver$, debounceNorm$, debounceDynamic$).pipe(operators_1.mergeAll());
-//debounce$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounce поток закрыт'));
+//debounce$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounce поток закрыт'));
 /**
  * debounceTime
  * "Спаморезка"
@@ -1705,7 +1711,7 @@ var debounceTimeNorm$ = rxjs_1.interval(102).pipe(operators_1.take(10), operator
 // tap(logAll),
 operators_1.debounceTime(50), operators_1.endWith('norm-закрыт'));
 var debounceTime$ = rxjs_1.of(debounceTimeOver$, debounceTimeNorm$).pipe(operators_1.mergeAll());
-// debounceTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounceTime поток закрыт'));
+// debounceTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounceTime поток закрыт'));
 /**
  * delay
  * задержка имитации значений потока на указанный интервал или дату
@@ -1744,10 +1750,10 @@ operators_1.take(10), operators_1.map(function (item) { return item * 103 + '-3'
 // tap(logAll),
 operators_1.endWith('3-закрыт'));
 var delay$ = rxjs_1.of(delay1$, delay2$, delay3$).pipe(operators_1.mergeAll());
-//delay$.subscribe(item => console.log(item + '-$'), null, () => console.log('delay поток закрыт'));
+//delay$.subscribe(item => logAll(item + '-$'), null, () => logAll('delay поток закрыт'));
 /**
  * delayWhen
- * Задерживает мимтацию значений потока на указанный интервал
+ * Задерживает имитацию значений потока на указанный интервал
  *
  * Hello World!
 0-1-$
@@ -1783,7 +1789,7 @@ var delayWhen2$ = rxjs_1.interval(102).pipe(operators_1.delayWhen(function (item
 // tap(logAll),
 operators_1.endWith('2-закрыт'));
 var delayWhen$ = rxjs_1.of(delayWhen1$, delayWhen2$).pipe(operators_1.mergeAll());
-//delayWhen$.subscribe(item => console.log(item + '-$'), null, () => console.log('delayWhen поток закрыт'));
+//delayWhen$.subscribe(item => logAll(item + '-$'), null, () => logAll('delayWhen поток закрыт'));
 /**
  * throttleTime
  * пропускает первое значение потока и задерживает остальные на указанное время.
@@ -1823,7 +1829,7 @@ var throttleTime2$ = rxjs_1.interval(102).pipe(operators_1.throttleTime(300), op
 // tap(logAll),
 operators_1.endWith('2-закрыт'));
 var throttleTime$ = rxjs_1.of(throttleTime1$, throttleTime2$).pipe(operators_1.mergeAll());
-//throttleTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('throttleTime поток закрыт'));
+//throttleTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('throttleTime поток закрыт'));
 /**
  * timeInterval
  * оборачивает каждое значение в объект, добавляя поле со значением интервала во времени от предыдущего до текущего значения
@@ -1842,7 +1848,7 @@ var timeInterval1$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.
 // tap(logAll),
 operators_1.endWith('2-закрыт'));
 var timeInterval$ = rxjs_1.of(timeInterval1$).pipe(operators_1.mergeAll());
-//timeInterval$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timeInterval поток закрыт'));
+//timeInterval$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timeInterval поток закрыт'));
 /**
  * timestamp
  * оборачивает каждое значение в объект, добавляя время его имитации
@@ -1871,7 +1877,7 @@ operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2';
 // tap(logAll),
 operators_1.endWith('2-закрыт'));
 var timestamp$ = rxjs_1.of(timestamp1$, timestamp2$).pipe(operators_1.mergeAll());
-//timestamp$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timestamp поток закрыт'));
+//timestamp$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timestamp поток закрыт'));
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
 //========================================================================================================================
@@ -1928,7 +1934,7 @@ operators_1.take(5), operators_1.map(function (item) { return item * 103 + '-3';
 // tap(logAll),
 operators_1.endWith('3-закрыт'));
 var concatMap$ = rxjs_1.of(concatMap1$, concatMap2$, concatMap3$).pipe(operators_1.mergeAll());
-// concatMap$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('concatMap поток закрыт'));
+// concatMap$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('concatMap поток закрыт'));
 /**
  * concatMapTo
  * входные значения - это сигнальный поток для имитации значений внутреннего потока concatMapToInternal
@@ -1985,7 +1991,7 @@ operators_1.take(5), operators_1.map(function (item) { return item * 103 + '-Sig
 // tap(logAll),
 operators_1.endWith('Signal-закрыт'));
 var concatMapTo$ = rxjs_1.of(concatMapTo1$, concatMapToSignal$).pipe(operators_1.mergeAll());
-// concatMapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('concatMapTo поток закрыт'));
+// concatMapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('concatMapTo поток закрыт'));
 /**
  * defaultIfEmpty
  * возвращает указанное значение defaultIfEmptyInternal, если поток завершился без значений
@@ -2003,7 +2009,7 @@ operators_1.take(0), operators_1.map(function (item) { return item * 103 + '-1';
 // tap(logAll),
 operators_1.defaultIfEmpty(defaultIfEmptyInternal), operators_1.endWith('1-закрыт'));
 var defaultIfEmpty$ = rxjs_1.of(defaultIfEmpty1$).pipe(operators_1.mergeAll());
-//defaultIfEmpty$.subscribe(item => console.log(item + '-$'), null, () => console.log('defaultIfEmpty поток закрыт'));
+//defaultIfEmpty$.subscribe(item => logAll(item + '-$'), null, () => logAll('defaultIfEmpty поток закрыт'));
 /**
  * endWith
  * Выводит указанное значение перед закрытием потока
@@ -2027,7 +2033,7 @@ operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.endW
 // tap(logAll),
 );
 var endWith$ = rxjs_1.of(endWith1$, endWith2$).pipe(operators_1.mergeAll());
-//endWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('endWith поток закрыт'));
+//endWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('endWith поток закрыт'));
 /**
  * startWith
  * Пишет значения в поток сразу после его открытия
@@ -2049,7 +2055,7 @@ var startWith2$ = rxjs_1.interval(102).pipe(
 //неправильное положение оператора
 operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.take(3), operators_1.endWith('2-закрыт'), operators_1.startWith('2-открыт'));
 var startWith$ = rxjs_1.of(startWith1$, startWith2$).pipe(operators_1.mergeAll());
-//startWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('startWith поток закрыт'));
+//startWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('startWith поток закрыт'));
 /**
  * exhaustMap
  * Пропускает входящие значения пока не завершится поток аргумента exhaustMapFork$
@@ -2064,7 +2070,7 @@ startItem-604 forkItem-200
 var exhaustMapFork$ = function (startItem) { return rxjs_1.interval(100)
     .pipe(operators_1.take(3), operators_1.map(function (item) { return startItem + " forkItem-" + item * 100; })); };
 var exhaustMap$ = rxjs_1.interval(302).pipe(operators_1.take(3), operators_1.map(function (item) { return "startItem-" + item * 302; }), operators_1.exhaustMap(exhaustMapFork$));
-//exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('exhaustMap поток закрыт'));
+//exhaustMap$.subscribe(item => logAll(item), null, ()=> logAll('exhaustMap поток закрыт'));
 /**
  * expand
  * рекурсивная обработка значений
@@ -2101,7 +2107,7 @@ var parserRecursive1 = function (item) {
 };
 var expand1$ = rxjs_1.interval(501).pipe(operators_1.take(3), operators_1.expand(parserRecursive1), operators_1.endWith('2-закрыт'));
 var expand$ = rxjs_1.of(expand1$).pipe(operators_1.mergeAll());
-//expand$.subscribe(item => console.log(item + '-$'), null, () => console.log('expand поток закрыт'));
+//expand$.subscribe(item => logAll(item + '-$'), null, () => logAll('expand поток закрыт'));
 /**
  * map
  * описан в начале
@@ -2132,7 +2138,7 @@ var mapToSignal$ = rxjs_1.interval(103).pipe(operators_1.take(3), operators_1.ma
 // tap(logAll),
 operators_1.endWith('Signal-закрыт'));
 var mapTo$ = rxjs_1.of(mapTo1$, mapToSignal$).pipe(operators_1.mergeAll());
-//mapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('mapTo поток закрыт'));
+//mapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('mapTo поток закрыт'));
 /**
  * scan
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
@@ -2151,7 +2157,7 @@ time: 404; item: 4; accumulator: 6
 1-закрыт-$
  */
 var scanAccumulator = function (accumulator, item) {
-    console.log("time: " + item * 101 + "; item: " + item + "; accumulator: " + accumulator);
+    logAll("time: " + item * 101 + "; item: " + item + "; accumulator: " + accumulator);
     return item + accumulator;
 };
 var scanAccumulatorInitial = 0;
@@ -2159,7 +2165,7 @@ var scan1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.scan(sca
 // tap(logAll),
 operators_1.endWith('1-закрыт'));
 var scan$ = rxjs_1.of(scan1$).pipe(operators_1.mergeAll());
-//scan$.subscribe(item => console.log(item + '-$'), null, () => console.log('scan поток закрыт'));
+//scan$.subscribe(item => logAll(item + '-$'), null, () => logAll('scan поток закрыт'));
 /**
  * mergeScan
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
@@ -2199,7 +2205,7 @@ var mergeScanInternal$ = rxjs_1.interval(11).pipe(operators_1.take(3), operators
 // tap(logAll),
 operators_1.endWith('1-закрыт'));
 var mergeScanAccumulator = function (accumulator, item) {
-    console.log("time: " + item * 101 + "; item: " + item + "; accumulator: " + accumulator);
+    logAll("time: " + item * 101 + "; item: " + item + "; accumulator: " + accumulator);
     // return of(item + accumulator)
     return mergeScanInternal$;
 };
@@ -2208,7 +2214,7 @@ var mergeScan1$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.mer
 // tap(logAll),
 operators_1.endWith('2-закрыт'));
 var mergeScan$ = rxjs_1.of(mergeScan1$).pipe(operators_1.mergeAll());
-//mergeScan$.subscribe(item => console.log(item + '-$'), null, () => console.log('mergeScan поток закрыт'));
+//mergeScan$.subscribe(item => logAll(item + '-$'), null, () => logAll('mergeScan поток закрыт'));
 /**
  * pluck(x:string)
  * возвращает в поток конкретное свойство x из значений входного потока
@@ -2223,7 +2229,7 @@ var pluck$ = rxjs_1.interval(100)
 //pluck('nested','triple'), //возвращаем в поток только item.nested.triple
 operators_1.pluck('double') //возвращаем в поток только item.double
 );
-//pluck$.subscribe(item => console.log(item), null, ()=> console.log('pluck поток закрыт'));
+//pluck$.subscribe(item => logAll(item), null, ()=> logAll('pluck поток закрыт'));
 /**
  * reduce
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
@@ -2240,7 +2246,7 @@ time: 404; item: 4; accumulator: 6
 reduce поток закрыт
  */
 var reduceAccumulator = function (accumulator, item) {
-    console.log("time: " + item * 101 + "; item: " + item + "; accumulator: " + accumulator);
+    logAll("time: " + item * 101 + "; item: " + item + "; accumulator: " + accumulator);
     return item + accumulator;
 };
 var reduceAccumulatorInitial = 0;
@@ -2248,7 +2254,7 @@ var reduce1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.reduce
 // tap(logAll),
 operators_1.endWith('1-закрыт'));
 var reduce$ = rxjs_1.of(reduce1$).pipe(operators_1.mergeAll());
-//reduce$.subscribe(item => console.log(item + '-$'), null, () => console.log('reduce поток закрыт'));
+//reduce$.subscribe(item => logAll(item + '-$'), null, () => logAll('reduce поток закрыт'));
 /**
  * switchMap
  * после каждого нового значения входящего потока interval(302)
@@ -2269,7 +2275,7 @@ var reduce$ = rxjs_1.of(reduce1$).pipe(operators_1.mergeAll());
 var switchMapFork1$ = function (startItem) { return rxjs_1.interval(101)
     .pipe(operators_1.take(3), operators_1.map(function (item) { return startItem + " forkItem-" + item * 101; })); };
 var switchMap$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(function (item) { return "startItem-" + item * 303; }), operators_1.switchMap(switchMapFork1$));
-//switchMap$.subscribe(item => console.log(item), null, ()=> console.log('switchMap поток закрыт'));
+//switchMap$.subscribe(item => logAll(item), null, ()=> logAll('switchMap поток закрыт'));
 /**
  * mergeMapTo
  * Выводит вместо входящего значения потока наблюдаемый поток mergeMapToInternal
@@ -2333,7 +2339,7 @@ var mergeMapTo4$ = rxjs_1.of(1, 2, 3).pipe(operators_1.delay(2000));
 var mergeMapToInternal$ = rxjs_1.interval(11).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 11 + '-internal'; }));
 var mergeMapTo$ = rxjs_1.of(mergeMapTo1$, mergeMapTo2$, mergeMapTo3$, mergeMapTo4$).pipe(operators_1.tap(logAll), //возвращает три потока наблюдателей
 operators_1.mergeMapTo(mergeMapToInternal$));
-// mergeMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('mergeMapTo поток закрыт'));
+// mergeMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMapTo поток закрыт'));
 /**
  * switchMapTo
  * Выводит вместо входящего значения потока наблюдаемый поток switchMapToInternal
@@ -2390,7 +2396,7 @@ var switchMapTo4$ = rxjs_1.of(1, 2, 3).pipe(operators_1.delay(2000));
 var switchMapToInternal$ = rxjs_1.interval(11).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 11 + '-internal'; }));
 var switchMapTo$ = rxjs_1.of(switchMapTo1$, switchMapTo2$, switchMapTo3$, switchMapTo4$).pipe(operators_1.tap(logAll), //возвращает три потока наблюдателей
 operators_1.switchMapTo(switchMapToInternal$));
-//switchMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('switchMapTo поток закрыт'));
+//switchMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('switchMapTo поток закрыт'));
 /**
  * materialize
  * Конвертирует входное(имитированное) значение потока в объект-оповещение (emission object to notification object)
@@ -2425,7 +2431,7 @@ var materialize2$ = rxjs_1.of(1).pipe(operators_1.map(function (item) { return r
 var materialize$ = rxjs_1.of(materialize1$, materialize2$).pipe(
 // tap(logAll),
 operators_1.materialize());
-// materialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('materialize поток закрыт'));
+// materialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('materialize поток закрыт'));
 /**
  * dematerialize
  * Конвертирует объект-оповещение в значение
@@ -2449,7 +2455,7 @@ var dematerialize3$ = rxjs_1.of(rxjs_1.Notification.createNext(0), rxjs_1.Notifi
 var dematerialize$ = rxjs_1.of(dematerialize1$, dematerialize2$, dematerialize3$).pipe(
 // tap(logAll),
 operators_1.materialize(), operators_1.dematerialize(), operators_1.mergeAll());
-//dematerialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('dematerialize поток закрыт'));
+//dematerialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('dematerialize поток закрыт'));
 //========================================================================================================================
 //==================================================MULTICAST=============================================================
 //========================================================================================================================
@@ -2494,15 +2500,15 @@ var multicastIn2$ = rxjs_1.interval(102).pipe(operators_1.take(3), operators_1.m
 var multicastProxy$ = new rxjs_1.Subject();
 // традиционный пример, который работает без костылей
 var multicastObserver = function (observer) {
-    console.log('новый подписчик!');
+    logAll('новый подписчик!');
     var countItem = 0;
     var interval1 = setInterval(function () {
-        console.log('генерируем: ' + countItem);
+        logAll('генерируем: ' + countItem);
         if (countItem <= 3) {
             observer.next(countItem++);
         }
         else {
-            console.log('остановка генератора multicast');
+            logAll('остановка генератора multicast');
             clearInterval(interval1);
         }
     }, 101);
@@ -2511,8 +2517,8 @@ var multicast$ = new rxjs_1.Observable(multicastObserver).pipe(
 // const multicast$ = publish()(of(multicastIn1$, multicastIn2$).pipe( // пример костыля - в этом случае .connect() не работает как надо, потоки стартуют раньше .connect()
 // tap(logAll),
 operators_1.multicast(multicastProxy$));
-multicast$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('multicast подписка1-закрыта'); });
-multicast$.pipe(operators_1.delay(1000)).subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('multicast подписка2-закрыта'); });
+multicast$.subscribe(function (item) { return logAll(item + '-подписка1'); }, null, function () { return logAll('multicast подписка1-закрыта'); });
+multicast$.pipe(operators_1.delay(1000)).subscribe(function (item) { return logAll(item + '-подписка2'); }, null, function () { return logAll('multicast подписка2-закрыта'); });
 // multicast$.connect();
 /**
  * share
@@ -2545,10 +2551,10 @@ share2 поток закрыт
 var share1$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('1-закрыто'));
 var share$ = share1$.pipe(operators_1.share());
 //!!! контрольный подписчик
-// share$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('share1 поток закрыт'));
+// share$.subscribe((item) => logAll('получил1: ', item), null, () => logAll('share1 поток закрыт'));
 var shareTimeout = setTimeout(function () {
     // опаздываем на 700
-    // share$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('share2 поток закрыт'));
+    // share$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('share2 поток закрыт'));
     clearInterval(shareTimeout);
 }, 700);
 /**
@@ -2585,10 +2591,10 @@ var shareReplay1$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.
 var shareReplayBufferSize = 3;
 var shareReplay$ = shareReplay1$.pipe(operators_1.shareReplay(shareReplayBufferSize));
 //!!! контрольный подписчик
-// shareReplay$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('shareReplay1 поток закрыт'));
+// shareReplay$.subscribe((item) => logAll('получил1: ', item), null, () => logAll('shareReplay1 поток закрыт'));
 var shareReplayTimeout = setTimeout(function () {
     // опаздываем на 700
-    // shareReplay$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('shareReplay2 поток закрыт'));
+    // shareReplay$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('shareReplay2 поток закрыт'));
     clearInterval(shareReplayTimeout);
 }, 700);
 /**
@@ -2621,15 +2627,15 @@ Hello World!
  */
 // традиционный подход, который работает без костылей
 var publishObserver = function (observer) {
-    console.log('новый подписчик!');
+    logAll('новый подписчик!');
     var countItem = 0;
     var interval1 = setInterval(function () {
-        console.log('генерируем: ' + countItem);
+        logAll('генерируем: ' + countItem);
         if (countItem <= 3) {
             observer.next(countItem++);
         }
         else {
-            console.log('остановка генератора publish');
+            logAll('остановка генератора publish');
             clearInterval(interval1);
         }
     }, 101);
@@ -2637,8 +2643,8 @@ var publishObserver = function (observer) {
 var publish$ = new rxjs_1.Observable(publishObserver).pipe(
 // tap(logAll),
 operators_1.publish());
-publish$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('publish подписка1-закрыта'); });
-publish$.pipe(operators_1.delay(1000)).subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('publish подписка2-закрыта'); });
+publish$.subscribe(function (item) { return logAll(item + '-подписка1'); }, null, function () { return logAll('publish подписка1-закрыта'); });
+publish$.pipe(operators_1.delay(1000)).subscribe(function (item) { return logAll(item + '-подписка2'); }, null, function () { return logAll('publish подписка2-закрыта'); });
 // publish$.connect();
 /**
  * publishBehavior
@@ -2684,15 +2690,15 @@ start-подписка2
 3-подписка2
  */
 var publishBehaviorObserver = function (observer) {
-    console.log('новый подписчик!');
+    logAll('новый подписчик!');
     var countItem = 0;
     var interval1 = setInterval(function () {
-        console.log('генерируем: ' + countItem);
+        logAll('генерируем: ' + countItem);
         if (countItem <= 3) {
             observer.next(countItem++);
         }
         else {
-            console.log('остановка генератора publishBehavior');
+            logAll('остановка генератора publishBehavior');
             clearInterval(interval1);
         }
     }, 101);
@@ -2702,8 +2708,8 @@ var publishBehavior$ = new rxjs_1.Observable(publishBehaviorObserver).pipe(
 // tap(logAll),
 operators_1.publishBehavior(publishBehaviorInitialValue));
 // ! раскомментировать 3 строки
-// publishBehavior$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishBehavior подписка1-закрыта'));
-// publishBehavior$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishBehavior подписка2-закрыта'));
+// publishBehavior$.subscribe((item) => logAll(item + '-подписка1'), null, () => logAll('publishBehavior подписка1-закрыта'));
+// publishBehavior$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publishBehavior подписка2-закрыта'));
 // publishBehavior$.connect();
 /**
  * publishLast
@@ -2729,9 +2735,9 @@ operators_1.endWith('1-закрыт'));
 var publishLast$ = rxjs_1.of(publishLast1$).pipe(
 // tap(logAll),
 operators_1.mergeAll(), operators_1.publishLast());
-publishLast$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('publishLast подписка1-закрыта'); });
+publishLast$.subscribe(function (item) { return logAll(item + '-подписка1'); }, null, function () { return logAll('publishLast подписка1-закрыта'); });
 var publishLastTimeout = setInterval(function () {
-    publishLast$.subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('publishLast подписка2-закрыта'); });
+    publishLast$.subscribe(function (item) { return logAll(item + '-подписка2'); }, null, function () { return logAll('publishLast подписка2-закрыта'); });
     clearInterval(publishLastTimeout);
 }, 300);
 // publishLast$.connect();
@@ -2740,7 +2746,7 @@ var publishLastTimeout = setInterval(function () {
  * Конвертирует поток в ConnectableObservable
  * Позволяет одновременно стартовать все потоки через методом connect()
  * После .connect имитирует все значения входного потока для подписчика
- * Если .connect после закытия входного потока, то имитирует только указанное количество значений publishReplayCount входного потока
+ * Если .connect после закрытия входного потока, то имитирует только указанное количество значений publishReplayCount входного потока
  * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
  * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
  *
@@ -2769,13 +2775,13 @@ operators_1.endWith('1-закрыт'));
 var publishReplay$ = rxjs_1.of(publishReplay1$).pipe(
 // tap(logAll),
 operators_1.mergeAll(), operators_1.publishReplay());
-publishReplay$.subscribe(function (item) { return console.log(item + '-подписка1'); }, null, function () { return console.log('publishReplay подписка1-закрыта'); });
+publishReplay$.subscribe(function (item) { return logAll(item + '-подписка1'); }, null, function () { return logAll('publishReplay подписка1-закрыта'); });
 var publishReplayTimeout1 = setInterval(function () {
-    publishReplay$.subscribe(function (item) { return console.log(item + '-подписка2'); }, null, function () { return console.log('publishReplay подписка2-закрыта'); });
+    publishReplay$.subscribe(function (item) { return logAll(item + '-подписка2'); }, null, function () { return logAll('publishReplay подписка2-закрыта'); });
     clearInterval(publishReplayTimeout1);
 }, 300);
 var publishReplayTimeout2 = setInterval(function () {
-    publishReplay$.subscribe(function (item) { return console.log(item + '-подписка3'); }, null, function () { return console.log('publishReplay подписка3-закрыта'); });
+    publishReplay$.subscribe(function (item) { return logAll(item + '-подписка3'); }, null, function () { return logAll('publishReplay подписка3-закрыта'); });
     clearInterval(publishReplayTimeout2);
 }, 500);
 // publishReplay$.connect();

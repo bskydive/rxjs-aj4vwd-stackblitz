@@ -5,7 +5,7 @@ import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWh
 const helloSource$ = of('World').pipe(
 	map(x => `Hello ${x}!`)
 );
-helloSource$.subscribe(x => console.log(x));
+helloSource$.subscribe(x => logAll(x));
 
 /**
  * ===============================================
@@ -62,7 +62,7 @@ helloSource$.subscribe(x => console.log(x));
 	complete()
  * Subscriber - вид наблюдателя. Объект(функция), которая обрабатывает конечные результаты потока. Передаётся внутрь метода Observable.subscribe(subscriber)
  * pipe(аргументы) - организует последовательную передачу значений потока между аргументами-наблюдателями. Сделано для избегания конфликтов с методами объектов.
- * subscribe(item => console.log('значение потока', item), err => console.log('ошибка', err), () => console.log('поток закрыт штатно')); - запускает поток, принимает три аргумента для значений(next), ошибок(error), завершения потока(complete)
+ * subscribe(item => logAll('значение потока', item), err => logAll('ошибка', err), () => logAll('поток закрыт штатно')); - запускает поток, принимает три аргумента для значений(next), ошибок(error), завершения потока(complete)
  * scan - 
  * 
  * Виды операторов по типу операций со значеними: 
@@ -78,8 +78,10 @@ helloSource$.subscribe(x => console.log(x));
 /**
  * Чтобы обойти ошибку TS2496: The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5. Consider using a standard function expression.
  * https://github.com/microsoft/TypeScript/issues/1609
+ * Чтобы не светились ошибки использования console.log
+ * Здесь логирование применимо, на проде - нет
  */
-function logAll() {
+function logAll(...args) {
 	console.log(...arguments);
 }
 
@@ -95,27 +97,27 @@ const map$ = interval(100).pipe(
 	take(3),
 	map(item => ['преобразуй это: ', item]),
 	tap(item => ['фига с два: ', item]), //не возвращает ничего
-	tap(item => console.log('отладь меня: ', item)), //используется для отладки
+	tap(item => logAll('отладь меня: ', item)), //используется для отладки
 )
 
 /**
  * Три работающих варианта подписки
  * разведены во времени, чтобы не перемешивать вывод в консоль
  */
-//map$.subscribe(item => console.log('раз:', item));//без задержек
+//map$.subscribe(item => logAll('раз:', item));//без задержек
 
 /* 
 const mapTimeout1 = setTimeout(() => {
-  map$.subscribe(item => console.log('два', item), err => console.log('два', err), () => console.log('два', 'конец'));
+  map$.subscribe(item => logAll('два', item), err => logAll('два', err), () => logAll('два', 'конец'));
   clearInterval(mapTimeout1)
 }, 1000);//с задержкой в 1 сек
  */
 
 /* const mapTimeout2 = setTimeout(() => {
 	map$.subscribe({
-		next: item => console.log('три', item),
-		error: err => console.log('три', err),
-		complete: () => console.log('три', 'конец')
+		next: item => logAll('три', item),
+		error: err => logAll('три', err),
+		complete: () => logAll('три', 'конец')
 	})
 	clearInterval(mapTimeout2);
 }, 2000);//с задержкой в 2 сек
@@ -137,7 +139,7 @@ const buffer$ = interval(100).pipe(
 	take(3),
 	map(item => ['bufferInterval', ...item])
 )
-//buffer$.subscribe(a => console.log(a));
+// buffer$.subscribe(a => logAll(a));
 
 /**
  * bufferCount
@@ -152,7 +154,7 @@ const bufferCount$ = interval(100).pipe(
 	take(3),
 	map(item => ['bufferCount', ...item])
 )
-//bufferCount$.subscribe(a => console.log(a));
+//bufferCount$.subscribe(a => logAll(a));
 
 /**
  * bufferCount(length)
@@ -167,7 +169,7 @@ const bufferCountLength$ = interval(100).pipe(
 	take(3),
 	map(item => ['bufferCountFork', ...item])
 )
-//bufferCountLength$.subscribe(a => console.log(a));
+//bufferCountLength$.subscribe(a => logAll(a));
 
 /**
  * bufferTime
@@ -182,7 +184,7 @@ const bufferTime$ = interval(100).pipe(
 	take(3),
 	map(item => ['bufferTime', ...item])
 )
-//bufferTime$.subscribe(a => console.log(a));
+//bufferTime$.subscribe(a => logAll(a));
 
 /**
  * bufferToggle
@@ -215,16 +217,16 @@ bufferOpen
 */
 
 let bufferToggleCount = 0;
-const bufferOpen$ = interval(400).pipe(tap(() => console.log('bufferOpen', bufferToggleCount)))
-const bufferClose$ = () => interval(300).pipe(tap(() => console.log('bufferClose', bufferToggleCount++)))
+const bufferOpen$ = interval(400).pipe(tap(() => logAll('bufferOpen', bufferToggleCount)))
+const bufferClose$ = () => interval(300).pipe(tap(() => logAll('bufferClose', bufferToggleCount++)))
 
 const bufferToggle$ = interval(100).pipe(
-	tap(item => console.log(item)),
+	tap(item => logAll(item)),
 	bufferToggle(bufferOpen$, bufferClose$),
 	take(3),
 	map(item => ['bufferToggle', ...item])
 )
-//bufferToggle$.subscribe(a => console.log(a));
+//bufferToggle$.subscribe(a => logAll(a));
 
 
 /**
@@ -255,7 +257,7 @@ const bufferWhen$ = interval(500).pipe(
 		}
 	})
 )
-//bufferWhen$.subscribe(a => console.log(a));
+//bufferWhen$.subscribe(a => logAll(a));
 
 
 //========================================================================================================================
@@ -278,7 +280,7 @@ const window$ = interval(100).pipe(
 		map(item1 => ['window', ...item1]))
 	),
 )
-//window$.subscribe(a => console.log(a));
+//window$.subscribe(a => logAll(a));
 
 
 /**
@@ -308,7 +310,7 @@ const windowCount$ = interval(100).pipe(
 		map(item1 => ['windowCount', ...item1]))
 	),
 )
-//windowCount$.subscribe(a => console.log(a));
+//windowCount$.subscribe(a => logAll(a));
 
 
 
@@ -331,7 +333,7 @@ const windowTime$ = timer(0, 100)
 			map(item1 => ['windowTime', ...item1]))
 		),
 	)
-//windowTime$.subscribe(a => console.log(a));
+//windowTime$.subscribe(a => logAll(a));
 
 /**
  * windowToggle
@@ -357,19 +359,19 @@ windowOpen 2
 ["windowToggle", 8, 9]
  */
 let windowToggleCount = 0;
-const windowOpen$ = timer(0, 400).pipe(map(() => console.log('windowOpen', windowToggleCount)))
-const windowClose$ = () => timer(300).pipe(map(() => console.log('windowClose', windowToggleCount++)))
+const windowOpen$ = timer(0, 400).pipe(map(() => logAll('windowOpen', windowToggleCount)))
+const windowClose$ = () => timer(300).pipe(map(() => logAll('windowClose', windowToggleCount++)))
 
 const windowToggle$ = timer(0, 100).pipe(
 	take(10),
-	tap(item => console.log(item)),
+	tap(item => logAll(item)),
 	windowToggle(windowOpen$, windowClose$),
 	switchMap(item$ => item$.pipe(
 		toArray(),
 		map(item1 => ['windowToggle', ...item1]))
 	),
 )
-//windowToggle$.subscribe(a => console.log(a));
+//windowToggle$.subscribe(a => logAll(a));
 
 
 /**
@@ -398,7 +400,7 @@ const windowWhen$ = interval(500).pipe(
 	)
 	)
 )
-//windowWhen$.subscribe(a => console.log(a));
+//windowWhen$.subscribe(a => logAll(a));
 
 //========================================================================================================================
 //==================================================ERRORS================================================================
@@ -417,15 +419,15 @@ const windowWhen$ = interval(500).pipe(
 const error$ = throwError('ошибка ошибковна')
 	.pipe(
 		catchError((err, caught$) => {
-			console.log('словил:', err, 'источик:', caught$);//перехватчик ошибок
+			logAll('словил:', err, 'источик:', caught$);//перехватчик ошибок
 			return throwError(`вернул взад ${err}`);//генерируем новую ошибку вместо текущей
 		}),
 		catchError((err, caught$) => {
-			console.log('положь где взял:', err, 'источик:', caught$);//перехватчик ошибок работает последовательно
+			logAll('положь где взял:', err, 'источик:', caught$);//перехватчик ошибок работает последовательно
 			return of('янеошибка');//подмена ошибки значением
 		}),
 	)
-//error$.subscribe(a => console.log(a), err => console.log('ошибка:', err), ()=>console.log('норм'));
+//error$.subscribe(a => logAll(a), err => logAll('ошибка:', err), ()=>logAll('норм'));
 
 
 //
@@ -435,13 +437,13 @@ const error$ = throwError('ошибка ошибковна')
  * Можно подменять ошибку
  * Error {message: "no elements in sequence", name: "EmptyError"}
  */
-const errorHandler = () => console.log('ничоси');
+const errorHandler = () => logAll('ничоси');
 const errorEmpty$ = of().pipe(
 	throwIfEmpty()//без подмены
 	//throwIfEmpty(errorHandler)//подмена ошибки
 )
 
-//errorEmpty$.subscribe(a => console.log(a), err=>console.log(err));
+//errorEmpty$.subscribe(a => logAll(a), err=>logAll(err));
 
 
 //
@@ -467,7 +469,7 @@ const errorSwitch$ = timer(0, 100).pipe(
 	onErrorResumeNext(errorNext$)
 )
 
-//errorSwitch$.subscribe(a => console.log(a), err=>console.log(err));
+//errorSwitch$.subscribe(a => logAll(a), err=>logAll(err));
 
 /**
  * errorRetry
@@ -500,7 +502,7 @@ const errorRetry$ = timer(0, 100).pipe(
 	retry(2)
 )
 
-//errorRetry$.subscribe(a => console.log(a));
+//errorRetry$.subscribe(a => logAll(a));
 
 /**
  * retryWhen
@@ -531,13 +533,13 @@ const errorRetryWhen$ = timer(0, 100).pipe(
 	retryWhen(retryCondition$ => {
 		return retryCondition$.pipe(
 			map(item => {
-				console.log('словили: ' + item)
+				logAll('словили: ' + item)
 			}),
 			take(3)//отправляет complete после 3 повторов
 		)
 	})
 )
-//errorRetryWhen$.subscribe(a => console.log(a));
+//errorRetryWhen$.subscribe(a => logAll(a));
 
 /* 
  * retryWhen
@@ -558,7 +560,7 @@ fail
 const swallow = false;
 const retryWhen$ = interval(200).pipe(
 	map(x => {
-		console.log('try: ' + x);
+		logAll('try: ' + x);
 		if (x === 1) {
 			throw 'error: ' + x;
 		}
@@ -567,13 +569,13 @@ const retryWhen$ = interval(200).pipe(
 	retryWhen(errors$ => {
 		if (swallow) {
 			return errors$.pipe(
-				tap(err => console.log(err)),
+				tap(err => logAll(err)),
 				scan(acc => acc + 1, 0),
 				tap(retryCount => {
 					if (retryCount === 2) {
-						console.log('swallowing error and stop')
+						logAll('swallowing error and stop')
 					} else {
-						console.log('retry all: ' + retryCount);
+						logAll('retry all: ' + retryCount);
 					}
 					return retryCount;
 				}),
@@ -581,14 +583,14 @@ const retryWhen$ = interval(200).pipe(
 			)
 		} else {
 			return errors$.pipe(
-				tap(err => console.log(err)),
+				tap(err => logAll(err)),
 				scan(acc => acc + 1, 0),
 				tap(retryCount => {
 					if (retryCount === 2) {
-						console.log('fail');
+						logAll('fail');
 						throw 'error';
 					} else {
-						console.log('retry whole source: ' + retryCount);
+						logAll('retry whole source: ' + retryCount);
 					}
 				})
 			)
@@ -597,7 +599,7 @@ const retryWhen$ = interval(200).pipe(
 	})
 )
 
-//retryWhen$.subscribe((item) => console.log('получил: ', item), err => console.log('ошибка: ' + err), () => console.log('retryWhen поток закрыт'));
+//retryWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка: ' + err), () => logAll('retryWhen поток закрыт'));
 
 /**
  * timeout
@@ -608,21 +610,21 @@ Error {message: "Timeout has occurred", name: "TimeoutError"}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 complete
  */
-const errorMsg = () => console.log('error');
+const errorMsg = () => logAll('error');
 const timeOut$ = interval(102).pipe(
 	take(5),
-	tap(value => console.log(value * 102)),
+	tap(value => logAll(value * 102)),
 	timeout(100), // таймер
 	catchError((err, caught$) => {
 		if (err.name === 'TimeoutError') {
 			// обрабатываем событие таймера
-			console.log('Таймер сработал')
+			logAll('Таймер сработал')
 		};
 		return of(err, caught$)
 	})
 )
 
-//timeOut$.subscribe(a => console.log(a), err => (console.log('ошибка: ' + err)), () => console.log('complete'));
+//timeOut$.subscribe(a => logAll(a), err => (logAll('ошибка: ' + err)), () => logAll('complete'));
 
 /**
  * timeoutWith
@@ -643,7 +645,7 @@ const timeOutWith$ = new Observable(observer => {
 	setTimeout(() => observer.complete(), 300);
 }).pipe(timeoutWith(101, timeOutWithFallback$))
 
-//timeOutWith$.subscribe(a => console.log(a), err=>(console.log('ошибка: '+err)), ()=>console.log('complete'));
+//timeOutWith$.subscribe(a => logAll(a), err=>(logAll('ошибка: '+err)), ()=>logAll('complete'));
 
 
 //========================================================================================================================
@@ -663,7 +665,7 @@ const skip$ = timer(0, 100).pipe(
 	skip(2)
 )
 
-//skip$.subscribe(a => console.log(a));
+//skip$.subscribe(a => logAll(a));
 
 
 /**
@@ -681,7 +683,7 @@ const skipLast$ = timer(0, 1000).pipe(
 	skipLast(5)
 )
 
-//skipLast$.subscribe(a => console.log(a));
+//skipLast$.subscribe(a => logAll(a));
 
 /**
  * skipUntil
@@ -696,7 +698,7 @@ const skipUntil$ = timer(0, 1000).pipe(
 	skipUntil(timer(3000))
 )
 
-//skipUntil$.subscribe(a => console.log(a));
+//skipUntil$.subscribe(a => logAll(a));
 
 /**
  * skipWhile
@@ -711,7 +713,7 @@ const skipWhile$ = timer(0, 100).pipe(
 	skipWhile(item => item !== 3)
 )
 
-//skipWhile$.subscribe(a => console.log(a));
+//skipWhile$.subscribe(a => logAll(a));
 
 
 /**
@@ -727,7 +729,7 @@ const take$ = timer(0, 100).pipe(
 	take(5),
 )
 
-//take$.subscribe(a => console.log(a));
+//take$.subscribe(a => logAll(a));
 
 
 /**
@@ -745,7 +747,7 @@ const takeLast$ = timer(0, 1000).pipe(
 	takeLast(3)
 )
 
-//takeLast$.subscribe(a => console.log(a));
+//takeLast$.subscribe(a => logAll(a));
 
 /**
  * takeUntil
@@ -768,7 +770,7 @@ const takeUntil$ = timer(0, 1000).pipe(
 	takeUntil(takeUntilComplete$)
 )
 
-//takeUntil$.subscribe(a => console.log(a), err => console.log('error', err), () => console.log('поток закрыт')); */
+//takeUntil$.subscribe(a => logAll(a), err => logAll('error', err), () => logAll('поток закрыт')); */
 
 
 /**
@@ -784,7 +786,7 @@ const takeWhile$ = timer(0, 100).pipe(
 	takeWhile(item => item !== 3)
 )
 
-//takeWhile$.subscribe(a => console.log(a));
+//takeWhile$.subscribe(a => logAll(a));
 
 /**
  * distinct
@@ -800,7 +802,7 @@ const takeWhile$ = timer(0, 100).pipe(
 const distinct$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
 	distinct()
 )
-//distinct$.subscribe(a => console.log(a));
+//distinct$.subscribe(a => logAll(a));
 
 /**
  * distinct с функцией предварительной обработки значений
@@ -820,7 +822,7 @@ const distinctFunc$ =
 	).pipe(
 		distinct(item => item.a)
 	)
-//distinctFunc$.subscribe(a => console.log(a));
+//distinctFunc$.subscribe(a => logAll(a));
 
 /**
  * distinctUntilChanged
@@ -837,7 +839,7 @@ const distinctFunc$ =
 const distinctUntilChanged$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
 	distinctUntilChanged()
 )
-//distinctUntilChanged$.subscribe(a => console.log(a));
+//distinctUntilChanged$.subscribe(a => logAll(a));
 
 /**
  * distinctUntilKeyChanged
@@ -860,7 +862,7 @@ const distinctUntilKeyChanged$ =
 		//distinctUntilKeyChanged('a')
 		distinctUntilKeyChanged('b')
 	)
-//distinctUntilKeyChanged$.subscribe(a => console.log(a));
+//distinctUntilKeyChanged$.subscribe(a => logAll(a));
 
 /**
  * filter
@@ -874,7 +876,7 @@ const filter$ = timer(0, 100).pipe(
 	filter(item => item % 2 === 0)
 )
 
-//filter$.subscribe(a => console.log(a));
+//filter$.subscribe(a => logAll(a));
 
 /**
  * sample
@@ -899,11 +901,11 @@ const sampleProbe$ = interval(300)
 const sample$ = interval(102).pipe(
 	take(10),
 	map(item => item * 102),
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	sample(sampleProbe$)
 )
 
-//sample$.subscribe(a => console.log(a), err=>(console.log('ошибка: '+err)), ()=>console.log('complete'));
+//sample$.subscribe(a => logAll(a), err=>(logAll('ошибка: '+err)), ()=>logAll('complete'));
 
 /**
  * audit
@@ -928,17 +930,17 @@ const sample$ = interval(102).pipe(
 обработал: 918
  */
 const auditProbe$ = item => {
-	console.log('обработал: ' + item);
+	logAll('обработал: ' + item);
 	return interval(300);
 }
 const audit$ = timer(0, 102).pipe(
 	take(10),
 	map(item => item * 102),
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	audit(auditProbe$)
 )
 
-//audit$.subscribe(a => console.log(a));
+//audit$.subscribe(a => logAll(a));
 
 /**
  * throttle
@@ -965,17 +967,17 @@ const audit$ = timer(0, 102).pipe(
  */
 
 const throttleProbe$ = item => {
-	console.log('обработал: ' + item);
+	logAll('обработал: ' + item);
 	return timer(300);
 }
 const throttle$ = timer(0, 102).pipe(
 	take(10),
 	map(item => item * 102),
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	throttle(throttleProbe$)
 )
 
-//throttle$.subscribe(a => console.log(a));
+//throttle$.subscribe(a => logAll(a));
 
 
 //========================================================================================================================
@@ -994,12 +996,12 @@ const throttle$ = timer(0, 102).pipe(
 const first$ = timer(0, 100).pipe(
 	take(10),
 	map(item => item * 100),
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	first()
 	//first(item=>item % 2 === 0)//вернёт первое чётное число
 )
 
-//first$.subscribe(a => console.log(a));
+//first$.subscribe(a => logAll(a));
 
 /**
  * last
@@ -1021,12 +1023,12 @@ const first$ = timer(0, 100).pipe(
 const last$ = timer(0, 100).pipe(
 	take(10),
 	map(item => item * 100),
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	last()
 	//last(item=>item % 2 === 0)//вернёт первое чётное число
 )
 
-//last$.subscribe(a => console.log(a));
+//last$.subscribe(a => logAll(a));
 
 /**
  * min
@@ -1042,13 +1044,13 @@ const last$ = timer(0, 100).pipe(
 0
  */
 const min$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	//min()//вернёт минимальное число -2
 	min((item1, item2) => {
 		if (Math.abs(item1) > Math.abs(item2)) { return 1 } else { return -1 };
 	})
 )
-//min$.subscribe(a => console.log(a));
+//min$.subscribe(a => logAll(a));
 
 
 /**
@@ -1066,13 +1068,13 @@ const min$ = of(-2, -1, 0, 4, 5, 6).pipe(
  */
 
 const max$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	max()//вернёт максиимальное число 6
 	//max((item1, item2) => {
 	//    if (Math.abs(item1) < Math.abs(item2)) { return 1 } else { return -1 };
 	//  })
 )
-//max$.subscribe(a => console.log(a));
+//max$.subscribe(a => logAll(a));
 
 
 /**
@@ -1080,11 +1082,11 @@ const max$ = of(-2, -1, 0, 4, 5, 6).pipe(
 4
  */
 const elementAt$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	elementAt(3)
 
 )
-//elementAt$.subscribe(a => console.log(a));
+//elementAt$.subscribe(a => logAll(a));
 
 
 /**
@@ -1093,10 +1095,10 @@ const elementAt$ = of(-2, -1, 0, 4, 5, 6).pipe(
  */
 const findProbe = item => item === 0;
 const find$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	find(findProbe)
 )
-//find$.subscribe(a => console.log(a));
+//find$.subscribe(a => logAll(a));
 
 /**
  * возвращает индекс элемента потока, если функция аргумент findIndexProbe возвращает true
@@ -1104,10 +1106,10 @@ const find$ = of(-2, -1, 0, 4, 5, 6).pipe(
  */
 const findIndexProbe = item => item === 0;
 const findIndex$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	findIndex(findIndexProbe)
 )
-//findIndex$.subscribe(a => console.log(a));
+//findIndex$.subscribe(a => logAll(a));
 
 /**
  * single
@@ -1120,10 +1122,10 @@ const singleProbe = item => item === 0;
 //const singleProbe = item=>item>0;//ошибка
 //const singleProbe = item=>item===10;//undefined
 const single$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => console.log('получил: ' + item)),
+	tap(item => logAll('получил: ' + item)),
 	single(singleProbe)
 )
-//single$.subscribe(a => console.log(a));
+//single$.subscribe(a => logAll(a));
 
 
 //========================================================================================================================
@@ -1162,7 +1164,7 @@ const combineAll$ = of(combine1$, combine2$, combine3$).pipe(
 	combineAll()
 )
 
-//combineAll$.subscribe(() => console.log( ...arguments))
+//combineAll$.subscribe(() => logAll( ...arguments))
 
 /**
  * combineLatest
@@ -1223,7 +1225,7 @@ const concatAll$ = of(concat1$, concat2$, concat3$).pipe(
 	concatAll()
 )
 
-//concatAll$.subscribe((item) => console.log('получил: ',item))
+//concatAll$.subscribe((item) => logAll('получил: ',item))
 
 /**
  * exhaust
@@ -1252,7 +1254,7 @@ const exhaust$ = of(exhaust1$, exhaust2$, exhaust3$, exhaust4$).pipe(
 	exhaust()
 )
 
-//exhaust$.subscribe((item) => console.log('получил: ',...arguments))
+//exhaust$.subscribe((item) => logAll('получил: ',...arguments))
 
 /**
  * mergeAll
@@ -1294,7 +1296,7 @@ const mergeAll$ = of(mergeAll1$, mergeAll2$, mergeAll3$, mergeAll4$).pipe(
 	mergeAll()
 )
 
-//mergeAll$.subscribe((item) => console.log('получил: ',item))
+//mergeAll$.subscribe((item) => logAll('получил: ',item))
 
 /**
  * withLatestFrom
@@ -1314,10 +1316,10 @@ const withLatestFrom$ = interval(303).pipe(
 	take(3),
 	map(item => item * 303 + '-3'),
 	withLatestFrom(withLatestFrom1$, withLatestFrom2$, withLatestFrom3$),
-	//map(([item1,item2,item3,item4])=>console.log([item1,item2,item3,item4]))
+	//map(([item1,item2,item3,item4])=>logAll([item1,item2,item3,item4]))
 )
 
-//withLatestFrom$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('поток закрыт'));
+//withLatestFrom$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('поток закрыт'));
 
 
 //========================================================================================================================
@@ -1349,7 +1351,7 @@ const mergeMap$ = of(mergeMap1$, mergeMap2$, mergeMap3$, mergeMap4$).pipe(
 	mergeMap(mergeMapArray)
 )
 
-//mergeMap$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('mergeMap поток закрыт'));
+//mergeMap$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMap поток закрыт'));
 
 /**
  * groupBy
@@ -1371,7 +1373,7 @@ const groupBy$ = of(
 	mergeMap(item$ => item$.pipe(toArray()))
 )
 
-//groupBy$.subscribe((item) => console.log(JSON.stringify(item)))
+//groupBy$.subscribe((item) => logAll(JSON.stringify(item)))
 
 /**
  * pairwise
@@ -1391,7 +1393,7 @@ const pairwise$ = interval(100).pipe(
 	pairwise()
 )
 
-//pairwise$.subscribe((item) => console.log(JSON.stringify(item)))
+//pairwise$.subscribe((item) => logAll(JSON.stringify(item)))
 
 /**
  * partition
@@ -1460,7 +1462,7 @@ const switchAll$ = of(switchAll0$, switchAll1$, switchAll2$).pipe(
 	switchAll()
 )
 
-// switchAll$.subscribe(item => console.log(item), null, () => console.log('switchAll поток закрыт'));
+// switchAll$.subscribe(item => logAll(item), null, () => logAll('switchAll поток закрыт'));
 
 /**
  * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого
@@ -1492,7 +1494,7 @@ const zipAll$ = of(zipAll0$, zipAll1$, zipAll2$).pipe(
 	zipAll()
 )
 
-// zipAll$.subscribe(item => console.log(item), null, () => console.log('zipAll поток закрыт'));
+// zipAll$.subscribe(item => logAll(item), null, () => logAll('zipAll поток закрыт'));
 
 //========================================================================================================================
 //==================================================OBSERVABLE TRANSFORMATION=============================================
@@ -1529,7 +1531,7 @@ const repeat$ = repeat1$.pipe(
 	repeat(3)
 )
 
-// repeat$.subscribe(item => console.log(item), null, () => console.log('repeat поток закрыт'));
+// repeat$.subscribe(item => logAll(item), null, () => logAll('repeat поток закрыт'));
 
 /**
  * repeatWhen
@@ -1615,7 +1617,7 @@ const repeatWhen$ = repeatWhen1$.pipe(
 	repeatWhen(repeatWhenControl)
 )
 
-// repeatWhen$.subscribe(item => console.log(item), null, () => console.log('repeatWhen поток закрыт'));
+// repeatWhen$.subscribe(item => logAll(item), null, () => logAll('repeatWhen поток закрыт'));
 
 
 /**
@@ -1655,7 +1657,7 @@ const ignoreElements$ = of(ignoreElements1$, ignoreElementsErr2$, ignoreElements
 	mergeAll(),
 )
 
-//ignoreElements$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('ignoreElements поток закрыт'));
+//ignoreElements$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('ignoreElements поток закрыт'));
 
 /**
  * finalize
@@ -1676,7 +1678,7 @@ fin main
 fin 1
 fin 2
  */
-const finalizeFn = item => () => console.log('fin', item);//обёртка для вывода названия завершающегося потока
+const finalizeFn = item => () => logAll('fin', item);//обёртка для вывода названия завершающегося потока
 
 const finalizeErr1$ = interval(101).pipe(
 	take(10),
@@ -1703,7 +1705,7 @@ const finalize$ = of(finalizeErr1$, finalizeErr2$).pipe(
 	finalize(finalizeFn('main')),
 )
 
-//finalize$.subscribe(item => console.log(item), err => console.log('ошибка:', err), () => console.log('finalize поток закрыт'));
+//finalize$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('finalize поток закрыт'));
 
 //========================================================================================================================
 //==================================================TIME, DURATION & VALUES===============================================
@@ -1766,7 +1768,7 @@ const auditTime$ = of(auditTime1$, auditTime2$).pipe(
 	map(item => item + '-audit500')
 )
 
-// auditTime$.subscribe(item => console.log(item), null, () => console.log('auditTime поток закрыт'));
+// auditTime$.subscribe(item => logAll(item), null, () => logAll('auditTime поток закрыт'));
 
 
 /**
@@ -1823,7 +1825,7 @@ const sampleTime$ = of(sampleTime1$, sampleTime5$).pipe(
 	// map(item => item+'-sample500')
 )
 
-// sampleTime$.subscribe(item => console.log(item), null, () => console.log('sampleTime поток закрыт'));
+// sampleTime$.subscribe(item => logAll(item), null, () => logAll('sampleTime поток закрыт'));
 
 /**
  * observeOn
@@ -1936,7 +1938,7 @@ const observeOn$ = of(observeOn1$, observeOn2$, observeOn3$, observeOn4$, observ
 	// map(item => item+'-observe')
 )
 
-// observeOn$.subscribe(item => console.log(item), null, () => console.log('observeOn поток закрыт'));
+// observeOn$.subscribe(item => logAll(item), null, () => logAll('observeOn поток закрыт'));
 
 /**
  * subscribeOn
@@ -2040,7 +2042,7 @@ const subscribeOn$ = of(subscribeOn1$, subscribeOn2$, subscribeOn3$, subscribeOn
 	// map(item => item+'-subscribe')
 )
 
-// subscribeOn$.subscribe(item => console.log(item), null, () => console.log('subscribeOn поток закрыт'));
+// subscribeOn$.subscribe(item => logAll(item), null, () => logAll('subscribeOn поток закрыт'));
 
 /**
  * debounce
@@ -2115,7 +2117,7 @@ const debounce$ = of(debounceOver$, debounceNorm$, debounceDynamic$).pipe(
 	// map(item => item+'-subscribe')
 )
 
-//debounce$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounce поток закрыт'));
+//debounce$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounce поток закрыт'));
 
 /**
  * debounceTime
@@ -2171,7 +2173,7 @@ const debounceTime$ = of(debounceTimeOver$, debounceTimeNorm$).pipe(
 	// map(item => item+'-subscribe')
 )
 
-// debounceTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('debounceTime поток закрыт'));
+// debounceTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounceTime поток закрыт'));
 
 /**
  * delay
@@ -2227,7 +2229,7 @@ const delay$ = of(delay1$, delay2$, delay3$).pipe(
 	mergeAll()
 )
 
-//delay$.subscribe(item => console.log(item + '-$'), null, () => console.log('delay поток закрыт'));
+//delay$.subscribe(item => logAll(item + '-$'), null, () => logAll('delay поток закрыт'));
 
 /**
  * delayWhen
@@ -2278,7 +2280,7 @@ const delayWhen$ = of(delayWhen1$, delayWhen2$).pipe(
 	mergeAll()
 )
 
-//delayWhen$.subscribe(item => console.log(item + '-$'), null, () => console.log('delayWhen поток закрыт'));
+//delayWhen$.subscribe(item => logAll(item + '-$'), null, () => logAll('delayWhen поток закрыт'));
 
 
 /**
@@ -2331,7 +2333,7 @@ const throttleTime$ = of(throttleTime1$, throttleTime2$).pipe(
 	mergeAll()
 )
 
-//throttleTime$.subscribe(item => console.log(item + '-$'), null, () => console.log('throttleTime поток закрыт'));
+//throttleTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('throttleTime поток закрыт'));
 
 /**
  * timeInterval
@@ -2359,7 +2361,7 @@ const timeInterval$ = of(timeInterval1$).pipe(
 	mergeAll()
 )
 
-//timeInterval$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timeInterval поток закрыт'));
+//timeInterval$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timeInterval поток закрыт'));
 
 /**
  * timestamp
@@ -2402,7 +2404,7 @@ const timestamp$ = of(timestamp1$, timestamp2$).pipe(
 	mergeAll()
 )
 
-//timestamp$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('timestamp поток закрыт'));
+//timestamp$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timestamp поток закрыт'));
 
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
@@ -2475,7 +2477,7 @@ const concatMap$ = of(concatMap1$, concatMap2$, concatMap3$).pipe(
 	mergeAll()
 )
 
-// concatMap$.subscribe(item => console.log(JSON.stringify(item) + '-$'), null, () => console.log('concatMap поток закрыт'));
+// concatMap$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('concatMap поток закрыт'));
 
 /**
  * concatMapTo
@@ -2546,7 +2548,7 @@ const concatMapTo$ = of(concatMapTo1$, concatMapToSignal$).pipe(
 	mergeAll()
 )
 
-// concatMapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('concatMapTo поток закрыт'));
+// concatMapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('concatMapTo поток закрыт'));
 
 /**
  * defaultIfEmpty
@@ -2574,7 +2576,7 @@ const defaultIfEmpty$ = of(defaultIfEmpty1$).pipe(
 	mergeAll()
 )
 
-//defaultIfEmpty$.subscribe(item => console.log(item + '-$'), null, () => console.log('defaultIfEmpty поток закрыт'));
+//defaultIfEmpty$.subscribe(item => logAll(item + '-$'), null, () => logAll('defaultIfEmpty поток закрыт'));
 
 
 /**
@@ -2611,7 +2613,7 @@ const endWith$ = of(endWith1$, endWith2$).pipe(
 	mergeAll()
 )
 
-//endWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('endWith поток закрыт'));
+//endWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('endWith поток закрыт'));
 
 /**
  * startWith
@@ -2650,7 +2652,7 @@ const startWith$ = of(startWith1$, startWith2$).pipe(
 	mergeAll()
 )
 
-//startWith$.subscribe(item => console.log(item + '-$'), null, () => console.log('startWith поток закрыт'));
+//startWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('startWith поток закрыт'));
 
 
 /**
@@ -2675,7 +2677,7 @@ const exhaustMap$ = interval(302).pipe(
 	map(item => `startItem-${item * 302}`),
 	exhaustMap(exhaustMapFork$)
 );
-//exhaustMap$.subscribe(item => console.log(item), null, ()=> console.log('exhaustMap поток закрыт'));
+//exhaustMap$.subscribe(item => logAll(item), null, ()=> logAll('exhaustMap поток закрыт'));
 
 /**
  * expand
@@ -2722,7 +2724,7 @@ const expand$ = of(expand1$).pipe(
 	mergeAll()
 )
 
-//expand$.subscribe(item => console.log(item + '-$'), null, () => console.log('expand поток закрыт'));
+//expand$.subscribe(item => logAll(item + '-$'), null, () => logAll('expand поток закрыт'));
 
 /**
  * map
@@ -2767,7 +2769,7 @@ const mapTo$ = of(mapTo1$, mapToSignal$).pipe(
 	mergeAll()
 )
 
-//mapTo$.subscribe(item => console.log(item + '-$'), null, () => console.log('mapTo поток закрыт'));
+//mapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('mapTo поток закрыт'));
 
 /**
  * scan
@@ -2788,7 +2790,7 @@ time: 404; item: 4; accumulator: 6
  */
 
 const scanAccumulator = (accumulator, item) => {
-	console.log(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
+	logAll(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
 	return item + accumulator
 };
 const scanAccumulatorInitial = 0;
@@ -2804,7 +2806,7 @@ const scan$ = of(scan1$).pipe(
 	mergeAll()
 )
 
-//scan$.subscribe(item => console.log(item + '-$'), null, () => console.log('scan поток закрыт'));
+//scan$.subscribe(item => logAll(item + '-$'), null, () => logAll('scan поток закрыт'));
 
 
 /**
@@ -2850,7 +2852,7 @@ const mergeScanInternal$ = interval(11).pipe(
 )
 
 const mergeScanAccumulator = (accumulator, item) => {
-	console.log(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
+	logAll(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
 	// return of(item + accumulator)
 	return mergeScanInternal$
 };
@@ -2868,7 +2870,7 @@ const mergeScan$ = of(mergeScan1$).pipe(
 	mergeAll()
 )
 
-//mergeScan$.subscribe(item => console.log(item + '-$'), null, () => console.log('mergeScan поток закрыт'));
+//mergeScan$.subscribe(item => logAll(item + '-$'), null, () => logAll('mergeScan поток закрыт'));
 
 /**
  * pluck(x:string)
@@ -2887,7 +2889,7 @@ const pluck$ = interval(100)
 		pluck('double')//возвращаем в поток только item.double
 	);
 
-//pluck$.subscribe(item => console.log(item), null, ()=> console.log('pluck поток закрыт'));
+//pluck$.subscribe(item => logAll(item), null, ()=> logAll('pluck поток закрыт'));
 
 /**
  * reduce
@@ -2906,7 +2908,7 @@ reduce поток закрыт
  */
 
 const reduceAccumulator = (accumulator, item) => {
-	console.log(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
+	logAll(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
 	return item + accumulator
 };
 const reduceAccumulatorInitial = 0;
@@ -2922,7 +2924,7 @@ const reduce$ = of(reduce1$).pipe(
 	mergeAll()
 )
 
-//reduce$.subscribe(item => console.log(item + '-$'), null, () => console.log('reduce поток закрыт'));
+//reduce$.subscribe(item => logAll(item + '-$'), null, () => logAll('reduce поток закрыт'));
 
 
 /**
@@ -2954,7 +2956,7 @@ const switchMap$ = interval(303).pipe(
 	switchMap(switchMapFork1$)
 );
 
-//switchMap$.subscribe(item => console.log(item), null, ()=> console.log('switchMap поток закрыт'));
+//switchMap$.subscribe(item => logAll(item), null, ()=> logAll('switchMap поток закрыт'));
 
 /**
  * mergeMapTo
@@ -3025,7 +3027,7 @@ const mergeMapTo$ = of(mergeMapTo1$, mergeMapTo2$, mergeMapTo3$, mergeMapTo4$).p
 	mergeMapTo(mergeMapToInternal$)
 )
 
-// mergeMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('mergeMapTo поток закрыт'));
+// mergeMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMapTo поток закрыт'));
 
 /**
  * switchMapTo
@@ -3090,7 +3092,7 @@ const switchMapTo$ = of(switchMapTo1$, switchMapTo2$, switchMapTo3$, switchMapTo
 	switchMapTo(switchMapToInternal$)
 )
 
-//switchMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('switchMapTo поток закрыт'));
+//switchMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('switchMapTo поток закрыт'));
 
 /**
  * materialize
@@ -3130,7 +3132,7 @@ const materialize$ = of(materialize1$, materialize2$).pipe(
 	materialize()
 )
 
-// materialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('materialize поток закрыт'));
+// materialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('materialize поток закрыт'));
 
 
 /**
@@ -3162,7 +3164,7 @@ const dematerialize$ = of(dematerialize1$, dematerialize2$, dematerialize3$).pip
 	mergeAll()
 )
 
-//dematerialize$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('dematerialize поток закрыт'));
+//dematerialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('dematerialize поток закрыт'));
 
 //========================================================================================================================
 //==================================================MULTICAST=============================================================
@@ -3221,15 +3223,15 @@ const multicastProxy$ = new Subject();
 
 // традиционный пример, который работает без костылей
 const multicastObserver = observer => {
-	console.log('новый подписчик!');
+	logAll('новый подписчик!');
 	let countItem = 0;
 	const interval1 = setInterval(
 		() => {
-			console.log('генерируем: ' + countItem);
+			logAll('генерируем: ' + countItem);
 			if (countItem <= 3) {
 				observer.next(countItem++);
 			} else {
-				console.log('остановка генератора multicast');
+				logAll('остановка генератора multicast');
 				clearInterval(interval1);
 			}
 		}, 101);
@@ -3241,8 +3243,8 @@ const multicast$ = new Observable(multicastObserver).pipe(
 	multicast(multicastProxy$), //если закомментировать, потоки стартуют по .subscribe вместо .connect
 );
 
-multicast$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('multicast подписка1-закрыта'));
-multicast$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('multicast подписка2-закрыта'));
+multicast$.subscribe((item) => logAll(item + '-подписка1'), null, () => logAll('multicast подписка1-закрыта'));
+multicast$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('multicast подписка2-закрыта'));
 
 // multicast$.connect();
 
@@ -3286,11 +3288,11 @@ const share$ = share1$.pipe(
 )
 
 //!!! контрольный подписчик
-// share$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('share1 поток закрыт'));
+// share$.subscribe((item) => logAll('получил1: ', item), null, () => logAll('share1 поток закрыт'));
 
 const shareTimeout = setTimeout(() => {
 	// опаздываем на 700
-	// share$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('share2 поток закрыт'));
+	// share$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('share2 поток закрыт'));
 	clearInterval(shareTimeout);
 }, 700);
 
@@ -3337,11 +3339,11 @@ const shareReplay$ = shareReplay1$.pipe(
 )
 
 //!!! контрольный подписчик
-// shareReplay$.subscribe((item) => console.log('получил1: ', item), null, () => console.log('shareReplay1 поток закрыт'));
+// shareReplay$.subscribe((item) => logAll('получил1: ', item), null, () => logAll('shareReplay1 поток закрыт'));
 
 const shareReplayTimeout = setTimeout(() => {
 	// опаздываем на 700
-	// shareReplay$.subscribe((item) => console.log('получил2: ', item), null, () => console.log('shareReplay2 поток закрыт'));
+	// shareReplay$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('shareReplay2 поток закрыт'));
 	clearInterval(shareReplayTimeout)
 }, 700);
 
@@ -3376,15 +3378,15 @@ Hello World!
 
 // традиционный подход, который работает без костылей
 const publishObserver = observer => {
-	console.log('новый подписчик!');
+	logAll('новый подписчик!');
 	let countItem = 0;
 	const interval1 = setInterval(
 		() => {
-			console.log('генерируем: ' + countItem);
+			logAll('генерируем: ' + countItem);
 			if (countItem <= 3) {
 				observer.next(countItem++);
 			} else {
-				console.log('остановка генератора publish');
+				logAll('остановка генератора publish');
 				clearInterval(interval1);
 			}
 		}, 101);
@@ -3395,8 +3397,8 @@ const publish$ = new Observable(publishObserver).pipe(
 	publish(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
 );
 
-publish$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publish подписка1-закрыта'));
-publish$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publish подписка2-закрыта'));
+publish$.subscribe((item) => logAll(item + '-подписка1'), null, () => logAll('publish подписка1-закрыта'));
+publish$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publish подписка2-закрыта'));
 
 // publish$.connect();
 
@@ -3446,15 +3448,15 @@ start-подписка2
 3-подписка2
  */
 const publishBehaviorObserver = observer => {
-	console.log('новый подписчик!');
+	logAll('новый подписчик!');
 	let countItem = 0;
 	const interval1 = setInterval(
 		() => {
-			console.log('генерируем: ' + countItem);
+			logAll('генерируем: ' + countItem);
 			if (countItem <= 3) {
 				observer.next(countItem++);
 			} else {
-				console.log('остановка генератора publishBehavior');
+				logAll('остановка генератора publishBehavior');
 				clearInterval(interval1);
 			}
 		}, 101);
@@ -3468,8 +3470,8 @@ const publishBehavior$ = new Observable(publishBehaviorObserver).pipe(
 );
 
 // ! раскомментировать 3 строки
-// publishBehavior$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishBehavior подписка1-закрыта'));
-// publishBehavior$.pipe(delay(1000)).subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishBehavior подписка2-закрыта'));
+// publishBehavior$.subscribe((item) => logAll(item + '-подписка1'), null, () => logAll('publishBehavior подписка1-закрыта'));
+// publishBehavior$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publishBehavior подписка2-закрыта'));
 // publishBehavior$.connect();
 
 /**
@@ -3503,9 +3505,9 @@ const publishLast$ = of(publishLast1$).pipe(
 	publishLast(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
 ) as ConnectableObservable<any>;
 
-publishLast$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishLast подписка1-закрыта'));
+publishLast$.subscribe((item) => logAll(item + '-подписка1'), null, () => logAll('publishLast подписка1-закрыта'));
 const publishLastTimeout = setInterval(() => {
-	publishLast$.subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishLast подписка2-закрыта'));
+	publishLast$.subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publishLast подписка2-закрыта'));
 	clearInterval(publishLastTimeout);
 }, 300);
 
@@ -3552,15 +3554,15 @@ const publishReplay$ = of(publishReplay1$).pipe(
 	publishReplay(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
 ) as ConnectableObservable<any>;
 
-publishReplay$.subscribe((item) => console.log(item + '-подписка1'), null, () => console.log('publishReplay подписка1-закрыта'));
+publishReplay$.subscribe((item) => logAll(item + '-подписка1'), null, () => logAll('publishReplay подписка1-закрыта'));
 
 const publishReplayTimeout1 = setInterval(() => {
-	publishReplay$.subscribe((item) => console.log(item + '-подписка2'), null, () => console.log('publishReplay подписка2-закрыта'));
+	publishReplay$.subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publishReplay подписка2-закрыта'));
 	clearInterval(publishReplayTimeout1);
 }, 300);
 
 const publishReplayTimeout2 = setInterval(() => {
-	publishReplay$.subscribe((item) => console.log(item + '-подписка3'), null, () => console.log('publishReplay подписка3-закрыта'));
+	publishReplay$.subscribe((item) => logAll(item + '-подписка3'), null, () => logAll('publishReplay подписка3-закрыта'));
 	clearInterval(publishReplayTimeout2);
 }, 500);
 
