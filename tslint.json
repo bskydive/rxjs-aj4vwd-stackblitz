@@ -1,9 +1,9 @@
 {
-	"rulesDirectory": [
-		"codelyzer"
+	"extends": [
+		"rxjs-tslint-rules",
+		"tslint-angular"
 	],
 	"rules": {
-		"arrow-return-shorthand": true,
 		"callable-types": false,
 		"class-name": true,
 		"comment-format": [
@@ -71,7 +71,7 @@
 		"no-switch-case-fall-through": true,
 		"no-trailing-whitespace": false,
 		"no-unnecessary-initializer": true,
-		"no-unused-expression": [true,"warn"],
+		"no-unused-expression": [true, "warn"],
 		"no-var-keyword": true,
 		"object-literal-sort-keys": false,
 		"one-line": [
@@ -106,14 +106,7 @@
 			}
 		],
 		"unified-signatures": true,
-		"whitespace": [
-			true,
-			"check-branch",
-			"check-decl",
-			"check-operator",
-			"check-separator",
-			"check-type"
-		],
+		"whitespace": {"severity": "warn"},
 		"no-output-on-prefix": true,
 		"use-input-property-decorator": true,
 		"use-output-property-decorator": true,
@@ -135,7 +128,6 @@
 		"interface-name": [true, "always-prefix"],
 		"encoding": true,
 		"file-name-casing": [true, "kebab-case"],
-		"increment-decrement": true,
 		"newline-per-chained-call": false,
 		"object-literal-shorthand": [true, "never"],
 		"one-variable-per-declaration": [true, "ignore-for-loop"],
@@ -149,6 +141,11 @@
 			]
 		},
 		"linebreak-style": [true, "LF"],
-		"ban-ts-ignore": true
+		"ban-ts-ignore": true,
+		"no-unused-variable": false,
+		"rxjs-finnish": { "severity": "warn" },
+		"rxjs-no-create": { "severity": "warn" },
+		"increment-decrement": false,
+		"arrow-return-shorthand": false
 	}
 }

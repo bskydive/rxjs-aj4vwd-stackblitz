@@ -2,10 +2,10 @@ import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combi
 import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith, expand, mapTo, mergeScan, reduce, mergeMapTo, switchMapTo, materialize, dematerialize, multicast, publish, share, shareReplay, publishBehavior, publishLast, publishReplay } from 'rxjs/operators';
 
 
-const helloSource = of('World').pipe(
+const helloSource$ = of('World').pipe(
 	map(x => `Hello ${x}!`)
 );
-helloSource.subscribe(x => console.log(x));
+helloSource$.subscribe(x => console.log(x));
 
 /**
  * ===============================================
@@ -28,7 +28,7 @@ helloSource.subscribe(x => console.log(x));
  * время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
  * в примерах расставлены закоментированные операторы логирования для отладки tap(logAll)
  * выходная строка subscribe унифицирована для облегчения отладки
- * унифицированные постфиксы '-1' | '-$' | '-dynamic' помогают в чтении вывода
+ * унифицированные постфиксы '-1' | '-$' | '-dynamic' помогают в чтении вывода https://medium.com/@benlesh/observables-and-finnish-notation-df8356ed1c9b
  * операторы endWith('...') помогают понять когда происходит завершение(отписка) потока
  * выполняется как в консоли, так и в онлайн редакторе. Некоторые примеры работают только в браузере, когда необходимо его API
  * просто один файл. Суровый простой "кирпич". Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать. Нет оглавления, но его можно построить поиском ctrl+shift+f '$.subscribe('. Любое другое удобство усложнит код, и потребует ещё более могучего времени на рефакторинг, поиск компромиссов.
@@ -273,7 +273,7 @@ const bufferWhen$ = interval(500).pipe(
 const window$ = interval(100).pipe(
 	window(interval(1000)),
 	take(3),
-	switchMap(item => item.pipe(
+	switchMap(item$ => item$.pipe(
 		toArray(),
 		map(item1 => ['window', ...item1]))
 	),
@@ -303,7 +303,7 @@ windowCount(2,3)
 const windowCount$ = interval(100).pipe(
 	take(10),
 	windowCount(2, 3),
-	switchMap(item => item.pipe(
+	switchMap(item$ => item$.pipe(
 		toArray(),
 		map(item1 => ['windowCount', ...item1]))
 	),
@@ -326,7 +326,7 @@ const windowTime$ = timer(0, 100)
 	.pipe(
 		take(9),
 		windowTime(200),
-		switchMap(item => item.pipe(
+		switchMap(item$ => item$.pipe(
 			toArray(),
 			map(item1 => ['windowTime', ...item1]))
 		),
@@ -364,7 +364,7 @@ const windowToggle$ = timer(0, 100).pipe(
 	take(10),
 	tap(item => console.log(item)),
 	windowToggle(windowOpen$, windowClose$),
-	switchMap(item => item.pipe(
+	switchMap(item$ => item$.pipe(
 		toArray(),
 		map(item1 => ['windowToggle', ...item1]))
 	),
@@ -386,17 +386,16 @@ const windowWhen$ = interval(500).pipe(
 			return interval(1000)
 		} else { return interval(500) }
 	}),
-	switchMap(item => item
-		.pipe(
-			toArray(),
-			map(item1 => {
-				if (windowWhenCount < 5) {
-					return ['windowWhen', ...item1]
-				} else {
-					return ['windowWhenElse', ...item1]
-				}
-			})
-		)
+	switchMap(item$ => item$.pipe(
+		toArray(),
+		map(item1 => {
+			if (windowWhenCount < 5) {
+				return ['windowWhen', ...item1]
+			} else {
+				return ['windowWhenElse', ...item1]
+			}
+		})
+	)
 	)
 )
 //windowWhen$.subscribe(a => console.log(a));
@@ -417,12 +416,12 @@ const windowWhen$ = interval(500).pipe(
  */
 const error$ = throwError('ошибка ошибковна')
 	.pipe(
-		catchError((err, caught) => {
-			console.log('словил:', err, 'источик:', caught);//перехватчик ошибок
+		catchError((err, caught$) => {
+			console.log('словил:', err, 'источик:', caught$);//перехватчик ошибок
 			return throwError(`вернул взад ${err}`);//генерируем новую ошибку вместо текущей
 		}),
-		catchError((err, caught) => {
-			console.log('положь где взял:', err, 'источик:', caught);//перехватчик ошибок работает последовательно
+		catchError((err, caught$) => {
+			console.log('положь где взял:', err, 'источик:', caught$);//перехватчик ошибок работает последовательно
 			return of('янеошибка');//подмена ошибки значением
 		}),
 	)
@@ -436,7 +435,7 @@ const error$ = throwError('ошибка ошибковна')
  * Можно подменять ошибку
  * Error {message: "no elements in sequence", name: "EmptyError"}
  */
-const errorHandler = () => console.log(`ничоси`);
+const errorHandler = () => console.log('ничоси');
 const errorEmpty$ = of().pipe(
 	throwIfEmpty()//без подмены
 	//throwIfEmpty(errorHandler)//подмена ошибки
@@ -455,7 +454,7 @@ const errorEmpty$ = of().pipe(
 3
 едем дальше
  */
-const errorNext$ = of(`едем дальше`);//резервный поток после ошибок
+const errorNext$ = of('едем дальше');//резервный поток после ошибок
 const errorSwitch$ = timer(0, 100).pipe(
 	take(5),
 	map(item => {
@@ -565,9 +564,9 @@ const retryWhen$ = interval(200).pipe(
 		}
 		return x;
 	}),
-	retryWhen(errors => {
+	retryWhen(errors$ => {
 		if (swallow) {
-			return errors.pipe(
+			return errors$.pipe(
 				tap(err => console.log(err)),
 				scan(acc => acc + 1, 0),
 				tap(retryCount => {
@@ -581,7 +580,7 @@ const retryWhen$ = interval(200).pipe(
 				takeWhile(errCount => errCount < 2)
 			)
 		} else {
-			return errors.pipe(
+			return errors$.pipe(
 				tap(err => console.log(err)),
 				scan(acc => acc + 1, 0),
 				tap(retryCount => {
@@ -614,12 +613,12 @@ const timeOut$ = interval(102).pipe(
 	take(5),
 	tap(value => console.log(value * 102)),
 	timeout(100), // таймер
-	catchError((err, caught) => {
+	catchError((err, caught$) => {
 		if (err.name === 'TimeoutError') {
 			// обрабатываем событие таймера
 			console.log('Таймер сработал')
 		};
-		return of(err, caught)
+		return of(err, caught$)
 	})
 )
 
@@ -637,11 +636,11 @@ const timeOut$ = interval(102).pipe(
 complete
  */
 const timeOutWithFallback$ = of(1, 2, 3);
-const timeOutWith$ = Observable.create(observer => {
+const timeOutWith$ = new Observable(observer => {
 	observer.next('ещё 0');
 	setTimeout(() => observer.next('ещё 100'), 100);
 	setTimeout(() => observer.next('ещё 202'), 202);//заменить на 200, чтобы не было прерывания
-	setTimeout(() => observer.complete('ещё 300'), 300);
+	setTimeout(() => observer.complete(), 300);
 }).pipe(timeoutWith(101, timeOutWithFallback$))
 
 //timeOutWith$.subscribe(a => console.log(a), err=>(console.log('ошибка: '+err)), ()=>console.log('complete'));
@@ -1216,10 +1215,10 @@ Observable {_isScalar: false, source: {…}, operator: {…}}
 получил:303-3
 получил:606-3
  */
-const concat1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const concat2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const concat3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
-const concatAll$ = of(concat1, concat2, concat3).pipe(
+const concat1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const concat2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const concat3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const concatAll$ = of(concat1$, concat2$, concat3$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
 	concatAll()
 )
@@ -1228,7 +1227,7 @@ const concatAll$ = of(concat1, concat2, concat3).pipe(
 
 /**
  * exhaust
- * Возвращает значения потока, который первый их прислал. Остальные потоки блокируются, пока первый поток не закончися
+ * Возвращает значения потока, который первый их прислал. Остальные потоки блокируются, пока первый поток не закончится
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
@@ -1244,11 +1243,11 @@ Observable {_isScalar: false, source: {…}, operator: {…}}
 получил:808-1
 получил:909-1
  */
-const exhaust1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const exhaust2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const exhaust3 = interval(2000).pipe(take(3), map(item => item * 303 + '-3'));
-const exhaust4 = of(1, 2, 3).pipe(delay(2000));
-const exhaust$ = of(exhaust1, exhaust2, exhaust3, exhaust4).pipe(
+const exhaust1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const exhaust2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const exhaust3$ = interval(2000).pipe(take(3), map(item => item * 303 + '-3'));
+const exhaust4$ = of(1, 2, 3).pipe(delay(2000));
+const exhaust$ = of(exhaust1$, exhaust2$, exhaust3$, exhaust4$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
 	exhaust()
 )
@@ -1286,11 +1285,11 @@ Observable {_isScalar: false, source: {…}, operator: {…}}
 получил:2
 получил:3
  */
-const mergeAll1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const mergeAll2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const mergeAll3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
-const mergeAll4 = of(1, 2, 3).pipe(delay(2000));
-const mergeAll$ = of(mergeAll1, mergeAll2, mergeAll3, mergeAll4).pipe(
+const mergeAll1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const mergeAll2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const mergeAll3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const mergeAll4$ = of(1, 2, 3).pipe(delay(2000));
+const mergeAll$ = of(mergeAll1$, mergeAll2$, mergeAll3$, mergeAll4$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
 	mergeAll()
 )
@@ -1307,14 +1306,14 @@ const mergeAll$ = of(mergeAll1, mergeAll2, mergeAll3, mergeAll4).pipe(
 получил:["303-3", "505-1", "404-2"]
 получил:["606-3", "808-1", "606-2"]
  */
-const withLatestFrom1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const withLatestFrom2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const withLatestFrom3 = of(1);
+const withLatestFrom1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const withLatestFrom2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const withLatestFrom3$ = of(1);
 //const withLatestFrom3 = of(1).pipe(delay(1000));
 const withLatestFrom$ = interval(303).pipe(
 	take(3),
 	map(item => item * 303 + '-3'),
-	withLatestFrom(withLatestFrom1, withLatestFrom2, withLatestFrom3),
+	withLatestFrom(withLatestFrom1$, withLatestFrom2$, withLatestFrom3$),
 	//map(([item1,item2,item3,item4])=>console.log([item1,item2,item3,item4]))
 )
 
@@ -1340,12 +1339,12 @@ Observable {_isScalar: false, source: {…}, operator: {…}}
 получил:["0-2", "202-2", "404-2", "606-2", "808-2"]
 получил:[1, 2, 3]
  */
-const mergeMap1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const mergeMap2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const mergeMap3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
-const mergeMap4 = of(1, 2, 3).pipe(delay(2000));
+const mergeMap1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const mergeMap2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const mergeMap3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const mergeMap4$ = of(1, 2, 3).pipe(delay(2000));
 const mergeMapArray = item$ => item$.pipe(toArray())
-const mergeMap$ = of(mergeMap1, mergeMap2, mergeMap3, mergeMap4).pipe(
+const mergeMap$ = of(mergeMap1$, mergeMap2$, mergeMap3$, mergeMap4$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
 	mergeMap(mergeMapArray)
 )
@@ -1453,10 +1452,10 @@ const pairwise$ = interval(100).pipe(
 поток закрыт
 
  */
-const switchAll0 = of(1, 2, 3).pipe(map(item => item * 1 + '-0'), tap(logAll), endWith('0-закрыт'));
-const switchAll1 = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + '-1'), tap(logAll), endWith('1-закрыт'));
-const switchAll2 = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + '-2'), tap(logAll), endWith('2-закрыт'));
-const switchAll$ = of(switchAll0, switchAll1, switchAll2).pipe(
+const switchAll0$ = of(1, 2, 3).pipe(map(item => item * 1 + '-0'), tap(logAll), endWith('0-закрыт'));
+const switchAll1$ = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + '-1'), tap(logAll), endWith('1-закрыт'));
+const switchAll2$ = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + '-2'), tap(logAll), endWith('2-закрыт'));
+const switchAll$ = of(switchAll0$, switchAll1$, switchAll2$).pipe(
 	// mergeAll(), // для проверки асинхронности
 	switchAll()
 )
@@ -1485,10 +1484,10 @@ const switchAll$ = of(switchAll0, switchAll1, switchAll2).pipe(
 [ '0-закрыт', '1303-1', '1606-2' ]
 поток закрыт
  */
-const zipAll0 = of(1, 2, 3).pipe(map(item => item * 1 + '-0'), tap(logAll), endWith('0-закрыт'));
-const zipAll1 = interval(101).pipe(delay(1000), take(5), map(item => item * 101 + 1000 + '-1'), tap(logAll), endWith('1-закрыт'));
-const zipAll2 = interval(202).pipe(delay(1000), take(5), map(item => item * 202 + 1000 + '-2'), tap(logAll), endWith('2-закрыт'));
-const zipAll$ = of(zipAll0, zipAll1, zipAll2).pipe(
+const zipAll0$ = of(1, 2, 3).pipe(map(item => item * 1 + '-0'), tap(logAll), endWith('0-закрыт'));
+const zipAll1$ = interval(101).pipe(delay(1000), take(5), map(item => (item * 101 + 1000) + '-1'), tap(logAll), endWith('1-закрыт'));
+const zipAll2$ = interval(202).pipe(delay(1000), take(5), map(item => (item * 202 + 1000) + '-2'), tap(logAll), endWith('2-закрыт'));
+const zipAll$ = of(zipAll0$, zipAll1$, zipAll2$).pipe(
 	// mergeAll(), // для проверки асинхронности
 	zipAll()
 )
@@ -1524,9 +1523,9 @@ const zipAll$ = of(zipAll0, zipAll1, zipAll2).pipe(
 1-закрыт
 поток закрыт
  */
-const repeat1 = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('1-закрыт'));
+const repeat1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('1-закрыт'));
 
-const repeat$ = repeat1.pipe(
+const repeat$ = repeat1$.pipe(
 	repeat(3)
 )
 
@@ -1602,17 +1601,17 @@ Hello World!
 
 
  */
-const repeatWhen1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'),
+const repeatWhen1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'),
 	// tap(logAll),
 	endWith('1-закрыт'));
 const repeatWhenControl = () => interval(202).pipe(
 	delay(1000),
 	take(3),
-	map(item => item * 202 + 1000 + '-control'),
+	map(item => (item * 202 + 1000) + '-control'),
 	tap(logAll),
 	endWith('control-закрыт')
 );
-const repeatWhen$ = repeatWhen1.pipe(
+const repeatWhen$ = repeatWhen1$.pipe(
 	repeatWhen(repeatWhenControl)
 )
 
@@ -1629,14 +1628,14 @@ const repeatWhen$ = repeatWhen1.pipe(
 0-2
 ошибка: 0-2
  */
-const ignoreElements1 = interval(101).pipe(
+const ignoreElements1$ = interval(101).pipe(
 	take(10),
 	map(item => item * 101 + '-1'),
 	// tap(logAll),
 	// mergeAll(), ignoreElements(),
 	endWith('1-закрыт'));
 
-const ignoreElementsErr2 = interval(404).pipe(
+const ignoreElementsErr2$ = interval(404).pipe(
 	take(3),
 	map(item => item * 404 + '-2'),
 	tap(logAll),
@@ -1644,7 +1643,7 @@ const ignoreElementsErr2 = interval(404).pipe(
 	mergeAll(), ignoreElements(),
 	endWith('err-закрыт'));
 
-const ignoreElementsErr3 = interval(505).pipe(
+const ignoreElementsErr3$ = interval(505).pipe(
 	take(3),
 	map(item => item * 505 + '-3'),
 	tap(logAll),
@@ -1652,7 +1651,7 @@ const ignoreElementsErr3 = interval(505).pipe(
 	mergeAll(), ignoreElements(),
 	endWith('err2-закрыт'));
 
-const ignoreElements$ = of(ignoreElements1, ignoreElementsErr2, ignoreElementsErr3).pipe(
+const ignoreElements$ = of(ignoreElements1$, ignoreElementsErr2$, ignoreElementsErr3$).pipe(
 	mergeAll(),
 )
 
@@ -1679,7 +1678,7 @@ fin 2
  */
 const finalizeFn = item => () => console.log('fin', item);//обёртка для вывода названия завершающегося потока
 
-const finalizeErr1 = interval(101).pipe(
+const finalizeErr1$ = interval(101).pipe(
 	take(10),
 	map(item => item * 101 + '-1'),
 	tap(logAll),
@@ -1689,7 +1688,7 @@ const finalizeErr1 = interval(101).pipe(
 	finalize(finalizeFn('1')),
 );
 
-const finalizeErr2 = interval(505).pipe(
+const finalizeErr2$ = interval(505).pipe(
 	take(3),
 	map(item => item * 505 + '-2'),
 	tap(logAll),
@@ -1699,7 +1698,7 @@ const finalizeErr2 = interval(505).pipe(
 	finalize(finalizeFn('2')),
 );
 
-const finalize$ = of(finalizeErr1, finalizeErr2).pipe(
+const finalize$ = of(finalizeErr1$, finalizeErr2$).pipe(
 	mergeAll(),
 	finalize(finalizeFn('main')),
 )
@@ -1752,16 +1751,16 @@ auditTime поток закрыт
 1818-2
 auditTime поток закрыт
  */
-const auditTime1 = interval(101).pipe(take(10),
+const auditTime1$ = interval(101).pipe(take(10),
 	map(item => item * 101 + '-1'),
 	// tap(logAll),
 	endWith('1-закрыт'));
-const auditTime2 = interval(202).pipe(take(10),
+const auditTime2$ = interval(202).pipe(take(10),
 	map(item => item * 202 + '-2'),
 	// tap(logAll),
 	endWith('2-закрыт'));
 
-const auditTime$ = of(auditTime1, auditTime2).pipe(
+const auditTime$ = of(auditTime1$, auditTime2$).pipe(
 	mergeAll(),
 	auditTime(500),
 	map(item => item + '-audit500')
@@ -1807,18 +1806,18 @@ sampleTime поток закрыт
 2020-5
 sampleTime поток закрыт
  */
-const sampleTime1 = interval(101).pipe(
+const sampleTime1$ = interval(101).pipe(
 	take(10),
 	map(item => item * 101 + '-1'),
 	// tap(logAll),
 	endWith('1-закрыт'));
-const sampleTime5 = interval(505).pipe(
+const sampleTime5$ = interval(505).pipe(
 	take(5),
 	map(item => item * 505 + '-5'),
 	// tap(logAll),
 	endWith('5-закрыт'));
 
-const sampleTime$ = of(sampleTime1, sampleTime5).pipe(
+const sampleTime$ = of(sampleTime1$, sampleTime5$).pipe(
 	mergeAll(),
 	sampleTime(500),
 	// map(item => item+'-sample500')
@@ -1892,7 +1891,7 @@ Hello World!
 5-закрыт
 observeOn поток закрыт
  */
-const observeOn1 = interval(101).pipe(
+const observeOn1$ = interval(101).pipe(
 	take(3),
 	// observeOn(asyncScheduler),
 	map(item => item * 101 + '-1'),
@@ -1900,7 +1899,7 @@ const observeOn1 = interval(101).pipe(
 	endWith('1-закрыт'),
 );
 
-const observeOn2 = interval(102).pipe(
+const observeOn2$ = interval(102).pipe(
 	take(3),
 	// observeOn(asapScheduler),
 	map(item => item * 102 + '-2'),
@@ -1908,7 +1907,7 @@ const observeOn2 = interval(102).pipe(
 	endWith('2-закрыт'),
 );
 
-const observeOn3 = interval(103).pipe(
+const observeOn3$ = interval(103).pipe(
 	take(3),
 	// observeOn(queueScheduler),
 	map(item => item * 103 + '-3'),
@@ -1916,7 +1915,7 @@ const observeOn3 = interval(103).pipe(
 	endWith('3-закрыт'),
 );
 
-const observeOn4 = interval(104).pipe(
+const observeOn4$ = interval(104).pipe(
 	take(3),
 	// observeOn(animationFrameScheduler),
 	map(item => item * 104 + '-4'),
@@ -1924,7 +1923,7 @@ const observeOn4 = interval(104).pipe(
 	endWith('4-закрыт')
 );
 
-const observeOn5 = interval(105).pipe(
+const observeOn5$ = interval(105).pipe(
 	// без observeOn считается, что приоритет immediate
 	take(3),
 	map(item => item * 105 + '-5'),
@@ -1932,7 +1931,7 @@ const observeOn5 = interval(105).pipe(
 	endWith('5-закрыт')
 );
 
-const observeOn$ = of(observeOn1, observeOn2, observeOn3, observeOn4, observeOn5).pipe(
+const observeOn$ = of(observeOn1$, observeOn2$, observeOn3$, observeOn4$, observeOn5$).pipe(
 	mergeAll(),
 	// map(item => item+'-observe')
 )
@@ -1996,7 +1995,7 @@ subscribeOn поток закрыт
 5-закрыт
 subscribeOn поток закрыт
  */
-const subscribeOn1 = interval(101).pipe(
+const subscribeOn1$ = interval(101).pipe(
 	take(3),
 	// subscribeOn(asyncScheduler),
 	map(item => item * 101 + '-1'),
@@ -2004,7 +2003,7 @@ const subscribeOn1 = interval(101).pipe(
 	endWith('1-закрыт'),
 );
 
-const subscribeOn2 = interval(102).pipe(
+const subscribeOn2$ = interval(102).pipe(
 	take(3),
 	// subscribeOn(asapScheduler),
 	map(item => item * 102 + '-2'),
@@ -2012,7 +2011,7 @@ const subscribeOn2 = interval(102).pipe(
 	endWith('2-закрыт'),
 );
 
-const subscribeOn3 = interval(103).pipe(
+const subscribeOn3$ = interval(103).pipe(
 	take(3),
 	// subscribeOn(queueScheduler),
 	map(item => item * 103 + '-3'),
@@ -2020,7 +2019,7 @@ const subscribeOn3 = interval(103).pipe(
 	endWith('3-закрыт'),
 );
 
-const subscribeOn4 = interval(104).pipe(
+const subscribeOn4$ = interval(104).pipe(
 	take(3),
 	// subscribeOn(animationFrameScheduler),
 	map(item => item * 104 + '-4'),
@@ -2028,7 +2027,7 @@ const subscribeOn4 = interval(104).pipe(
 	endWith('4-закрыт')
 );
 
-const subscribeOn5 = interval(105).pipe(
+const subscribeOn5$ = interval(105).pipe(
 	// без subscribeOn считается, что приоритет immediate
 	take(3),
 	map(item => item * 105 + '-5'),
@@ -2036,7 +2035,7 @@ const subscribeOn5 = interval(105).pipe(
 	endWith('5-закрыт')
 );
 
-const subscribeOn$ = of(subscribeOn1, subscribeOn2, subscribeOn3, subscribeOn4, subscribeOn5).pipe(
+const subscribeOn$ = of(subscribeOn1$, subscribeOn2$, subscribeOn3$, subscribeOn4$, subscribeOn5$).pipe(
 	mergeAll(),
 	// map(item => item+'-subscribe')
 )
@@ -2076,8 +2075,8 @@ dynamic-закрыт-$
 debounce поток закрыт
  */
 
-const debounceSignalOver = interval(2000)
-const debounceSignalNorm = interval(50)
+const debounceSignalOver$ = interval(2000)
+const debounceSignalNorm$ = interval(50)
 const debounceSignalDynamic = item => {
 	const TIMER = 5; // interval имитирует 0,1,2,3,4...
 	if (item > TIMER) {
@@ -2087,23 +2086,23 @@ const debounceSignalDynamic = item => {
 	}
 }
 
-const debounceOver = interval(101).pipe(
+const debounceOver$ = interval(101).pipe(
 	take(10),
-	debounce(item => debounceSignalOver),
+	debounce(item => debounceSignalOver$),
 	map(item => item * 101 + '-over'),
 	// tap(logAll),
 	endWith('over-закрыт'),
 );
 
-const debounceNorm = interval(102).pipe(
+const debounceNorm$ = interval(102).pipe(
 	take(10),
-	debounce(item => debounceSignalNorm),
+	debounce(item => debounceSignalNorm$),
 	map(item => item * 102 + '-norm'),
 	// tap(logAll),
 	endWith('norm-закрыт'),
 );
 
-const debounceDynamic = interval(103).pipe(
+const debounceDynamic$ = interval(103).pipe(
 	take(10),
 	debounce(item => debounceSignalDynamic(item)),
 	map(item => item * 103 + '-dynamic'),
@@ -2111,7 +2110,7 @@ const debounceDynamic = interval(103).pipe(
 	endWith('dynamic-закрыт'),
 );
 
-const debounce$ = of(debounceOver, debounceNorm, debounceDynamic).pipe(
+const debounce$ = of(debounceOver$, debounceNorm$, debounceDynamic$).pipe(
 	mergeAll(),
 	// map(item => item+'-subscribe')
 )
@@ -2151,7 +2150,7 @@ dynamic-закрыт-$
 debounce поток закрыт
  */
 
-const debounceTimeOver = interval(101).pipe(
+const debounceTimeOver$ = interval(101).pipe(
 	take(10),
 	map(item => item * 101 + '-over'),
 	// tap(logAll),
@@ -2159,7 +2158,7 @@ const debounceTimeOver = interval(101).pipe(
 	endWith('over-закрыт'),
 );
 
-const debounceTimeNorm = interval(102).pipe(
+const debounceTimeNorm$ = interval(102).pipe(
 	take(10),
 	map(item => item * 102 + '-norm'),
 	// tap(logAll),
@@ -2167,7 +2166,7 @@ const debounceTimeNorm = interval(102).pipe(
 	endWith('norm-закрыт'),
 );
 
-const debounceTime$ = of(debounceTimeOver, debounceTimeNorm).pipe(
+const debounceTime$ = of(debounceTimeOver$, debounceTimeNorm$).pipe(
 	mergeAll(),
 	// map(item => item+'-subscribe')
 )
@@ -2200,7 +2199,7 @@ const debounceTime$ = of(debounceTimeOver, debounceTimeNorm).pipe(
 2-закрыт-$
 delay поток закрыт
  */
-const delay1 = interval(101).pipe(
+const delay1$ = interval(101).pipe(
 	delay(1000),
 	take(3),
 	map(item => item * 101 + '-1'),
@@ -2208,7 +2207,7 @@ const delay1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const delay2 = interval(102).pipe(
+const delay2$ = interval(102).pipe(
 	delay(new Date(Date.now() + 1000)),
 	take(3),
 	map(item => item * 102 + '-2'),
@@ -2216,7 +2215,7 @@ const delay2 = interval(102).pipe(
 	endWith('2-закрыт'),
 )
 
-const delay3 = interval(103).pipe(
+const delay3$ = interval(103).pipe(
 	// контрольный поток без задержек
 	take(10),
 	map(item => item * 103 + '-3'),
@@ -2224,7 +2223,7 @@ const delay3 = interval(103).pipe(
 	endWith('3-закрыт'),
 )
 
-const delay$ = of(delay1, delay2, delay3).pipe(
+const delay$ = of(delay1$, delay2$, delay3$).pipe(
 	mergeAll()
 )
 
@@ -2232,7 +2231,7 @@ const delay$ = of(delay1, delay2, delay3).pipe(
 
 /**
  * delayWhen
- * Задерживает мимтацию значений потока на указанный интервал
+ * Задерживает имитацию значений потока на указанный интервал
  * 
  * Hello World!
 0-1-$
@@ -2259,7 +2258,7 @@ const delay$ = of(delay1, delay2, delay3).pipe(
 2-закрыт-$
 delayWhen поток закрыт
  */
-const delayWhen1 = interval(101).pipe(
+const delayWhen1$ = interval(101).pipe(
 	// контрольный поток без задержек
 	take(10),
 	map(item => item * 101 + '-1'),
@@ -2267,15 +2266,15 @@ const delayWhen1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const delayWhen2 = interval(102).pipe(
+const delayWhen2$ = interval(102).pipe(
 	delayWhen((item, index) => interval(200)),
 	take(10),
-	map(item => item * 102 + 200 + '-2'),
+	map(item => (item * 102 + 200) + '-2'),
 	// tap(logAll),
 	endWith('2-закрыт'),
 )
 
-const delayWhen$ = of(delayWhen1, delayWhen2).pipe(
+const delayWhen$ = of(delayWhen1$, delayWhen2$).pipe(
 	mergeAll()
 )
 
@@ -2312,7 +2311,7 @@ const delayWhen$ = of(delayWhen1, delayWhen2).pipe(
 2-закрыт-$
 throttleTime поток закрыт
  */
-const throttleTime1 = interval(101).pipe(
+const throttleTime1$ = interval(101).pipe(
 	// контрольный поток без задержек
 	take(10),
 	map(item => item * 101 + '-1'),
@@ -2320,15 +2319,15 @@ const throttleTime1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const throttleTime2 = interval(102).pipe(
+const throttleTime2$ = interval(102).pipe(
 	throttleTime(300),
 	take(10),
-	map(item => item * 102 + 300 + '-2'),
+	map(item => (item * 102 + 300) + '-2'),
 	// tap(logAll),
 	endWith('2-закрыт'),
 )
 
-const throttleTime$ = of(throttleTime1, throttleTime2).pipe(
+const throttleTime$ = of(throttleTime1$, throttleTime2$).pipe(
 	mergeAll()
 )
 
@@ -2348,7 +2347,7 @@ const throttleTime$ = of(throttleTime1, throttleTime2).pipe(
 "2-закрыт"-$
 timeInterval поток закрыт
  */
-const timeInterval1 = interval(102).pipe(
+const timeInterval1$ = interval(102).pipe(
 	take(5),
 	map(item => item * 102 + '-2'),
 	timeInterval(),
@@ -2356,7 +2355,7 @@ const timeInterval1 = interval(102).pipe(
 	endWith('2-закрыт'),
 )
 
-const timeInterval$ = of(timeInterval1).pipe(
+const timeInterval$ = of(timeInterval1$).pipe(
 	mergeAll()
 )
 
@@ -2381,7 +2380,7 @@ const timeInterval$ = of(timeInterval1).pipe(
 "2-закрыт"-$
 timestamp поток закрыт
  */
-const timestamp1 = interval(101).pipe(
+const timestamp1$ = interval(101).pipe(
 	take(5),
 	map(item => item * 101 + '-1'),
 	timestamp(),
@@ -2389,7 +2388,7 @@ const timestamp1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const timestamp2 = interval(102).pipe(
+const timestamp2$ = interval(102).pipe(
 	// добавим немного человекочитаемости к дате
 	take(5),
 	map(item => item * 102 + '-2'),
@@ -2399,7 +2398,7 @@ const timestamp2 = interval(102).pipe(
 	endWith('2-закрыт'),
 )
 
-const timestamp$ = of(timestamp1, timestamp2).pipe(
+const timestamp$ = of(timestamp1$, timestamp2$).pipe(
 	mergeAll()
 )
 
@@ -2446,7 +2445,7 @@ const timestamp$ = of(timestamp1, timestamp2).pipe(
 "2-закрыт"-$
 concatMap поток закрыт
  */
-const concatMap1 = interval(101).pipe(
+const concatMap1$ = interval(101).pipe(
 	// контрольный поток
 	take(10),
 	map(item => item * 101 + '-1'),
@@ -2454,7 +2453,7 @@ const concatMap1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const concatMap2 = interval(102).pipe(
+const concatMap2$ = interval(102).pipe(
 	// просто меняем значение на массив
 	take(5),
 	map(item => item * 102 + '-2'),
@@ -2463,7 +2462,7 @@ const concatMap2 = interval(102).pipe(
 	endWith('2-закрыт'),
 )
 
-const concatMap3 = interval(103).pipe(
+const concatMap3$ = interval(103).pipe(
 	// добавляем задержку
 	take(5),
 	map(item => item * 103 + '-3'),
@@ -2472,7 +2471,7 @@ const concatMap3 = interval(103).pipe(
 	endWith('3-закрыт'),
 )
 
-const concatMap$ = of(concatMap1, concatMap2, concatMap3).pipe(
+const concatMap$ = of(concatMap1$, concatMap2$, concatMap3$).pipe(
 	mergeAll()
 )
 
@@ -2518,7 +2517,7 @@ Internal-закрыт-$
 Signal-закрыт-$
 concatMapTo поток закрыт
  */
-const concatMapTo1 = interval(101).pipe(
+const concatMapTo1$ = interval(101).pipe(
 	// контрольный поток
 	take(10),
 	map(item => item * 101 + '-1'),
@@ -2526,7 +2525,7 @@ const concatMapTo1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const concatMapToInternal = interval(102).pipe(
+const concatMapToInternal$ = interval(102).pipe(
 	// внутренний поток для concatMap
 	take(3),
 	map(item => item * 102 + '-Internal'),
@@ -2534,16 +2533,16 @@ const concatMapToInternal = interval(102).pipe(
 	endWith('Internal-закрыт'),
 )
 
-const concatMapToSignal = interval(103).pipe(
+const concatMapToSignal$ = interval(103).pipe(
 	// имитируем значения из внутреннего потока 
 	take(5),
 	map(item => item * 103 + '-Signal'),
-	concatMapTo(concatMapToInternal),
+	concatMapTo(concatMapToInternal$),
 	// tap(logAll),
 	endWith('Signal-закрыт'),
 )
 
-const concatMapTo$ = of(concatMapTo1, concatMapToSignal).pipe(
+const concatMapTo$ = of(concatMapTo1$, concatMapToSignal$).pipe(
 	mergeAll()
 )
 
@@ -2562,7 +2561,7 @@ defaultIfEmpty поток закрыт
 const defaultIfEmptyInternal = '1'
 // const defaultIfEmptyInternal = 1
 
-const defaultIfEmpty1 = interval(103).pipe(
+const defaultIfEmpty1$ = interval(103).pipe(
 	// имитируем значения из внутреннего потока 
 	take(0),
 	map(item => item * 103 + '-1'),
@@ -2571,7 +2570,7 @@ const defaultIfEmpty1 = interval(103).pipe(
 	endWith('1-закрыт'),
 )
 
-const defaultIfEmpty$ = of(defaultIfEmpty1).pipe(
+const defaultIfEmpty$ = of(defaultIfEmpty1$).pipe(
 	mergeAll()
 )
 
@@ -2593,14 +2592,14 @@ const defaultIfEmpty$ = of(defaultIfEmpty1).pipe(
 endWith поток закрыт
  */
 
-const endWith1 = interval(101).pipe(
+const endWith1$ = interval(101).pipe(
 	map(item => item * 101 + '-1'),
 	take(3),
 	// tap(logAll),
 	endWith('1-закрыт'),
 )
 
-const endWith2 = interval(102).pipe(
+const endWith2$ = interval(102).pipe(
 	//неправильное положение оператора
 	map(item => item * 102 + '-2'),
 	endWith('2-закрыт'),
@@ -2608,7 +2607,7 @@ const endWith2 = interval(102).pipe(
 	// tap(logAll),
 )
 
-const endWith$ = of(endWith1, endWith2).pipe(
+const endWith$ = of(endWith1$, endWith2$).pipe(
 	mergeAll()
 )
 
@@ -2630,7 +2629,7 @@ const endWith$ = of(endWith1, endWith2).pipe(
 2-закрыт-$
 startWith поток закрыт
  */
-const startWith1 = interval(101).pipe(
+const startWith1$ = interval(101).pipe(
 	map(item => item * 101 + '-1'),
 	startWith('1-открыт'),
 	take(3),
@@ -2638,7 +2637,7 @@ const startWith1 = interval(101).pipe(
 	// tap(logAll),
 )
 
-const startWith2 = interval(102).pipe(
+const startWith2$ = interval(102).pipe(
 	//неправильное положение оператора
 	map(item => item * 102 + '-2'),
 	take(3),
@@ -2647,7 +2646,7 @@ const startWith2 = interval(102).pipe(
 	// tap(logAll),
 )
 
-const startWith$ = of(startWith1, startWith2).pipe(
+const startWith$ = of(startWith1$, startWith2$).pipe(
 	mergeAll()
 )
 
@@ -2712,14 +2711,14 @@ const parserRecursive1 = item => {
 	}
 }
 
-const expand1 = interval(501).pipe(
+const expand1$ = interval(501).pipe(
 	take(3),
 	expand(parserRecursive1),
 	endWith('2-закрыт'),
 	// tap(logAll),
 )
 
-const expand$ = of(expand1).pipe(
+const expand$ = of(expand1$).pipe(
 	mergeAll()
 )
 
@@ -2748,7 +2747,7 @@ Signal-закрыт-$
 mapTo поток закрыт
  */
 
-const mapTo1 = interval(101).pipe(
+const mapTo1$ = interval(101).pipe(
 	// контрольный поток
 	take(5),
 	map(item => item * 101 + '-1'),
@@ -2756,7 +2755,7 @@ const mapTo1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const mapToSignal = interval(103).pipe(
+const mapToSignal$ = interval(103).pipe(
 	take(3),
 	map(item => item * 103 + '-Signal'),
 	mapTo('mapToInternal'),
@@ -2764,7 +2763,7 @@ const mapToSignal = interval(103).pipe(
 	endWith('Signal-закрыт'),
 )
 
-const mapTo$ = of(mapTo1, mapToSignal).pipe(
+const mapTo$ = of(mapTo1$, mapToSignal$).pipe(
 	mergeAll()
 )
 
@@ -2794,14 +2793,14 @@ const scanAccumulator = (accumulator, item) => {
 };
 const scanAccumulatorInitial = 0;
 
-const scan1 = interval(101).pipe(
+const scan1$ = interval(101).pipe(
 	take(5),
 	scan(scanAccumulator, scanAccumulatorInitial),
 	// tap(logAll),
 	endWith('1-закрыт'),
 )
 
-const scan$ = of(scan1).pipe(
+const scan$ = of(scan1$).pipe(
 	mergeAll()
 )
 
@@ -2843,7 +2842,7 @@ time: 404; item: 4; accumulator: 1-закрыт
 mergeScan поток закрыт
 
  */
-const mergeScanInternal = interval(11).pipe(
+const mergeScanInternal$ = interval(11).pipe(
 	take(3),
 	map(item => item * 11 + '-internal'),
 	// tap(logAll),
@@ -2853,19 +2852,19 @@ const mergeScanInternal = interval(11).pipe(
 const mergeScanAccumulator = (accumulator, item) => {
 	console.log(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
 	// return of(item + accumulator)
-	return mergeScanInternal
+	return mergeScanInternal$
 };
 
 const mergeScanAccumulatorInitial = 0;
 
-const mergeScan1 = interval(102).pipe(
+const mergeScan1$ = interval(102).pipe(
 	take(5),
 	mergeScan(mergeScanAccumulator, mergeScanAccumulatorInitial),
 	// tap(logAll),
 	endWith('2-закрыт'),
 )
 
-const mergeScan$ = of(mergeScan1).pipe(
+const mergeScan$ = of(mergeScan1$).pipe(
 	mergeAll()
 )
 
@@ -2912,14 +2911,14 @@ const reduceAccumulator = (accumulator, item) => {
 };
 const reduceAccumulatorInitial = 0;
 
-const reduce1 = interval(101).pipe(
+const reduce1$ = interval(101).pipe(
 	take(5),
 	reduce(reduceAccumulator, reduceAccumulatorInitial),
 	// tap(logAll),
 	endWith('1-закрыт'),
 )
 
-const reduce$ = of(reduce1).pipe(
+const reduce$ = of(reduce1$).pipe(
 	mergeAll()
 )
 
@@ -3013,17 +3012,17 @@ Observable {
 получил:  22-internal
 mergeMapTo поток закрыт
  */
-const mergeMapTo1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const mergeMapTo2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const mergeMapTo3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
-const mergeMapTo4 = of(1, 2, 3).pipe(delay(2000));
+const mergeMapTo1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const mergeMapTo2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const mergeMapTo3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const mergeMapTo4$ = of(1, 2, 3).pipe(delay(2000));
 
-const mergeMapToInternal = interval(11).pipe(take(3), map(item => item * 11 + '-internal'));
+const mergeMapToInternal$ = interval(11).pipe(take(3), map(item => item * 11 + '-internal'));
 
 
-const mergeMapTo$ = of(mergeMapTo1, mergeMapTo2, mergeMapTo3, mergeMapTo4).pipe(
+const mergeMapTo$ = of(mergeMapTo1$, mergeMapTo2$, mergeMapTo3$, mergeMapTo4$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
-	mergeMapTo(mergeMapToInternal)
+	mergeMapTo(mergeMapToInternal$)
 )
 
 // mergeMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('mergeMapTo поток закрыт'));
@@ -3078,17 +3077,17 @@ Observable {
 switchMapTo поток закрыт
  */
 
-const switchMapTo1 = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const switchMapTo2 = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const switchMapTo3 = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
-const switchMapTo4 = of(1, 2, 3).pipe(delay(2000));
+const switchMapTo1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const switchMapTo2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const switchMapTo3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const switchMapTo4$ = of(1, 2, 3).pipe(delay(2000));
 
-const switchMapToInternal = interval(11).pipe(take(3), map(item => item * 11 + '-internal'));
+const switchMapToInternal$ = interval(11).pipe(take(3), map(item => item * 11 + '-internal'));
 
 
-const switchMapTo$ = of(switchMapTo1, switchMapTo2, switchMapTo3, switchMapTo4).pipe(
+const switchMapTo$ = of(switchMapTo1$, switchMapTo2$, switchMapTo3$, switchMapTo4$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
-	switchMapTo(switchMapToInternal)
+	switchMapTo(switchMapToInternal$)
 )
 
 //switchMapTo$.subscribe((item) => console.log('получил: ',item), null, ()=> console.log('switchMapTo поток закрыт'));
@@ -3123,10 +3122,10 @@ const switchMapTo$ = of(switchMapTo1, switchMapTo2, switchMapTo3, switchMapTo4).
 materialize поток закрыт
  */
 
-const materialize1 = interval(101).pipe(take(3), map(item => item * 101 + '-1'), endWith('1-закрыто'));
-const materialize2 = of(1).pipe(map(item => throwError('ошибка')));
+const materialize1$ = interval(101).pipe(take(3), map(item => item * 101 + '-1'), endWith('1-закрыто'));
+const materialize2$ = of(1).pipe(map(item => throwError('ошибка')));
 
-const materialize$ = of(materialize1, materialize2).pipe(
+const materialize$ = of(materialize1$, materialize2$).pipe(
 	// tap(logAll),
 	materialize()
 )
@@ -3152,11 +3151,11 @@ const materialize$ = of(materialize1, materialize2).pipe(
 dematerialize поток закрыт
  */
 
-const dematerialize1 = interval(101).pipe(take(3), map(item => item * 101 + '-1'), endWith('1-закрыто'));
-const dematerialize2 = of(1).pipe(map(item => throwError('ошибка')), endWith('2-закрыто'));
-const dematerialize3 = of(Notification.createNext(0), Notification.createComplete()).pipe(endWith('3-закрыто'));
+const dematerialize1$ = interval(101).pipe(take(3), map(item => item * 101 + '-1'), endWith('1-закрыто'));
+const dematerialize2$ = of(1).pipe(map(item => throwError('ошибка')), endWith('2-закрыто'));
+const dematerialize3$ = of(Notification.createNext(0), Notification.createComplete()).pipe(endWith('3-закрыто'));
 
-const dematerialize$ = of(dematerialize1, dematerialize2, dematerialize3).pipe(
+const dematerialize$ = of(dematerialize1$, dematerialize2$, dematerialize3$).pipe(
 	// tap(logAll),
 	materialize(),
 	dematerialize(),
@@ -3206,12 +3205,12 @@ Hello World!
 подписка2-закрыта
  */
 
-const multicastIn1 = interval(101).pipe(
+const multicastIn1$ = interval(101).pipe(
 	take(3),
 	map(item => item * 101 + '-поток1'),
 	endWith('поток1-закрыто')
 );
-const multicastIn2 = interval(102).pipe(
+const multicastIn2$ = interval(102).pipe(
 	take(3),
 	map(item => item * 102 + '-поток2'),
 	endWith('поток2-закрыто')
@@ -3236,8 +3235,8 @@ const multicastObserver = observer => {
 		}, 101);
 }
 
-const multicast$ = Observable.create(multicastObserver).pipe(
-	// const multicast$ = publish()(of(multicastIn1, multicastIn2).pipe( // пример костыля - в этом случае .connect() не работает как надо, потоки стартуют раньше .connect()
+const multicast$ = new Observable(multicastObserver).pipe(
+	// const multicast$ = publish()(of(multicastIn1$, multicastIn2$).pipe( // пример костыля - в этом случае .connect() не работает как надо, потоки стартуют раньше .connect()
 	// tap(logAll),
 	multicast(multicastProxy$), //если закомментировать, потоки стартуют по .subscribe вместо .connect
 );
@@ -3275,13 +3274,13 @@ Hello World!
 share1 поток закрыт
 share2 поток закрыт
  */
-const share1 = interval(101).pipe(
+const share1$ = interval(101).pipe(
 	take(10),
 	map(item => item * 101 + '-1'),
 	endWith('1-закрыто')
 );
 
-const share$ = share1.pipe(
+const share$ = share1$.pipe(
 	share(),
 	// tap(logAll),
 )
@@ -3325,14 +3324,14 @@ const shareTimeout = setTimeout(() => {
 shareReplay1 поток закрыт
 shareReplay2 поток закрыт
  */
-const shareReplay1 = interval(101).pipe(
+const shareReplay1$ = interval(101).pipe(
 	take(10),
 	map(item => item * 101 + '-1'),
 	endWith('1-закрыто')
 );
 const shareReplayBufferSize = 3;
 
-const shareReplay$ = shareReplay1.pipe(
+const shareReplay$ = shareReplay1$.pipe(
 	shareReplay(shareReplayBufferSize),
 	// tap(logAll),
 )
@@ -3391,7 +3390,7 @@ const publishObserver = observer => {
 		}, 101);
 }
 
-const publish$ = Observable.create(publishObserver).pipe(
+const publish$ = new Observable(publishObserver).pipe(
 	// tap(logAll),
 	publish(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
 );
@@ -3463,7 +3462,7 @@ const publishBehaviorObserver = observer => {
 
 const publishBehaviorInitialValue = 'publishBehaviorInitialValue'
 
-const publishBehavior$ = Observable.create(publishBehaviorObserver).pipe(
+const publishBehavior$ = new Observable(publishBehaviorObserver).pipe(
 	// tap(logAll),
 	publishBehavior(publishBehaviorInitialValue), //если закомментировать, потоки стартуют по .subscribe вместо .connect
 );
@@ -3490,7 +3489,7 @@ publishLast подписка1-закрыта
 publishLast подписка2-закрыта
  */
 
-const publishLast1 = interval(101).pipe(
+const publishLast1$ = interval(101).pipe(
 	// контрольный поток
 	take(3),
 	map(item => item * 101 + '-1'),
@@ -3498,7 +3497,7 @@ const publishLast1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const publishLast$ = of(publishLast1).pipe(
+const publishLast$ = of(publishLast1$).pipe(
 	// tap(logAll),
 	mergeAll(),
 	publishLast(), //если закомментировать, потоки стартуют по .subscribe вместо .connect
@@ -3517,7 +3516,7 @@ const publishLastTimeout = setInterval(() => {
  * Конвертирует поток в ConnectableObservable
  * Позволяет одновременно стартовать все потоки через методом connect()
  * После .connect имитирует все значения входного потока для подписчика
- * Если .connect после закытия входного потока, то имитирует только указанное количество значений publishReplayCount входного потока
+ * Если .connect после закрытия входного потока, то имитирует только указанное количество значений publishReplayCount входного потока
  * косяк rxjs - https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md#observable-classes
  * pipe всегда возвращает Observable https://github.com/ReactiveX/rxjs/issues/3595
  * 
@@ -3539,7 +3538,7 @@ publishReplay подписка2-закрыта
 publishReplay подписка3-закрыта
  */
 
-const publishReplay1 = interval(101).pipe(
+const publishReplay1$ = interval(101).pipe(
 	// контрольный поток
 	take(3),
 	map(item => item * 101 + '-1'),
@@ -3547,7 +3546,7 @@ const publishReplay1 = interval(101).pipe(
 	endWith('1-закрыт'),
 )
 
-const publishReplay$ = of(publishReplay1).pipe(
+const publishReplay$ = of(publishReplay1$).pipe(
 	// tap(logAll),
 	mergeAll(),
 	publishReplay(), //если закомментировать, потоки стартуют по .subscribe вместо .connect

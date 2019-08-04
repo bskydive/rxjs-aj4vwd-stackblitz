@@ -6,19 +6,24 @@
     "b": "tsc --build tsconfig.json && node index.js"
   },
   "dependencies": {
+    "@angular/compiler": "^8.2.0",
+    "@angular/core": "^8.2.0",
     "rxjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^12.6.9",
     "@typescript-eslint/parser": "^1.13.0",
+    "codelyzer": "^5.1.0",
     "eslint": "^6.1.0",
     "eslint-config-standard": "^13.0.1",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
+    "rxjs-tslint-rules": "^4.24.3",
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
+    "tslint-angular": "^3.0.2",
     "typescript": "^3.5.3"
   }
 }
