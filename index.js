@@ -98,11 +98,11 @@ helloSource$.subscribe(function (x) { return logAll(x); });
  * Здесь логирование применимо, на проде - нет
  */
 function logAll() {
-    var args = [];
+    var values = [];
     for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
+        values[_i] = arguments[_i];
     }
-    console.log.apply(console, __spread(arguments));
+    console.log.apply(console, __spread(values)); // ...arguments
 }
 /**
  * map
@@ -144,7 +144,7 @@ const mapTimeout1 = setTimeout(() => {
 [9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
  */
 var buffer$ = rxjs_1.interval(100).pipe(operators_1.buffer(rxjs_1.interval(1000)), operators_1.take(3), operators_1.map(function (item) { return __spread(['bufferInterval'], item); }));
-buffer$.subscribe(function (a) { return logAll(a); });
+// buffer$.subscribe(a => logAll(a));
 /**
  * bufferCount
  *
@@ -2790,8 +2790,88 @@ var publishReplayTimeout2 = setInterval(function () {
 //========================================================================================================================
 //
 /**
+ * count
+ * Выводит количество значений имитированных входным потоком
+ *
+ * Hello World!
+получил:  4
+count поток закрыт
+ */
+var count1$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('1-закрыто'));
+var count$ = count1$.pipe(
+// tap(logAll),
+operators_1.count());
+// count$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('count поток закрыт'));
+/**
+ * every
+ * проверяет значения входного потока функцией isEveryLess400
+ * если true, выводит после закрытия потока true
+ * если поймал false, выводит false и отписывается
+ *
+ * Hello World!
+0
+isLess400 0
+0
+isLess400 0
+101
+isLess400 101
+202
+isLess400 202
+получил:  true
+получил:  1-закрыто
+202
+isLess400 202
+404
+isLess400 404
+получил:  false
+получил:  2-закрыто
+every поток закрыт
+ */
+var isEveryLess400 = function (item) {
+    logAll('isLess400', item);
+    return item < 400;
+};
+var every1$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101; }), operators_1.tap(logAll), operators_1.every(isEveryLess400), operators_1.endWith('1-закрыто'));
+var every2$ = rxjs_1.interval(202).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 202; }), operators_1.tap(logAll), operators_1.every(isEveryLess400), operators_1.endWith('2-закрыто'));
+var every$ = rxjs_1.of(every1$, every2$).pipe(
+// tap(logAll),
+operators_1.mergeAll());
+// every$.subscribe((item) => logAll('получил: ', item), null, () => logAll('every поток закрыт'));
+/**
+ * isEmpty
+ * имитирует true, если входной поток закрыт без значений
+ * имитирует false и отписывается, если получено значение
+ *
+ * Hello World!
+получил:  true
+получил:  1-закрыто
+0
+получил:  false
+получил:  2-закрыто
+isEmpty поток закрыт
+ */
+var isEmpty1$ = rxjs_1.interval(101).pipe(operators_1.take(0), operators_1.map(function (item) { return item * 101; }), operators_1.tap(logAll), operators_1.isEmpty(), operators_1.endWith('1-закрыто'));
+var isEmpty2$ = rxjs_1.interval(202).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 202; }), operators_1.tap(logAll), operators_1.isEmpty(), operators_1.endWith('2-закрыто'));
+var isEmpty$ = rxjs_1.of(isEmpty1$, isEmpty2$).pipe(
+// tap(logAll),
+operators_1.mergeAll());
+// isEmpty$.subscribe((item) => logAll('получил: ', item), null, () => logAll('isEmpty поток закрыт'));
+/**
+ * sequenceEqual
+ * сравнивает значения входного потока и потока-аргумента
+ * время игнорируется
+ *
  *
  */
+var sequenceEqual1Control$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll));
+var sequenceEqual1$ = rxjs_1.interval(202).pipe(// !время разное
+operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.tap(logAll), operators_1.sequenceEqual(sequenceEqual1Control$), operators_1.endWith('1-закрыто'));
+var sequenceEqual2Control$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-2'; }), operators_1.tap(logAll));
+var sequenceEqual2$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-2другой'; }), operators_1.tap(logAll), operators_1.sequenceEqual(sequenceEqual2Control$), operators_1.endWith('2-закрыто'));
+var sequenceEqual$ = rxjs_1.of(sequenceEqual1$, sequenceEqual2$).pipe(
+// tap(logAll),
+operators_1.mergeAll());
+sequenceEqual$.subscribe(function (item) { return logAll('получил: ', item); }, null, function () { return logAll('sequenceEqual поток закрыт'); });
 //====
 /**
  * forkJoin, merge, concat, race, zip, iif

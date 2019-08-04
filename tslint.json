@@ -146,6 +146,7 @@
 		"rxjs-finnish": { "severity": "warn" },
 		"rxjs-no-create": { "severity": "warn" },
 		"increment-decrement": false,
-		"arrow-return-shorthand": false
+		"arrow-return-shorthand": false,
+		"rxjs-no-unsafe-takeuntil": true
 	}
 }
