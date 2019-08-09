@@ -25,13 +25,14 @@ helloSource$.subscribe(x => logAll(x));
  * Содержит полный список правильных способов import {}
  * типовые примеры, которые легко комбинировать и сопоставлять
  * входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
- * время появления идентично значению в потоке. Всегда понятно когда и в каком порядке оно имитировано.
+ * выводится время появления значения в потоке. Интервалы имитации разведены на милисекунду: 101, 102, 202, 203. Всегда понятно когда и в каком порядке имитировано значение.
+ * к значениям из одного потока добавляются унифицированные постфиксы '-1' | '-2' | '-dynamic'
  * в примерах расставлены закоментированные операторы логирования для отладки tap(logAll)
  * выходная строка subscribe унифицирована для облегчения отладки
- * унифицированные постфиксы '-1' | '-$' | '-dynamic' помогают в чтении вывода https://medium.com/@benlesh/observables-and-finnish-notation-df8356ed1c9b
+ * унифицированные постфиксы '-$' помогают в чтении вывода https://medium.com/@benlesh/observables-and-finnish-notation-df8356ed1c9b
  * операторы endWith('...') помогают понять когда происходит завершение(отписка) потока
  * выполняется как в консоли, так и в онлайн редакторе. Некоторые примеры работают только в браузере, когда необходимо его API
- * просто один файл. Суровый простой "кирпич". Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать. Нет оглавления, но его можно построить поиском ctrl+shift+f '$.subscribe('. Любое другое удобство усложнит код, и потребует ещё более могучего времени на рефакторинг, поиск компромиссов.
+ * просто один файл. Суровый "кирпич", который обусловлен стартовым шаблоном stackblitz. Легко искать, скачивать, отправлять. Трудно модифицировать совместно, долго запускать. Нет оглавления, но его можно построить поиском ctrl+shift+f '$.subscribe('. Любое другое удобство усложнит код, и потребует ещё более могучего времени на рефакторинг, поиск компромиссов. Таким образом я подсократил огромное количество убитого на это пособие времени. И это - начальный этап, сбор примеров, создание методики.
  * нет typescript, модульности и пр плюшек для ускорения работы над кодом. Основная работа в просмотре лекции и её конспектировании.
  * большое, очень большое количество операторов
  * все примеры рабочие и готовы к копипасту
@@ -95,7 +96,7 @@ function logAll(...values) {
  */
 const map$ = interval(100).pipe(
 	take(3),
-	map(item => ['преобразуй это: ', item]),
+	map(item => ['преобразуй это: ', item]), //используется для конвертирования значений счётчиков в милисекунды имитации значений
 	tap(item => ['фига с два: ', item]), //не возвращает ничего
 	tap(item => logAll('отладь меня: ', item)), //используется для отладки
 )
@@ -104,23 +105,29 @@ const map$ = interval(100).pipe(
  * Три работающих варианта подписки
  * разведены во времени, чтобы не перемешивать вывод в консоль
  */
-//map$.subscribe(item => logAll('раз:', item));//без задержек
+//map$.subscribe(item => logAll('самый простой, значение:', item));
 
 /* 
 const mapTimeout1 = setTimeout(() => {
-  map$.subscribe(item => logAll('два', item), err => logAll('два', err), () => logAll('два', 'конец'));
-  clearInterval(mapTimeout1)
-}, 1000);//с задержкой в 1 сек
+	map$.subscribe(
+		item => logAll(
+			'стрелочные функции, значение:', item),
+		err => logAll('стрелочные функции, ошибка:', err),
+		() => logAll('стрелочные функции, закрытие:', 'конец')
+	);
+	clearInterval(mapTimeout1)
+}, 1000);
  */
 
-/* const mapTimeout2 = setTimeout(() => {
+/* 
+const mapTimeout2 = setTimeout(() => {
 	map$.subscribe({
-		next: item => logAll('три', item),
-		error: err => logAll('три', err),
-		complete: () => logAll('три', 'конец')
+		next: item => logAll('объект, значение:', item),
+		error: err => logAll('объект, ошибка', err),
+		complete: () => logAll('объект, закрытие', 'конец')
 	})
 	clearInterval(mapTimeout2);
-}, 2000);//с задержкой в 2 сек
+}, 2000);
  */
 
 //========================================================================================================================
@@ -128,136 +135,170 @@ const mapTimeout1 = setTimeout(() => {
 //========================================================================================================================
 
 /**
- * Кэширует и возвращает пачку значений
- * [0, 1, 2, 3, 4, 5, 6, 7, 8]
-[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-[9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+ * buffer
+ * Полезен для создания листалки, ограничения большого потока значений.
+ * Кэширует из входного потока, и возвращает одним массивом
+ * Отсекает по каждому значению от параметра-наблюдателя
+ * 
+ * 
+Hello World!
+получил:  [ 0 ]
+получил:  [ 101, 202 ]
+получил:  [ 303, 404 ]
+buffer поток закрыт
  */
+const bufferCloseSignal$ = interval(202);
 
-const buffer$ = interval(100).pipe(
-	buffer(interval(1000)),
-	take(3),
-	map(item => ['bufferInterval', ...item])
-)
-// buffer$.subscribe(a => logAll(a));
+const buffer$ = interval(101).pipe(
+	take(7),
+	map(item => item * 101),
+	buffer(bufferCloseSignal$),
+);
+
+//buffer$.subscribe((item) => logAll('получил: ', item), null, () => logAll('buffer поток закрыт'));
 
 /**
  * bufferCount
+ * Кэширует из входного потока, и возвращает одним массивом
+ * Завершает набор в кэш по параметру-количеству значений
  * 
- * [0, 1, 2]
-[3, 4, 5]
-[6, 7, 8]
+ * 
+ * bufferCount(bufferCountSize),
+Hello World!
+получил:  [ 0, 101, 202 ]
+получил:  [ 303, 404 ]
+bufferCount поток закрыт
+
+bufferCount(bufferCountLengthSize, bufferCountLengthStartNew),
+Hello World!
+получил:  [ 0, 101, 202 ]
+получил:  [ 202, 303, 404 ]
+получил:  [ 404 ]
+bufferCount поток закрыт
  */
+const bufferCountSize = 3;
+const bufferCountStartNew = 2;
 
-const bufferCount$ = interval(100).pipe(
-	bufferCount(3),
-	take(3),
-	map(item => ['bufferCount', ...item])
-)
-//bufferCount$.subscribe(a => logAll(a));
+const bufferCount$ = interval(101).pipe(
+	take(5),
+	map(item => item * 101),
+	bufferCount(bufferCountSize),
+	bufferCount(bufferCountSize, bufferCountStartNew),
+);
 
-/**
- * bufferCount(length)
- * стартует новый буфер каждое второе значение
-[0, 1, 2]
-[2, 3, 4]
-[4, 5, 6]
- */
+//bufferCount$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferCount поток закрыт'));
 
-const bufferCountLength$ = interval(100).pipe(
-	bufferCount(3, 2),
-	take(3),
-	map(item => ['bufferCountFork', ...item])
-)
-//bufferCountLength$.subscribe(a => logAll(a));
 
 /**
  * bufferTime
+ * Кэширует из входного потока, и возвращает одним массивом
+ * Завершает набор в буфер по параметру-времени
+ * Начинает заполнять новый буфер по второму параметру-времени
  * 
- * ["bufferTime", 0]
-["bufferTime", 0, 1, 2]
-["bufferTime", 1, 2, 3]
+ * 
+Hello World!
+получил:  [ 0 ]
+получил:  [ 0, 101 ]
+получил:  [ 101, 202 ]
+bufferTime поток закрыт
  */
 
-const bufferTime$ = interval(100).pipe(
-	bufferTime(200, 100),
+const bufferTimeSize = 202;
+const bufferTimeCreateNew = 102;
+
+const bufferTime$ = interval(101).pipe(
 	take(3),
-	map(item => ['bufferTime', ...item])
+	map(item => item * 101),
+	bufferTime(bufferTimeSize, bufferTimeCreateNew),
 )
-//bufferTime$.subscribe(a => logAll(a));
+
+//bufferTime$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferTime поток закрыт'));
 
 /**
  * bufferToggle
- * асинхронный старт и стоп буфера
-0
-1
-2
-bufferOpen
-0
-3
-4
-5
-6
-bufferClose
-0
-[3, 4, 5, 6]
-bufferOpen
-1
-7
-8
-9
-10
-bufferClose
-1
-[7, 8, 9, 10]
-bufferOpen
-2
-11
-12
+ * Кэширует из входного потока, и возвращает одним массивом
+ * асинхронный старт и стоп буфера по сигналу(значению) из параметров-наблюдателей 
+ * открываем новый буфер каждое bufferOpen$ значение, стартуем bufferClose$, закрываем с первым bufferClose$ значением
+ * 
+ * 
+Hello World!
+bufferOpen:  0
+bufferClose:  0
+получил:  [ 303, 404, 505 ]
+bufferOpen:  404
+bufferClose:  0
+получил:  [ 707, 808, 909 ]
+bufferOpen:  808
+bufferClose:  0
+получил:  [ 1111, 1212, 1313 ]
+bufferOpen:  1212
+bufferClose:  0
+получил:  [ 1515, 1616, 1717 ]
+bufferOpen:  1616
+получил:  [ 1919 ]
+bufferToggle поток закрыт
 */
 
-let bufferToggleCount = 0;
-const bufferOpen$ = interval(400).pipe(tap(() => logAll('bufferOpen', bufferToggleCount)))
-const bufferClose$ = () => interval(300).pipe(tap(() => logAll('bufferClose', bufferToggleCount++)))
-
-const bufferToggle$ = interval(100).pipe(
-	tap(item => logAll(item)),
-	bufferToggle(bufferOpen$, bufferClose$),
-	take(3),
-	map(item => ['bufferToggle', ...item])
+const bufferOpen$ = interval(404).pipe(
+	tap(item => logAll('bufferOpen: ', item * 404))
 )
-//bufferToggle$.subscribe(a => logAll(a));
+const bufferClose$ = () => interval(303).pipe(
+	tap(item => logAll('bufferClose: ', item * 303))
+)
+
+const bufferToggle$ = interval(101).pipe(
+	take(20),
+	map(item => item * 101),
+	bufferToggle(bufferOpen$, bufferClose$),
+)
+
+//bufferToggle$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferToggle поток закрыт'));
 
 
 /**
  * bufferWhen
+ * Кэширует из входного потока, и возвращает одним массивом
  * выбор времени закрытия буфера
-["bufferWhen", 0]
-["bufferWhen", 1, 2, 3]
-["bufferWhenElse", 4, 5]
-["bufferWhenElse", 6]
-["bufferWhenElse", 7]
-["bufferWhenElse", 8]
-["bufferWhenElse", 9]
+ * 
+Hello World!
+bufferWhenInterval1$: 0
+получил:  [ 0, 101, 202, 303 ]
+bufferWhenInterval1$: 303
+получил:  [ 404, 505, 606, 707, 808 ]
+bufferWhenInterval2$: 808
+получил:  [ 909, 1010 ]
+bufferWhenInterval2$: 1010
+получил:  [ 1111, 1212 ]
+bufferWhenInterval2$: 1212
+получил:  [ 1313, 1414 ]
+bufferWhenInterval2$: 1414
+получил:  [ 1515, 1616 ]
+bufferWhenInterval2$: 1616
+получил:  [ 1717, 1818 ]
+bufferWhenInterval2$: 1818
+получил:  [ 1919 ]
+bufferWhen поток закрыт
 */
 let bufferWhenCount = 0;
-const bufferWhen$ = interval(500).pipe(
-	take(10),
-	map(item => (bufferWhenCount = item)),
+const bufferWhenInterval1$ = interval(505).pipe(map(item => item * 505 + '-1'));
+const bufferWhenInterval2$ = interval(202).pipe(map(item => item * 202 + '-2'));
+
+const bufferWhen$ = interval(101).pipe(
+	take(20),
+	map(item => item * 101),
+	tap(item => { bufferWhenCount = item }), // поскольку bufferWhen не принимает параметры, храним условие в отдельной переменной
 	bufferWhen(() => {
-		if (bufferWhenCount < 5) {
-			return interval(1000)
-		} else { return interval(500) }
-	}),
-	map(item => {
-		if (bufferWhenCount < 5) {
-			return ['bufferWhen', ...item]
+		if (bufferWhenCount < 500) {
+			logAll('bufferWhenInterval1$: ' + bufferWhenCount);
+			return bufferWhenInterval1$;
 		} else {
-			return ['bufferWhenElse', ...item]
+			logAll('bufferWhenInterval2$: ' + bufferWhenCount);
+			return bufferWhenInterval2$;
 		}
 	})
 )
-//bufferWhen$.subscribe(a => logAll(a));
+
+//bufferWhen$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferWhen поток закрыт'));
 
 
 //========================================================================================================================
@@ -266,21 +307,32 @@ const bufferWhen$ = interval(500).pipe(
 
 /**
  * window
- * "нарезка"
+ * "нарезка". В отличии от buffer возвращает потоки. Полезен для создания листалки, ограничения большого потока значений.
  * Возвращает новый поток(буфер) по таймеру, предыдущий закрывает
  
-["window", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-["window", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Hello World!
+0-windowCloseInterval
+получил:  [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]
+1000-windowCloseInterval
+получил:  [ 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
+получил:  [ 19 ]
+window поток закрыт
 */
-const window$ = interval(100).pipe(
-	window(interval(1000)),
-	take(3),
+
+const windowCloseInterval$ = interval(1000).pipe(
+	map(item => item * 1000 + '-windowCloseInterval'),
+	tap(item => logAll(item)),
+);
+
+const window$ = interval(101).pipe(
+	take(20),
+	window(windowCloseInterval$),
 	switchMap(item$ => item$.pipe(
 		toArray(),
-		map(item1 => ['window', ...item1]))
-	),
+	)),
 )
-//window$.subscribe(a => logAll(a));
+
+// window$.subscribe((item) => logAll('получил: ', item), null, () => logAll('window поток закрыт'));
 
 
 /**
@@ -288,7 +340,7 @@ const window$ = interval(100).pipe(
  * 
  * Возвращает новый поток(буфер) по количеству значений, предыдущий закрывает
  * 
-windowCount(2)
+windowCount(windowCountSize),
 ["windowCount", 0, 1]
 ["windowCount", 2, 3]
 ["windowCount", 4, 5]
@@ -296,125 +348,134 @@ windowCount(2)
 ["windowCount", 8, 9]
 ["windowCount"]
 
-windowCount(2,3)
+windowCount(windowCountSize, windowCountStartNew),
 ["windowCount", 0, 1]
 ["windowCount", 3, 4]
 ["windowCount", 6, 7]
 ["windowCount", 9]
 */
-const windowCount$ = interval(100).pipe(
+
+const windowCountSize = 2;
+const windowCountStartNew = 3;
+
+const windowCount$ = interval(101).pipe(
 	take(10),
-	windowCount(2, 3),
+	map(item => item * 101),
+	// windowCount(windowCountSize),
+	windowCount(windowCountSize, windowCountStartNew),
 	switchMap(item$ => item$.pipe(
-		toArray(),
-		map(item1 => ['windowCount', ...item1]))
-	),
+		toArray()
+	)),
 )
-//windowCount$.subscribe(a => logAll(a));
+
+// windowCount$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowCount поток закрыт'));
 
 
 
 /**
  * WindowTime
- * Возвращает новый поток(буфер) по таймеру, предыдущий закрывает
- * timer вместо interval
-["windowTime", 0, 1]
-["windowTime", 2, 3]
-["windowTime", 4, 5]
-["windowTime", 6, 7]
-["windowTime", 8]
+ * Возвращает новый поток(буфер) по времени, предыдущий закрывает
+
+Hello World!
+получил:  [ 0 ]
+получил:  [ 101, 202 ]
+получил:  [ 303, 404 ]
+получил:  [ 505, 606 ]
+получил:  [ 707, 808 ]
+получил:  [ 909 ]
+windowCount поток закрыт
  */
-const windowTime$ = timer(0, 100)
-	.pipe(
-		take(9),
-		windowTime(200),
-		switchMap(item$ => item$.pipe(
-			toArray(),
-			map(item1 => ['windowTime', ...item1]))
-		),
-	)
-//windowTime$.subscribe(a => logAll(a));
+
+const windowTimeSize = 202;
+
+const windowTime$ = interval(101).pipe(
+	take(10),
+	map(item => item * 101),
+	windowTime(windowTimeSize),
+	switchMap(item$ => item$.pipe(
+		toArray(),
+	)),
+)
+
+//windowTime$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowTime поток закрыт'));
 
 /**
  * windowToggle
- * 
- * 
+ * Возвращает новый поток(буфер) по значению от параметров-наблюдателей, предыдущий закрывает
+Hello World!
 windowOpen 0
-0
-1
-2
 windowClose 0
-["windowToggle", 0, 1, 2]
-3
+получил:  [ 303, 404, 505 ]
 windowOpen 1
-4
-5
-6
-7
-windowClose 1
-["windowToggle", 4, 5, 6, 7]
-windowOpen 2
-8
-9
-["windowToggle", 8, 9]
+получил:  [ 707, 808, 909 ]
+windowToggle поток закрыт
  */
 let windowToggleCount = 0;
-const windowOpen$ = timer(0, 400).pipe(map(() => logAll('windowOpen', windowToggleCount)))
-const windowClose$ = () => timer(300).pipe(map(() => logAll('windowClose', windowToggleCount++)))
+const windowOpen$ = interval(404).pipe(map(() => logAll('windowOpen', windowToggleCount)))
+const windowClose$ = () => interval(303).pipe(
+	map(() => logAll('windowClose', windowToggleCount++)) // увеличиваем счётчик во внешней переменной
+)
 
-const windowToggle$ = timer(0, 100).pipe(
+const windowToggle$ = interval(101).pipe(
 	take(10),
-	tap(item => logAll(item)),
+	map(item => item * 101),
 	windowToggle(windowOpen$, windowClose$),
 	switchMap(item$ => item$.pipe(
 		toArray(),
-		map(item1 => ['windowToggle', ...item1]))
-	),
+	)),
 )
-//windowToggle$.subscribe(a => logAll(a));
+
+//windowToggle$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowToggle поток закрыт'));
 
 
 /**
  * windowWhen
+ * Возвращает новый поток(буфер) по значению от параметров-наблюдателей, предыдущий закрывает
  * выбор времени закрытия буфера 
- 
+ * 
+ Hello World!
+получил:  [ 0, 101, 202, 303 ]
+получил:  [ 404, 505, 606, 707, 808 ]
+получил:  [ 909 ]
+windowWhen поток закрыт
 */
 let windowWhenCount = 0;
-const windowWhen$ = interval(500).pipe(
+const windowWhenInterval1$ = interval(505);
+const windowWhenInterval2$ = interval(202);
+
+const windowWhen$ = interval(101).pipe(
 	take(10),
-	map(item => (windowWhenCount = item)),
+	map(item => item * 101),
+	map(item => (windowWhenCount = item)), // windowWhen е принимает параметров, потому используем внешнюю переменную
 	windowWhen(() => {
-		if (windowWhenCount < 5) {
-			return interval(1000)
-		} else { return interval(500) }
+		if (windowWhenCount < 500) {
+			return windowWhenInterval1$;
+		} else {
+			return windowWhenInterval2$
+		}
 	}),
 	switchMap(item$ => item$.pipe(
 		toArray(),
-		map(item1 => {
-			if (windowWhenCount < 5) {
-				return ['windowWhen', ...item1]
-			} else {
-				return ['windowWhenElse', ...item1]
-			}
-		})
-	)
-	)
+	))
 )
-//windowWhen$.subscribe(a => logAll(a));
+
+//windowWhen$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowWhen поток закрыт'));
 
 //========================================================================================================================
 //==================================================ERRORS================================================================
 //========================================================================================================================
 
-//
+
 /**
  * catchError
  * Перехват потока при ошибке
  * Практическое применение: самописные обработчики ошибок, сервисы хранения ошибок типа ravenjs
-словил:ошибка ошибковна источик:Observable {_isScalar: false, source: {…}, operator: {…}}
-положь где взял:вернул взад ошибка ошибковна источик:Observable {_isScalar: false, source: {…}, operator: {…}}
-янеошибка
-норм
+ * 
+Hello World!
+словил: ошибка ошибковна источик: Observable { }
+положь где взял: вернул взад ошибка ошибковна источик: Observable { }
+получил:  янеошибка
+error поток закрыт
  */
 const error$ = throwError('ошибка ошибковна')
 	.pipe(
@@ -427,7 +488,8 @@ const error$ = throwError('ошибка ошибковна')
 			return of('янеошибка');//подмена ошибки значением
 		}),
 	)
-//error$.subscribe(a => logAll(a), err => logAll('ошибка:', err), ()=>logAll('норм'));
+
+//error$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('error поток закрыт'));
 
 
 //
@@ -435,7 +497,9 @@ const error$ = throwError('ошибка ошибковна')
  * errorHandler
  * ошибка  при пустом потоке
  * Можно подменять ошибку
- * Error {message: "no elements in sequence", name: "EmptyError"}
+ * 
+ * Hello World!
+ошибка: { [EmptyError: no elements in sequence] message: 'no elements in sequence', name: 'EmptyError' }
  */
 const errorHandler = () => logAll('ничоси');
 const errorEmpty$ = of().pipe(
@@ -443,24 +507,34 @@ const errorEmpty$ = of().pipe(
 	//throwIfEmpty(errorHandler)//подмена ошибки
 )
 
-//errorEmpty$.subscribe(a => logAll(a), err=>logAll(err));
+//errorEmpty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('errorEmpty поток закрыт'));
 
 
 //
 /**
- * errorNext
+ * errorResumeNext
  * Новый поток при ошибке
-0
-1
-2
-3
-едем дальше
+
+Hello World!
+получил:  0
+получил:  101
+получил:  202
+получил:  303
+получил:  0-next
+получил:  202-next
+получил:  404-next
+errorSwitch поток закрыт
  */
-const errorNext$ = of('едем дальше');//резервный поток после ошибок
-const errorSwitch$ = timer(0, 100).pipe(
+const errorNext$ = interval(202).pipe(
+	take(3),
+	map(item => item * 202 + '-next')
+);//резервный поток после ошибок
+
+const errorSwitch$ = interval(101).pipe(
 	take(5),
+	map(item => item * 101),
 	map(item => {
-		if (item > 3) {
+		if (item > 303) {
 			throw new Error('ничоси');
 		} else {
 			return item;
@@ -469,62 +543,82 @@ const errorSwitch$ = timer(0, 100).pipe(
 	onErrorResumeNext(errorNext$)
 )
 
-//errorSwitch$.subscribe(a => logAll(a), err=>logAll(err));
+//errorSwitch$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('errorSwitch поток закрыт'));
 
 /**
- * errorRetry
+ * retry
  * 
  * Повторяет поток значений указанное количество раз при ошибке
-0
-1
-2
-3
-0
-1
-2
-3
-0
-1
-2
-3
-Error: ничоси
+
+Hello World!
+получил:  0
+получил:  101
+получил:  202
+получил:  303
+получил:  0
+получил:  101
+получил:  202
+получил:  303
+получил:  0
+получил:  101
+получил:  202
+получил:  303
+получил:  0
+получил:  101
+получил:  202
+получил:  303
+получил:  404
+получил:  505
+получил:  606
+получил:  707
+получил:  808
+получил:  909
+errorRetry поток закрыт
  */
 
-const errorRetry$ = timer(0, 100).pipe(
-	take(5),
+let errorRetryCountSuccess = 0;
+
+const retry$ = interval(101).pipe(
+	take(10),
+	map(item => item * 101),
 	map(item => {
-		if (item > 3) {
-			throw new Error('ничоси');
+		if (item > 303 && errorRetryCountSuccess <= 2) {
+			errorRetryCountSuccess += 1; // эмулируем отсутствие ошибок после третьей попытки
+			throw new Error('никогда не было, и вот опять');
 		} else {
 			return item;
 		}
 	}),
-	retry(2)
+	retry(3)
 )
 
-//errorRetry$.subscribe(a => logAll(a));
+//retry$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retry поток закрыт'));
 
 /**
  * retryWhen
  * повторяет поток пока не будет получен complete/error внутри аргумента наблюдателя retryCondition$
-0
-1
-2
+
+Hello World!
+получил:  0
+получил:  101
+получил:  202
 словили: Error: ничоси
-0
-1
-2
+получил:  0
+получил:  101
+получил:  202
 словили: Error: ничоси
-0
-1
-2
+получил:  0
+получил:  101
+получил:  202
 словили: Error: ничоси
+retryWhen поток закрыт
  */
 
-const errorRetryWhen$ = timer(0, 100).pipe(
-	take(5),
+const retryWhen$ = interval(101).pipe(
+	take(10),
+	map(item => item * 101),
 	map(item => {
-		if (item === 3) {
+		if (item === 303) {
 			throw new Error('ничоси');
 		} else {
 			return item;
@@ -539,67 +633,50 @@ const errorRetryWhen$ = timer(0, 100).pipe(
 		)
 	})
 )
-//errorRetryWhen$.subscribe(a => logAll(a));
 
-/* 
- * retryWhen
+//retryWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen поток закрыт'));
+
+/**
+ * retryWhen более сложный пример
 
 Hello World!
-try: 0
+попытка: 0
 получил:  0
-try: 1
-error: 1
-retry whole source: 1
-try: 0
+попытка: 1
+повтор: 1
+попытка: 0
 получил:  0
-try: 1
-error: 1
-fail
-ошибка: error
+попытка: 1
+остановка
+retryWhen2 поток закрыт
 */
-const swallow = false;
-const retryWhen$ = interval(200).pipe(
+
+const retryWhen2$ = interval(200).pipe(
 	map(x => {
-		logAll('try: ' + x);
+		logAll('попытка: ' + x);
 		if (x === 1) {
-			throw 'error: ' + x;
+			throw new Error('errorN: ' + x);
 		}
 		return x;
 	}),
 	retryWhen(errors$ => {
-		if (swallow) {
-			return errors$.pipe(
-				tap(err => logAll(err)),
-				scan(acc => acc + 1, 0),
-				tap(retryCount => {
-					if (retryCount === 2) {
-						logAll('swallowing error and stop')
-					} else {
-						logAll('retry all: ' + retryCount);
-					}
-					return retryCount;
-				}),
-				takeWhile(errCount => errCount < 2)
-			)
-		} else {
-			return errors$.pipe(
-				tap(err => logAll(err)),
-				scan(acc => acc + 1, 0),
-				tap(retryCount => {
-					if (retryCount === 2) {
-						logAll('fail');
-						throw 'error';
-					} else {
-						logAll('retry whole source: ' + retryCount);
-					}
-				})
-			)
-		}
-
+		return errors$.pipe(
+			// tap(err => logAll(err)),
+			scan(acc => acc + 1, 0),
+			map(retryCount => {
+				if (retryCount === 2) {
+					logAll('остановка')
+				} else {
+					logAll('повтор: ' + retryCount);
+				}
+				return retryCount;
+			}),
+			takeWhile(errCount => errCount < 2)
+		)
 	})
 )
 
-//retryWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка: ' + err), () => logAll('retryWhen поток закрыт'));
+//retryWhen2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen2 поток закрыт'));
 
 /**
  * timeout
@@ -3743,5 +3820,34 @@ const sequenceEqual$ = of(sequenceEqual1$, sequenceEqual2$).pipe(
 
 
 /**
- * forkJoin, merge, concat, race, zip, iif
+ * forkJoin
+ */
+
+
+/**
+ * merge
+ */
+
+/**
+ * concat
+ */
+
+/**
+ * race
+ */
+
+/**
+ * zip
+ */
+
+/**
+ * iif
+ */
+
+/**
+  * scan
+ */
+
+/**
+ * takeWhile
  */
