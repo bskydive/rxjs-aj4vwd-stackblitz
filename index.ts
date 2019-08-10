@@ -1,12 +1,6 @@
 import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler, empty, Notification, Subject, from, ConnectableObservable } from 'rxjs';
 import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith, expand, mapTo, mergeScan, reduce, mergeMapTo, switchMapTo, materialize, dematerialize, multicast, publish, share, shareReplay, publishBehavior, publishLast, publishReplay, count, every, isEmpty, sequenceEqual } from 'rxjs/operators';
 
-
-const helloSource$ = of('World').pipe(
-	map(x => `Hello ${x}!`)
-);
-helloSource$.subscribe(x => logAll(x));
-
 /**
  * ===============================================
  * ========== Библиотека живых примеров ==========
@@ -74,13 +68,52 @@ helloSource$.subscribe(x => logAll(x));
  * условные
  * агрегирующие - одно значение на выходе
  * распыляющие - multicast
+ * 
+ * Типовой пример:
+
+const auditProbe$ = item => { // функция-аргумент для передачи в оператор
+	logAll('проверка: ' + item); // для отладки пишем полученное значение
+	return interval(300).pipe(take(3)); // возвращаем наблюдатель. В данном случае - для имитации трёх значений. 
+	//.pipe(take(X)) - хорошее правило для ограничения утечек памяти
+}
+
+const audit2$ = interval(102).pipe( // поток для отладки оператора
+	take(10), // ограничиваем количество значений
+	map(item => item * 102), // делаем значения человеко-понятными, выводим время их имитации в мсек, выбрали 102 вместо 100 чтобы не было случайных гонок асинхронных потоков(перестраховка)
+	tap(logAll), // выводим сырые значения перед отправкой в недра исследуемого оператора
+	audit(auditProbe$) // исследуемый оператор
+)
+
+const audit1$ = interval(101).pipe( // контрольный поток для сравнения, без оператора для исследования
+	take(10),
+	map(item => item * 101 + '-control'), // добавляем постфикс для облегчения чтения отладки
+)
+
+const audit$ = of(audit1$, audit2$).pipe( // одновременно запускаем два потока
+	mergeAll(), // собираем значения потоков в один, "конвертируем" потоки в значения
+);
+
+//запускаем потоки и выводим всё в консоль. префиксы нужны, чтобы понимать, что значение долетело до конца
+audit$.subscribe((item) => 
+	logAll('получил: ', item), // пишем всё, что получили по сигналу next().
+	err => logAll('ошибка:', err), // пишем что прилетело по сигналу error()
+	() => logAll('audit поток закрыт') // пишем когда прилетело complete(). Отдельно указываем какой именно оператор закончил тестирование, чтобы быстрее ловить другие ошибочно не закомментированые операторы
+);
+ 
+)
  */
+
+
+const helloSource$ = of('World').pipe(
+	map(x => `Hello ${x}!`)
+);
+helloSource$.subscribe(x => logAll(x));
 
 /**
  * Чтобы обойти ошибку TS2496: The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5. Consider using a standard function expression.
  * https://github.com/microsoft/TypeScript/issues/1609
  * Чтобы не светились ошибки использования console.log
- * Здесь логирование применимо, на проде - нет
+ * Здесь такое логирование применимо, на проде - нет
  */
 function logAll(...values) {
 	console.log(...values); // ...arguments
@@ -321,7 +354,7 @@ window поток закрыт
 
 const windowCloseInterval$ = interval(1000).pipe(
 	map(item => item * 1000 + '-windowCloseInterval'),
-	tap(item => logAll(item)),
+	tap(logAll),
 );
 
 const window$ = interval(101).pipe(
@@ -1080,7 +1113,7 @@ const distinctUntilChanged$ = of(distinctUntilChangedSrc3$, distinctUntilChanged
 	// distinctUntilChanged(), // отбракует все, т.к. сравнивает object
 )
 
-distinctUntilChanged$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinctUntilChanged поток закрыт'));
+// distinctUntilChanged$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinctUntilChanged поток закрыт'));
 
 /**
  * distinctUntilKeyChanged
@@ -1088,137 +1121,173 @@ distinctUntilChanged$.subscribe((item) => logAll('получил: ', item), err 
  * необходимо указать название ключа объекта для сравнения
  * не ожидает весь поток, работает сразу
  * следует аккуратно отнестись к операции сравнения. Он использует set или Array.indexOf, если set не поддерживается
- * 
-{a: 1, b: "2"}
-{a: 1, b: "3"}
-{a: 1, b: "4"}
+ * !!! люто работает проверка типов distinctUntilKeyChangedKeyName. В очевидных случаях несоответствия со значениями в потоке пишет: несовместимо с "never"
+Hello World!
+получил:  { value: 0, stream: '1' }
+получил:  { value: 101, stream: '1' }
+получил:  { value: 202, stream: '1' }
+получил:  { value: 303, stream: '1' }
+получил:  { value: 404, stream: '1' }
+distinctUntilKeyChanged поток закрыт
  */
-const distinctUntilKeyChanged$ =
-	of(
-		{ a: 1, b: '2' },
-		{ a: 1, b: '3' },
-		{ a: 2, b: '3' },
-		{ a: 1, b: '4' }
-	).pipe(
-		//distinctUntilKeyChanged('a')
-		distinctUntilKeyChanged('b')
-	)
-//distinctUntilKeyChanged$.subscribe(a => logAll(a));
+
+const distinctUntilKeyChangedSrc3$ = interval(101).pipe(take(5), map(item => { return { value: item * 101, stream: '1' } }));
+const distinctUntilKeyChangedSrc4$ = interval(101).pipe(take(5), map(item => { return { value: item * 101, stream: '2' } }));
+const distinctUntilKeyChangedKeyName = 'value';
+
+const distinctUntilKeyChanged$ = of(distinctUntilKeyChangedSrc3$, distinctUntilKeyChangedSrc4$).pipe(
+	mergeAll(),
+	distinctUntilKeyChanged(distinctUntilKeyChangedKeyName)
+)
+
+// distinctUntilKeyChanged$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinctUntilKeyChanged поток закрыт'));
 
 /**
  * filter
  * возвращает значения потока, если аргумент функция вернул true
-0
-2
-4
- */
-const filter$ = timer(0, 100).pipe(
-	take(6),
-	filter(item => item % 2 === 0)
-)
+ * Базовый оператор, которым можно заменить много других
 
-//filter$.subscribe(a => logAll(a));
+Hello World!
+получил:  0
+получил:  101
+получил:  202
+filter поток закрыт
+ */
+
+const filterSrc$ = interval(101).pipe(take(5), map(item => item * 101));
+const isFilter = item => item < 303;
+
+const filter$ = filterSrc$.pipe(
+	filter(isFilter)
+);
+
+// filter$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('filter поток закрыт'));
 
 /**
  * sample
- * возвращает первое значение потока interval после получения очередного значения из аргумента наблюдателя sampleProbe$
+ * возвращает первое значение потока после получения очередного значения из аргумента наблюдателя sampleProbe$
  * Отбирает второе значение из потока между таймерами(300)
-получил: 0
-получил: 102
-102
-получил: 204
-получил: 306
-получил: 408
-408
-получил: 510
-получил: 612
-получил: 714
-714
-получил: 816
-получил: 918
-complete
+ * Здесь имеет значение сколько имитировано в потоке sampleProbe$. После его закрытия 
+
+Hello World!
+0-проверяем
+получил:  102
+300-проверяем
+получил:  408
+600-проверяем
+получил:  714
+sample поток закрыт
  */
-const sampleProbe$ = interval(300)
+const sampleProbe$ = interval(300).pipe(
+	take(3),
+	map(item => item * 300 + '-проверяем'),
+	tap(logAll),
+	endWith('sampleProbe-закрыт')
+);
+
 const sample$ = interval(102).pipe(
-	take(10),
+	take(20),
 	map(item => item * 102),
-	tap(item => logAll('получил: ' + item)),
 	sample(sampleProbe$)
 )
 
-//sample$.subscribe(a => logAll(a), err=>(logAll('ошибка: '+err)), ()=>logAll('complete'));
+//sample$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sample поток закрыт'));
 
 /**
  * audit
  * 
  * отбирает кайнее значение из потока между таймерами(300)
-получил: 0
-обработал: 0
-получил: 102
-получил: 204
-204
-получил: 306
-обработал: 306
-получил: 408
-получил: 510
-510
-получил: 612
-обработал: 612
-получил: 714
-получил: 816
-816
-получил: 918
-обработал: 918
+ * 
+
+Hello World!
+получил:  0-control
+проверка: 0
+получил:  101-control
+получил:  202-control
+получил:  303-control
+получил:  204
+проверка: 306
+получил:  404-control
+получил:  505-control
+получил:  606-control
+получил:  510
+проверка: 612
+получил:  707-control
+получил:  808-control
+получил:  909-control
+получил:  816
+проверка: 918
+audit поток закрыт
  */
 const auditProbe$ = item => {
-	logAll('обработал: ' + item);
-	return interval(300);
+	logAll('проверка: ' + item);
+	return interval(300).pipe(take(3));
 }
-const audit$ = timer(0, 102).pipe(
+
+const audit2$ = interval(102).pipe(
 	take(10),
 	map(item => item * 102),
-	tap(item => logAll('получил: ' + item)),
 	audit(auditProbe$)
 )
 
-//audit$.subscribe(a => logAll(a));
+const audit1$ = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-control'),
+)
+
+const audit$ = of(audit1$, audit2$).pipe(
+	mergeAll(),
+);
+
+// audit$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('audit поток закрыт'));
 
 /**
  * throttle
  * отбирает первое значение из потока между таймерами(300)
  * 
-получил: 0
-0
-обработал: 0
-получил: 102
-получил: 204
-получил: 306
-306
-обработал: 306
-получил: 408
-получил: 510
-получил: 612
-612
-обработал: 612
-получил: 714
-получил: 816
-получил: 918
-918
-обработал: 918
+Hello World!
+получил:  0-control
+получил:  0
+проверка: 0
+получил:  101-control
+получил:  202-control
+получил:  303-control
+получил:  306
+проверка: 306
+получил:  404-control
+получил:  505-control
+получил:  606-control
+получил:  612
+проверка: 612
+получил:  707-control
+получил:  808-control
+получил:  909-control
+получил:  918
+проверка: 918
+throttle поток закрыт
  */
 
 const throttleProbe$ = item => {
-	logAll('обработал: ' + item);
-	return timer(300);
+	logAll('проверка: ' + item);
+	return interval(300).pipe(take(1));
 }
-const throttle$ = timer(0, 102).pipe(
+
+const throttle2$ = interval(102).pipe(
 	take(10),
 	map(item => item * 102),
-	tap(item => logAll('получил: ' + item)),
 	throttle(throttleProbe$)
 )
 
-//throttle$.subscribe(a => logAll(a));
+const throttle1$ = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-control'),
+)
+
+const throttle$ = of(throttle1$, throttle2$).pipe(
+	mergeAll(),
+);
+
+// throttle$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('throttle поток закрыт'));
 
 
 //========================================================================================================================
@@ -1231,142 +1300,160 @@ const throttle$ = timer(0, 102).pipe(
  * first
  * Возвращает первое значение из потока
  * Если передать в аргументы функцию, то первое значение при возврате функции true
-получил: 0
-0
+
+Hello World!
+1
+102
+получил:  102
+first поток закрыт
  */
-const first$ = timer(0, 100).pipe(
+const first$ = interval(101).pipe(
 	take(10),
-	map(item => item * 100),
-	tap(item => logAll('получил: ' + item)),
-	first()
-	//first(item=>item % 2 === 0)//вернёт первое чётное число
+	map(item => item * 101 + 1),
+	tap(logAll),
+	// first(), // вернёт первое значение
+	first(item => item % 2 === 0)//вернёт первое чётное число
 )
 
-//first$.subscribe(a => logAll(a));
+// first$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('first поток закрыт'));
 
 /**
  * last
  * Возвращает крайнее значение из потока
  * Поток должен быть конечным
  * Если передать в аргументы функцию, то крайнее значение при возврате функции true
-получил: 0
-получил: 100
-получил: 200
-получил: 300
-получил: 400
-получил: 500
-получил: 600
-получил: 700
-получил: 800
-получил: 900
-900
+
+Hello World!
+1
+102
+203
+304
+405
+506
+607
+708
+809
+910
+получил:  910
+last поток закрыт
  */
-const last$ = timer(0, 100).pipe(
+const last$ = interval(101).pipe(
 	take(10),
-	map(item => item * 100),
-	tap(item => logAll('получил: ' + item)),
-	last()
-	//last(item=>item % 2 === 0)//вернёт первое чётное число
+	map(item => item * 101 + 1),
+	tap(logAll),
+	// last(), // вернёт крайнее значение
+	last(item => item % 2 === 0)//вернёт крайнее чётное число
 )
 
-//last$.subscribe(a => logAll(a));
+// last$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('last поток закрыт'));
 
 /**
  * min
  * возвращает минимальное значение из потока
  * поток должен быть конечным
  * можно передать аргумент функцию сортировки
-получил: -2
-получил: -1
+
+Hello World!
 получил: 0
-получил: 4
-получил: 5
-получил: 6
-0
+min поток закрыт
  */
 const min$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => logAll('получил: ' + item)),
+	// tap(logAll),
 	//min()//вернёт минимальное число -2
 	min((item1, item2) => {
 		if (Math.abs(item1) > Math.abs(item2)) { return 1 } else { return -1 };
 	})
 )
-//min$.subscribe(a => logAll(a));
 
+// min$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('min поток закрыт'));
 
 /**
  * max
  * возвращает максимальное значение из потока
  * поток должен быть конечным
  * можно передать аргумент функцию сортировки
-получил: -2
-получил: -1
-получил: 0
-получил: 4
-получил: 5
-получил: 6
-6
+
+Hello World!
+получил:  6
+max поток закрыт
  */
 
 const max$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => logAll('получил: ' + item)),
-	max()//вернёт максиимальное число 6
-	//max((item1, item2) => {
-	//    if (Math.abs(item1) < Math.abs(item2)) { return 1 } else { return -1 };
-	//  })
+	// tap(logAll),
+	// max()//вернёт максиимальное число 6
+	max((item1, item2) => {
+		if (Math.abs(item1) > Math.abs(item2)) { return 1 } else { return -1 };
+	})
 )
-//max$.subscribe(a => logAll(a));
+
+// max$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('max поток закрыт'));
 
 
 /**
  * возвращает элемент по индексу в потоке
-4
+ * можно заменить через toArray()[index]
+Hello World!
+получил:  4
+elementAt поток закрыт
  */
 const elementAt$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => logAll('получил: ' + item)),
+	// tap(item => logAll('получил: ' + item)),
 	elementAt(3)
-
 )
-//elementAt$.subscribe(a => logAll(a));
+
+// elementAt$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('elementAt поток закрыт'));
 
 
 /**
- * возвращает элемент потока, если функция аргумент findProbe возвращает true
-0
+ * find
+ * возвращает первый элемент потока, для которого функция аргумент findProbe возвращает true
+
+Hello World!
+получил:  4
+find поток закрыт
  */
-const findProbe = item => item === 0;
+const findProbe = item => item > 0;
 const find$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => logAll('получил: ' + item)),
+	// tap(logAll),
 	find(findProbe)
 )
-//find$.subscribe(a => logAll(a));
+
+// find$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('find поток закрыт'));
 
 /**
- * возвращает индекс элемента потока, если функция аргумент findIndexProbe возвращает true
-2
+ * возвращает первый индекс элемента потока, для которого функция аргумент findIndexProbe возвращает true
+Hello World!
+получил:  3
+findIndex поток закрыт
+
  */
-const findIndexProbe = item => item === 0;
+const findIndexProbe = item => item > 0;
+
 const findIndex$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => logAll('получил: ' + item)),
+	// tap(logAll),
 	findIndex(findIndexProbe)
 )
-//findIndex$.subscribe(a => logAll(a));
+
+// findIndex$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('findIndex поток закрыт'));
 
 /**
  * single
- * возвращает значение потока, если функция аргумент singleProbe возвращает true
+ * возвращает значение из входного потока, если функция аргумент singleProbe возвращает true
  * При значениях больше 1 штуки возвращает ошибку
  * если значений не найдено возвращает undefined
- 0
+ Hello World!
+получил:  0
+single поток закрыт
  */
 const singleProbe = item => item === 0;
 //const singleProbe = item=>item>0;//ошибка
 //const singleProbe = item=>item===10;//undefined
 const single$ = of(-2, -1, 0, 4, 5, 6).pipe(
-	tap(item => logAll('получил: ' + item)),
+	// tap(item => logAll('получил: ' + item)),
 	single(singleProbe)
 )
-//single$.subscribe(a => logAll(a));
+
+// single$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('single поток закрыт'));
 
 
 //========================================================================================================================
@@ -1376,115 +1463,131 @@ const single$ = of(-2, -1, 0, 4, 5, 6).pipe(
 
 /**
  * combineAll
- * возвращает крайние значения если они пришли от всех асинхронных потоков
+ * возвращает крайние значения, если они пришли от всех асинхронных потоков
  * в данном случае ожидает по три значения
-Observable {_isScalar: false, source: {…}, operator: {…}}
-Observable {_isScalar: false, source: {…}, operator: {…}}
-Observable {_isScalar: false, source: {…}, operator: {…}}
-[202, 0, 0]
-[303, 0, 0]
-[303, 202, 0]
-[404, 202, 0]
-[505, 202, 0]
-[505, 404, 0]
-[505, 404, 303]
-[606, 404, 303]
-[707, 404, 303]
-[707, 606, 303]
-[808, 606, 303]
-[808, 606, 606]
-[909, 606, 606]
-[909, 808, 606]
+
+получил:  [ 101, 0, 0 ]
+получил:  [ 202, 0, 0 ]
+получил:  [ 202, 202, 0 ]
+получил:  [ 303, 202, 0 ]
+получил:  [ 404, 202, 0 ]
+получил:  [ 404, 202, 303 ]
+получил:  [ 404, 404, 303 ]
+получил:  [ 505, 404, 303 ]
+получил:  [ 606, 404, 303 ]
+получил:  [ 606, 606, 303 ]
+получил:  [ 707, 606, 303 ]
+получил:  [ 707, 606, 606 ]
+получил:  [ 808, 606, 606 ]
+получил:  [ 808, 808, 606 ]
+получил:  [ 909, 808, 606 ]
+combineAll поток закрыт
  */
 
 const combine1$ = interval(101).pipe(take(10), map(item => item * 101));
 const combine2$ = interval(202).pipe(take(5), map(item => item * 202));
 const combine3$ = interval(303).pipe(take(3), map(item => item * 303));
 const combineAll$ = of(combine1$, combine2$, combine3$).pipe(
-	tap(logAll), //возвращает три потока наблюдателей
+	// tap(logAll), //возвращает три потока наблюдателей
 	combineAll()
 )
 
-//combineAll$.subscribe(() => logAll( ...arguments))
+// combineAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineAll поток закрыт'));
 
 /**
  * combineLatest
- * возвращает крайние значения combineXX$
- * на старте ждёт значения от всех асинхронных потоков combineXX$
- * не работает внутри pipe
+ * возвращает крайние значения combineLatestX$
+ * на старте ждёт значения от всех асинхронных потоков combineLatestX$
+ * !!!не работает внутри pipe
  * Есть необязательный аргумент combineLatestParser для обработки всех входящих значений
  * https://www.learnrxjs.io/operators/combination/combinelatest.html
  * 
-item1:101-item2:0-item3:0
-item1:202-item2:0-item3:0
-item1:202-item2:202-item3:0
-item1:303-item2:202-item3:0
-item1:404-item2:202-item3:0
-item1:404-item2:202-item3:303
-item1:404-item2:404-item3:303
-item1:505-item2:404-item3:303
-item1:606-item2:404-item3:303
+
+Hello World!
+получил:  item1:101-item2:0-item3:0
+получил:  item1:202-item2:0-item3:0
+получил:  item1:202-item2:202-item3:0
+получил:  item1:303-item2:202-item3:0
+получил:  item1:404-item2:202-item3:0
+получил:  item1:404-item2:202-item3:303
+получил:  item1:404-item2:404-item3:303
+получил:  item1:505-item2:404-item3:303
+получил:  item1:606-item2:404-item3:303
+combineLatest поток закрыт
  */
 const combineLatestParser = (item1, item2, item3) => `item1:${item1}-item2:${item2}-item3:${item3}`;
-const combineLatest$ = combineLatest(combine1$, combine2$, combine3$, combineLatestParser).pipe(
+const combineLatest1$ = interval(101).pipe(take(10), map(item => item * 101));
+const combineLatest2$ = interval(202).pipe(take(5), map(item => item * 202));
+const combineLatest3$ = interval(303).pipe(take(3), map(item => item * 303));
+
+// const combineLatest$ = combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser).pipe(
+const combineLatest$ = combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser).pipe(
 	take(9)
 )
-//combineLatest$.subscribe(logAll)
+
+// combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
 
 /**
  * concatAll
  * Возвращает все значения всех потоков
- * Комбинирует значения по потокам
+ * Группирует значения по потокам
  * 
+
+Hello World!
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
-получил:0-1
-получил:101-1
-получил:202-1
-получил:303-1
-получил:404-1
-получил:505-1
-получил:606-1
-получил:707-1
-получил:808-1
-получил:909-1
-получил:0-2
-получил:202-2
-получил:404-2
-получил:606-2
-получил:808-2
-получил:0-3
-получил:303-3
-получил:606-3
+Observable {_isScalar: false, source: {…}, operator: {…}}
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  404-1
+получил:  505-1
+получил:  606-1
+получил:  707-1
+получил:  808-1
+получил:  909-1
+получил:  0-2
+получил:  202-2
+получил:  404-2
+получил:  606-2
+получил:  808-2
+получил:  0-3
+получил:  303-3
+получил:  606-3
+combineAll поток закрыт
  */
-const concat1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
-const concat2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const concat3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
-const concatAll$ = of(concat1$, concat2$, concat3$).pipe(
+const concatAll1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const concatAll2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const concatAll3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const concatAll$ = of(concatAll1$, concatAll2$, concatAll3$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
 	concatAll()
 )
 
-//concatAll$.subscribe((item) => logAll('получил: ',item))
+// concatAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineAll поток закрыт'));
 
 /**
  * exhaust
- * Возвращает значения потока, который первый их прислал. Остальные потоки блокируются, пока первый поток не закончится
+ * Возвращает значения потока, который первый их имитировал. Остальные потоки блокируются
+
+Hello World!
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
-получил:0-1
-получил:101-1
-получил:202-1
-получил:303-1
-получил:404-1
-получил:505-1
-получил:606-1
-получил:707-1
-получил:808-1
-получил:909-1
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  404-1
+получил:  505-1
+получил:  606-1
+получил:  707-1
+получил:  808-1
+получил:  909-1
+exhaust поток закрыт
  */
 const exhaust1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const exhaust2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
@@ -1495,7 +1598,7 @@ const exhaust$ = of(exhaust1$, exhaust2$, exhaust3$, exhaust4$).pipe(
 	exhaust()
 )
 
-//exhaust$.subscribe((item) => logAll('получил: ',...arguments))
+// exhaust$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('exhaust поток закрыт'));
 
 /**
  * mergeAll
@@ -1506,27 +1609,28 @@ Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
-получил:0-1
-получил:101-1
-получил:0-2
-получил:202-1
-получил:0-3
-получил:303-1
-получил:202-2
-получил:404-1
-получил:505-1
-получил:404-2
-получил:303-3
-получил:606-1
-получил:707-1
-получил:606-2
-получил:808-1
-получил:606-3
-получил:909-1
-получил:808-2
-получил:1
-получил:2
-получил:3
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  0-3
+получил:  202-1
+получил:  202-2
+получил:  303-1
+получил:  404-1
+получил:  303-3
+получил:  404-2
+получил:  505-1
+получил:  606-1
+получил:  606-2
+получил:  707-1
+получил:  606-3
+получил:  808-1
+получил:  808-2
+получил:  909-1
+получил:  1
+получил:  2
+получил:  3
+mergeAll поток закрыт
  */
 const mergeAll1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const mergeAll2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
@@ -1537,17 +1641,20 @@ const mergeAll$ = of(mergeAll1$, mergeAll2$, mergeAll3$, mergeAll4$).pipe(
 	mergeAll()
 )
 
-//mergeAll$.subscribe((item) => logAll('получил: ',item))
+// mergeAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeAll поток закрыт'));
 
 /**
  * withLatestFrom
- * Возвращает массив текущих(предыдущих/крайних) значений потоков после получения значений из основного(сигнального) потока источника
+ * Возвращает массив текущих(предыдущих/крайних) значений потоков после получения значений из основного(сигнального) потока источника 
  * Возвращает из сигнального потока и из потоков аргументов withLatestFrom1, withLatestFrom2
- * Главный сигнальный поток - источник interval(303)
+ * Главный сигнальный поток - источник interval(303) withLatestFrom$
  * 
-получил:["0-3", "202-1", "0-2"]
-получил:["303-3", "505-1", "404-2"]
-получил:["606-3", "808-1", "606-2"]
+
+Hello World!
+получил:  [ '0-3', '101-1', '0-2', 1 ]
+получил:  [ '303-3', '404-1', '202-2', 1 ]
+получил:  [ '606-3', '707-1', '606-2', 1 ]
+withLatestFrom поток закрыт
  */
 const withLatestFrom1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const withLatestFrom2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
@@ -1560,7 +1667,7 @@ const withLatestFrom$ = interval(303).pipe(
 	//map(([item1,item2,item3,item4])=>logAll([item1,item2,item3,item4]))
 )
 
-//withLatestFrom$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('поток закрыт'));
+// withLatestFrom$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('withLatestFrom поток закрыт'));
 
 
 //========================================================================================================================
