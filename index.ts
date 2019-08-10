@@ -638,23 +638,24 @@ const retryWhen$ = interval(101).pipe(
 
 /**
  * retryWhen более сложный пример
-
+ * 
 Hello World!
-попытка: 0
 получил:  0
-попытка: 1
+получил:  101
+ошибка-данные: 2
 повтор: 1
-попытка: 0
 получил:  0
-попытка: 1
+получил:  101
+ошибка-данные: 2
 остановка
 retryWhen2 поток закрыт
 */
 
-const retryWhen2$ = interval(200).pipe(
+const retryWhen2$ = interval(101).pipe(
+	take(10),
 	map(x => {
-		logAll('попытка: ' + x);
-		if (x === 1) {
+		if (x === 2) {
+			logAll('ошибка-данные: ' + x);
 			throw new Error('errorN: ' + x);
 		}
 		return x;
@@ -673,7 +674,8 @@ const retryWhen2$ = interval(200).pipe(
 			}),
 			takeWhile(errCount => errCount < 2)
 		)
-	})
+	}),
+	map(item => item * 101),
 )
 
 //retryWhen2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen2 поток закрыт'));
@@ -682,48 +684,68 @@ const retryWhen2$ = interval(200).pipe(
  * timeout
  * прерывает поток ошибкой, если нет значения за время интервала
  * также можно указать дату вместо интервала, но можно наступить на локализацию
+ * !!! работает асинхронно, учитывает задержку выполнения предыдущих операторов: для 101 мс надо 105 мс минимум таймаута
+
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  202-1
+получил:  202-2
 Таймер сработал
-Error {message: "Timeout has occurred", name: "TimeoutError"}
-Observable {_isScalar: false, source: {…}, operator: {…}}
-complete
+получил:  { [TimeoutError: Timeout has occurred] message: 'Timeout has occurred', name: 'TimeoutError' }
+timeOut поток закрыт
  */
-const errorMsg = () => logAll('error');
-const timeOut$ = interval(102).pipe(
-	take(5),
-	tap(value => logAll(value * 102)),
-	timeout(100), // таймер
+
+const timeOut1$ = interval(101).pipe(take(3), map(item => item * 101 + '-1'));
+const timeOut2$ = interval(202).pipe(take(10), map(item => item * 202 + '-2'));
+
+const timeOut$ = of(timeOut1$, timeOut2$).pipe(
+	mergeAll(),
+	timeout(111),
 	catchError((err, caught$) => {
 		if (err.name === 'TimeoutError') {
 			// обрабатываем событие таймера
 			logAll('Таймер сработал')
 		};
-		return of(err, caught$)
+		return of(err)
 	})
 )
 
-//timeOut$.subscribe(a => logAll(a), err => (logAll('ошибка: ' + err)), () => logAll('complete'));
+//timeOut$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOut поток закрыт'));
 
 /**
  * timeoutWith
  * стартует новый поток, если нет значения за время интервала
  * также можно указать дату вместо интервала, но можно наступить на локализацию
-ещё 0
-ещё 100
-1
-2
-3
-complete
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  202-1
+получил:  202-2
+получил:  0-3
+получил:  101-3
+получил:  202-3
+timeOutWith поток закрыт
  */
-const timeOutWithFallback$ = of(1, 2, 3);
-const timeOutWith$ = new Observable(observer => {
-	observer.next('ещё 0');
-	setTimeout(() => observer.next('ещё 100'), 100);
-	setTimeout(() => observer.next('ещё 202'), 202);//заменить на 200, чтобы не было прерывания
-	setTimeout(() => observer.complete(), 300);
-}).pipe(timeoutWith(101, timeOutWithFallback$))
+const timeOutWithSrc1$ = interval(101).pipe(take(3), map(item => item * 101 + '-1'));
+const timeOutWithSrc2$ = interval(202).pipe(take(10), map(item => item * 202 + '-2'));
+const timeOutWithFallback$ = interval(103).pipe(take(3), map(item => item * 101 + '-3'));
 
-//timeOutWith$.subscribe(a => logAll(a), err=>(logAll('ошибка: '+err)), ()=>logAll('complete'));
+const timeOutWith$ = of(timeOutWithSrc1$, timeOutWithSrc2$).pipe(
+	mergeAll(),
+	timeoutWith(111, timeOutWithFallback$),
+	catchError((err, caught$) => {
+		if (err.name === 'timeOutWithError') {
+			// обрабатываем событие таймера
+			logAll('Таймер сработал')
+		};
+		return of(err)
+	})
+)
 
+//timeOutWith$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOutWith поток закрыт'));
 
 //========================================================================================================================
 //==================================================FILTERING ONE=========================================================
@@ -733,16 +755,32 @@ const timeOutWith$ = new Observable(observer => {
 /**
  * skip
  * скрывает указанное количество значений
-2
-3
-4
+
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  306-2
+получил:  404-1
+получил:  101-закрыт
+получил:  408-2
+получил:  102-закрыт
+skip поток закрыт
  */
-const skip$ = timer(0, 100).pipe(
+
+const skipSrc1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('101-закрыт'));
+const skipSrc2$ = interval(102).pipe(
 	take(5),
-	skip(2)
+	map(item => item * 102 + '-2'),
+	skip(3), endWith('102-закрыт')
+);
+
+const skip$ = of(skipSrc1$, skipSrc2$).pipe(
+	mergeAll()
 )
 
-//skip$.subscribe(a => logAll(a));
+//skip$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skip поток закрыт'));
 
 
 /**
@@ -750,63 +788,121 @@ const skip$ = timer(0, 100).pipe(
  * скрывает указанное количество значений с конца
  * поток должен быть конечным
  * начинает раотать после получения всех входящих значений
-0
-1
-2
-3
+
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  0-2
+получил:  404-1
+получил:  101-закрыт
+получил:  102-2
+получил:  102-закрыт
+skipLast поток закрыт
  */
-const skipLast$ = timer(0, 1000).pipe(
-	take(10),
-	skipLast(5)
+const skipLastSrc1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('101-закрыт'));
+const skipLastSrc2$ = interval(102).pipe(
+	take(5),
+	map(item => item * 102 + '-2'),
+	skipLast(3),
+	endWith('102-закрыт')
+);
+
+const skipLast$ = of(skipLastSrc1$, skipLastSrc2$).pipe(
+	mergeAll()
 )
 
-//skipLast$.subscribe(a => logAll(a));
+//skipLast$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skipLast поток закрыт'));
 
 /**
  * skipUntil
  * скрывает значения потока до момента получения первого значения из аргумента наблюдателя
-*6 секунд ожидания*
-3
-4
-5
+
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  204-2
+получил:  303-1
+получил:  306-2
+получил:  404-1
+получил:  101-закрыт
+получил:  408-2
+получил:  102-закрыт
+skipUntil поток закрыт
  */
-const skipUntil$ = timer(0, 1000).pipe(
-	take(6),
-	skipUntil(timer(3000))
+const skipUntilSrc1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('101-закрыт'));
+
+const skipUntilSignal$ = interval(303).pipe(take(1), map(item => item * 303 + '-1'), endWith('303-закрыт'));
+
+const skipUntilSrc2$ = interval(102).pipe(
+	take(5),
+	map(item => item * 102 + '-2'),
+	skipUntil(skipUntilSignal$),
+	endWith('102-закрыт')
+);
+
+const skipUntil$ = of(skipUntilSrc1$, skipUntilSrc2$).pipe(
+	mergeAll()
 )
 
-//skipUntil$.subscribe(a => logAll(a));
+//skipUntil$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skipUntil поток закрыт'));
 
 /**
  * skipWhile
  * скрывает поток пока получает true из аргумента функции
  * переключается только один раз, после первого false
-3
-4
-5
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  306-2
+получил:  404-1
+получил:  101-закрыт
+получил:  408-2
+получил:  102-закрыт
+skipWhile поток закрыт
  */
-const skipWhile$ = timer(0, 100).pipe(
-	take(6),
-	skipWhile(item => item !== 3)
+
+
+const skipWhileSrc1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('101-закрыт'));
+
+const isSkipWhile = item => item !== '306-2';
+
+const skipWhileSrc2$ = interval(102).pipe(
+	take(5),
+	map(item => item * 102 + '-2'),
+	skipWhile(isSkipWhile),
+	endWith('102-закрыт')
+);
+
+const skipWhile$ = of(skipWhileSrc1$, skipWhileSrc2$).pipe(
+	mergeAll()
 )
 
-//skipWhile$.subscribe(a => logAll(a));
-
+//skipWhile$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skipWhile поток закрыт'));
 
 /**
  * take
  * возвращает указанное количество значений
-0
-1
-2
-3
-4
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  404-1
+получил:  101-закрыт
+take поток закрыт
  */
-const take$ = timer(0, 100).pipe(
+const take$ = interval(101).pipe(
 	take(5),
-)
+	map(item => item * 101 + '-1'),
+	endWith('101-закрыт')
+);
 
-//take$.subscribe(a => logAll(a));
+//take$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('take поток закрыт'));
 
 
 /**
@@ -814,56 +910,101 @@ const take$ = timer(0, 100).pipe(
  * возвращает указанное количество значений с конца
  * поток должен быть конечным
  * начинает раотать после получения всех входящих значений
-*6 секунд ожидания*
-3
-4
-5
- */
-const takeLast$ = timer(0, 1000).pipe(
-	take(6),
-	takeLast(3)
-)
 
-//takeLast$.subscribe(a => logAll(a));
+Hello World!
+получил:  707-1
+получил:  808-1
+получил:  909-1
+получил:  101-закрыт
+takeLast поток закрыт
+ */
+const takeLast$ = interval(101).pipe(
+	take(10),
+	map(item => item * 101 + '-1'),
+	takeLast(3),
+	endWith('101-закрыт')
+);
+
+//takeLast$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeLast поток закрыт'));
+
 
 /**
  * takeUntil
  * Возвращает поток до момента получения первого значения из аргумента наблюдателя takeUntilComplete$
  * Прерывает поток при получении первого значения из аргумента наблюдателя takeUntilComplete$
  * Используется для очистки мусора, как завершающий оператор
-0
-1
-2
-поток закрыт
+
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  102-2
+получил:  102-закрыт
+получил:  202-1
+получил:  303-1
+получил:  404-1
+получил:  101-закрыт
+takeUntil поток закрыт
  */
 
-/* const takeUntilButtonElement = document.getElementById('id-tight-button');
-const takeUntilComplete$ = fromEvent(takeUntilButtonElement, 'click');//прерывание потока по кнопке
+const takeUntilSrc1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('101-закрыт'));
 
-//const takeUntilComplete$ = timer(3000);//прерывание потока по таймеру
+const takeUntilSignal$ = interval(303).pipe(take(1), map(item => item * 303 + '-3'), endWith('303-закрыт'));
+/*
+//более сложный пример с событием из DOM, надо нажать на кнопку
+const takeUntil2ButtonElement = document.getElementById('id-tight-button');
+const takeUntilSignal$ = fromEvent(takeUntil2ButtonElement, 'click');
+*/
 
-const takeUntil$ = timer(0, 1000).pipe(
-	take(6),
-	takeUntil(takeUntilComplete$)
+const takeUntilSrc2$ = interval(102).pipe(
+	take(5),
+	map(item => item * 102 + '-2'),
+	takeUntil(takeUntilSignal$),
+	endWith('102-закрыт')
+);
+
+const takeUntil$ = of(takeUntilSrc1$, takeUntilSrc2$).pipe(
+	mergeAll()
 )
 
-//takeUntil$.subscribe(a => logAll(a), err => logAll('error', err), () => logAll('поток закрыт')); */
+//takeUntil$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeUntil поток закрыт'));
+
 
 
 /**
  * takeWhile
  * возвращает поток пока получает true из аргумента функции
  * переключается только один раз, после первого false
-0
-1
-2
+
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  102-2
+получил:  202-1
+получил:  204-2
+получил:  303-1
+получил:  102-закрыт
+получил:  404-1
+получил:  101-закрыт
+takeWhile поток закрыт
  */
-const takeWhile$ = timer(0, 100).pipe(
-	take(6),
-	takeWhile(item => item !== 3)
+const takeWhileSrc1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('101-закрыт'));
+
+const isTakeWhile = item => item !== '306-2';
+
+const takeWhileSrc2$ = interval(102).pipe(
+	take(5),
+	map(item => item * 102 + '-2'),
+	takeWhile(isTakeWhile),
+	endWith('102-закрыт')
+);
+
+const takeWhile$ = of(takeWhileSrc1$, takeWhileSrc2$).pipe(
+	mergeAll()
 )
 
-//takeWhile$.subscribe(a => logAll(a));
+//takeWhile$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeWhile поток закрыт'));
 
 /**
  * distinct
@@ -871,52 +1012,75 @@ const takeWhile$ = timer(0, 100).pipe(
  * не ожидает весь поток, работает сразу
  * следует аккуратно отнестись к операции сравнения. Он использует set или Array.indexOf, если set не поддерживается
  * можно передать функцию предварительной обработки значений
-1
-2
-3
-5
+
+Hello World!
+получил:  0
+получил:  101
+получил:  202
+получил:  303
+получил:  404
+получил:  101-закрыт
+получил:  102-закрыт
+distinct поток закрыт
  */
-const distinct$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
+const distinctSrc1$ = interval(101).pipe(take(5), map(item => item * 101), endWith('101-закрыт'));
+const distinctSrc2$ = interval(101).pipe(take(5), map(item => item * 101), endWith('102-закрыт'));
+
+const distinct$ = of(distinctSrc1$, distinctSrc2$).pipe(
+	mergeAll(),
 	distinct()
 )
-//distinct$.subscribe(a => logAll(a));
+
+//distinct$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinct поток закрыт'));
 
 /**
- * distinct с функцией предварительной обработки значений
- * возвращает только уникальные значения
- * не ожидает весь поток, работает сразу
+ * distinct 
+ * более сложный пример с функцией предварительной обработки значений перед сравнением
  * следует аккуратно отнестись к операции сравнения. Он использует set или Array.indexOf, если set не поддерживается
  * 
-{a: 1, b: "2"}
-{a: 2, b: "3"}
+Hello World!
+получил:  { value: 0, stream: '1' }
+получил:  { value: 101, stream: '1' }
+получил:  { value: 202, stream: '1' }
+получил:  { value: 303, stream: '1' }
+получил:  { value: 404, stream: '1' }
+получил:  101-закрыт
+distinct2 поток закрыт
  */
-const distinctFunc$ =
-	of(
-		{ a: 1, b: '2' },
-		{ a: 1, b: '3' },
-		{ a: 2, b: '3' },
-		{ a: 1, b: '4' }
-	).pipe(
-		distinct(item => item.a)
-	)
-//distinctFunc$.subscribe(a => logAll(a));
+const distinctSrc3$ = interval(101).pipe(take(5), map(item => { return { value: item * 101, stream: '1' } }), endWith('101-закрыт'));
+const distinctSrc4$ = interval(101).pipe(take(5), map(item => { return { value: item * 101, stream: '2' } }), endWith('102-закрыт'));
+const distinctParse = item => item.value
+
+const distinct2$ = of(distinctSrc3$, distinctSrc4$).pipe(
+	mergeAll(),
+	distinct(distinctParse)
+)
+
+//distinct2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinct2 поток закрыт'));
 
 /**
  * distinctUntilChanged
- * возвращает только уникальные значения в пределах текущего и предыдущего
- * можно передать функцию предварительной обработки значений
+ * возвращает только уникальные значения в пределах двух значений: текущего и предыдущего
+ * можно передать функцию сравнения
  * не ожидает весь поток, работает сразу
  * следует аккуратно отнестись к операции сравнения. Он использует set или Array.indexOf, если set не поддерживается
-1
-2
-3
-1
-5
+
+Hello World!
+получил:  { value: 0, stream: '1' }
+получил:  { value: 0, stream: '2' }
+distinctUntilChanged поток закрыт
  */
-const distinctUntilChanged$ = of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(
-	distinctUntilChanged()
+const distinctUntilChangedSrc3$ = interval(101).pipe(take(5), map(item => { return { value: item * 101, stream: '1' } }), endWith('101-закрыт'));
+const distinctUntilChangedSrc4$ = interval(101).pipe(take(5), map(item => { return { value: item * 101, stream: '2' } }), endWith('102-закрыт'));
+const distinctUntilChangedParse = (item, itemPrev) => item.value !== itemPrev.value
+
+const distinctUntilChanged$ = of(distinctUntilChangedSrc3$, distinctUntilChangedSrc4$).pipe(
+	mergeAll(),
+	distinctUntilChanged(distinctUntilChangedParse), // функция сравнения
+	// distinctUntilChanged(), // отбракует все, т.к. сравнивает object
 )
-//distinctUntilChanged$.subscribe(a => logAll(a));
+
+distinctUntilChanged$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinctUntilChanged поток закрыт'));
 
 /**
  * distinctUntilKeyChanged
@@ -3848,6 +4012,3 @@ const sequenceEqual$ = of(sequenceEqual1$, sequenceEqual2$).pipe(
   * scan
  */
 
-/**
- * takeWhile
- */

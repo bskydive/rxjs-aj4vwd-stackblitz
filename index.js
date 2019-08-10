@@ -507,23 +507,21 @@ var retryWhen$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map
 //retryWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen поток закрыт'));
 /**
  * retryWhen более сложный пример
-
+ *
 Hello World!
-try: 0
 получил:  0
-try: 1
-error: 1
-retry whole source: 1
-try: 0
+получил:  101
+ошибка-данные: 2
+повтор: 1
 получил:  0
-try: 1
-error: 1
-fail
-ошибка: error
+получил:  101
+ошибка-данные: 2
+остановка
+retryWhen2 поток закрыт
 */
-var retryWhen2$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
-    logAll('попытка: ' + x);
-    if (x === 1) {
+var retryWhen2$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (x) {
+    if (x === 2) {
+        logAll('ошибка-данные: ' + x);
         throw new Error('errorN: ' + x);
     }
     return x;
@@ -539,47 +537,62 @@ var retryWhen2$ = rxjs_1.interval(200).pipe(operators_1.map(function (x) {
         }
         return retryCount;
     }), operators_1.takeWhile(function (errCount) { return errCount < 2; }));
-}));
-retryWhen2$.subscribe(function (item) { return logAll('получил: ', item); }, function (err) { return logAll('ошибка:', err); }, function () { return logAll('retryWhen2 поток закрыт'); });
+}), operators_1.map(function (item) { return item * 101; }));
+//retryWhen2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen2 поток закрыт'));
 /**
  * timeout
  * прерывает поток ошибкой, если нет значения за время интервала
  * также можно указать дату вместо интервала, но можно наступить на локализацию
+ * !!! работает асинхронно, учитывает задержку выполнения предыдущих операторов: для 101 мс надо 105 мс минимум таймаута
+
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  202-1
+получил:  202-2
 Таймер сработал
-Error {message: "Timeout has occurred", name: "TimeoutError"}
-Observable {_isScalar: false, source: {…}, operator: {…}}
-complete
+получил:  { [TimeoutError: Timeout has occurred] message: 'Timeout has occurred', name: 'TimeoutError' }
+timeOut поток закрыт
  */
-var errorMsg = function () { return logAll('error'); };
-var timeOut$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.tap(function (value) { return logAll(value * 102); }), operators_1.timeout(100), // таймер
-operators_1.catchError(function (err, caught$) {
+var timeOut1$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }));
+var timeOut2$ = rxjs_1.interval(202).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 202 + '-2'; }));
+var timeOut$ = rxjs_1.of(timeOut1$, timeOut2$).pipe(operators_1.mergeAll(), operators_1.timeout(111), operators_1.catchError(function (err, caught$) {
     if (err.name === 'TimeoutError') {
         // обрабатываем событие таймера
         logAll('Таймер сработал');
     }
     ;
-    return rxjs_1.of(err, caught$);
+    return rxjs_1.of(err);
 }));
-//timeOut$.subscribe(a => logAll(a), err => (logAll('ошибка: ' + err)), () => logAll('complete'));
+//timeOut$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOut поток закрыт'));
 /**
  * timeoutWith
  * стартует новый поток, если нет значения за время интервала
  * также можно указать дату вместо интервала, но можно наступить на локализацию
-ещё 0
-ещё 100
-1
-2
-3
-complete
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  202-1
+получил:  202-2
+получил:  0-3
+получил:  101-3
+получил:  202-3
+timeOutWith поток закрыт
  */
-var timeOutWithFallback$ = rxjs_1.of(1, 2, 3);
-var timeOutWith$ = new rxjs_1.Observable(function (observer) {
-    observer.next('ещё 0');
-    setTimeout(function () { return observer.next('ещё 100'); }, 100);
-    setTimeout(function () { return observer.next('ещё 202'); }, 202); //заменить на 200, чтобы не было прерывания
-    setTimeout(function () { return observer.complete(); }, 300);
-}).pipe(operators_1.timeoutWith(101, timeOutWithFallback$));
-//timeOutWith$.subscribe(a => logAll(a), err=>(logAll('ошибка: '+err)), ()=>logAll('complete'));
+var timeOutWithSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }));
+var timeOutWithSrc2$ = rxjs_1.interval(202).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 202 + '-2'; }));
+var timeOutWithFallback$ = rxjs_1.interval(103).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-3'; }));
+var timeOutWith$ = rxjs_1.of(timeOutWithSrc1$, timeOutWithSrc2$).pipe(operators_1.mergeAll(), operators_1.timeoutWith(111, timeOutWithFallback$), operators_1.catchError(function (err, caught$) {
+    if (err.name === 'timeOutWithError') {
+        // обрабатываем событие таймера
+        logAll('Таймер сработал');
+    }
+    ;
+    return rxjs_1.of(err);
+}));
+//timeOutWith$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOutWith поток закрыт'));
 //========================================================================================================================
 //==================================================FILTERING ONE=========================================================
 //========================================================================================================================
@@ -587,125 +600,211 @@ var timeOutWith$ = new rxjs_1.Observable(function (observer) {
 /**
  * skip
  * скрывает указанное количество значений
-2
-3
-4
+
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  306-2
+получил:  404-1
+получил:  101-закрыт
+получил:  408-2
+получил:  102-закрыт
+skip поток закрыт
  */
-var skip$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5), operators_1.skip(2));
-//skip$.subscribe(a => logAll(a));
+var skipSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
+var skipSrc2$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.skip(3), operators_1.endWith('102-закрыт'));
+var skip$ = rxjs_1.of(skipSrc1$, skipSrc2$).pipe(operators_1.mergeAll());
+//skip$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skip поток закрыт'));
 /**
  * skipLast
  * скрывает указанное количество значений с конца
  * поток должен быть конечным
  * начинает раотать после получения всех входящих значений
-0
-1
-2
-3
+
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  0-2
+получил:  404-1
+получил:  101-закрыт
+получил:  102-2
+получил:  102-закрыт
+skipLast поток закрыт
  */
-var skipLast$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(10), operators_1.skipLast(5));
-//skipLast$.subscribe(a => logAll(a));
+var skipLastSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
+var skipLastSrc2$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.skipLast(3), operators_1.endWith('102-закрыт'));
+var skipLast$ = rxjs_1.of(skipLastSrc1$, skipLastSrc2$).pipe(operators_1.mergeAll());
+//skipLast$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skipLast поток закрыт'));
 /**
  * skipUntil
  * скрывает значения потока до момента получения первого значения из аргумента наблюдателя
-*6 секунд ожидания*
-3
-4
-5
+
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  204-2
+получил:  303-1
+получил:  306-2
+получил:  404-1
+получил:  101-закрыт
+получил:  408-2
+получил:  102-закрыт
+skipUntil поток закрыт
  */
-var skipUntil$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(6), operators_1.skipUntil(rxjs_1.timer(3000)));
-//skipUntil$.subscribe(a => logAll(a));
+var skipUntilSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
+var skipUntilSignal$ = rxjs_1.interval(303).pipe(operators_1.take(1), operators_1.map(function (item) { return item * 303 + '-1'; }), operators_1.endWith('303-закрыт'));
+var skipUntilSrc2$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.skipUntil(skipUntilSignal$), operators_1.endWith('102-закрыт'));
+var skipUntil$ = rxjs_1.of(skipUntilSrc1$, skipUntilSrc2$).pipe(operators_1.mergeAll());
+//skipUntil$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skipUntil поток закрыт'));
 /**
  * skipWhile
  * скрывает поток пока получает true из аргумента функции
  * переключается только один раз, после первого false
-3
-4
-5
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  306-2
+получил:  404-1
+получил:  101-закрыт
+получил:  408-2
+получил:  102-закрыт
+skipWhile поток закрыт
  */
-var skipWhile$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.skipWhile(function (item) { return item !== 3; }));
-//skipWhile$.subscribe(a => logAll(a));
+var skipWhileSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
+var isSkipWhile = function (item) { return item !== '306-2'; };
+var skipWhileSrc2$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.skipWhile(isSkipWhile), operators_1.endWith('102-закрыт'));
+var skipWhile$ = rxjs_1.of(skipWhileSrc1$, skipWhileSrc2$).pipe(operators_1.mergeAll());
+//skipWhile$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skipWhile поток закрыт'));
 /**
  * take
  * возвращает указанное количество значений
-0
-1
-2
-3
-4
+Hello World!
+получил:  0-1
+получил:  101-1
+получил:  202-1
+получил:  303-1
+получил:  404-1
+получил:  101-закрыт
+take поток закрыт
  */
-var take$ = rxjs_1.timer(0, 100).pipe(operators_1.take(5));
-//take$.subscribe(a => logAll(a));
+var take$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
+//take$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('take поток закрыт'));
 /**
  * takeLast
  * возвращает указанное количество значений с конца
  * поток должен быть конечным
  * начинает раотать после получения всех входящих значений
-*6 секунд ожидания*
-3
-4
-5
+
+Hello World!
+получил:  707-1
+получил:  808-1
+получил:  909-1
+получил:  101-закрыт
+takeLast поток закрыт
  */
-var takeLast$ = rxjs_1.timer(0, 1000).pipe(operators_1.take(6), operators_1.takeLast(3));
-//takeLast$.subscribe(a => logAll(a));
+var takeLast$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.takeLast(3), operators_1.endWith('101-закрыт'));
+//takeLast$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeLast поток закрыт'));
 /**
  * takeUntil
  * Возвращает поток до момента получения первого значения из аргумента наблюдателя takeUntilComplete$
  * Прерывает поток при получении первого значения из аргумента наблюдателя takeUntilComplete$
  * Используется для очистки мусора, как завершающий оператор
-0
-1
-2
-поток закрыт
+
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  102-2
+получил:  102-закрыт
+получил:  202-1
+получил:  303-1
+получил:  404-1
+получил:  101-закрыт
+takeUntil поток закрыт
  */
-/* const takeUntilButtonElement = document.getElementById('id-tight-button');
-const takeUntilComplete$ = fromEvent(takeUntilButtonElement, 'click');//прерывание потока по кнопке
-
-//const takeUntilComplete$ = timer(3000);//прерывание потока по таймеру
-
-const takeUntil$ = timer(0, 1000).pipe(
-    take(6),
-    takeUntil(takeUntilComplete$)
-)
-
-//takeUntil$.subscribe(a => logAll(a), err => logAll('error', err), () => logAll('поток закрыт')); */
+var takeUntilSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
+var takeUntilSignal$ = rxjs_1.interval(303).pipe(operators_1.take(1), operators_1.map(function (item) { return item * 303 + '-3'; }), operators_1.endWith('303-закрыт'));
+/*
+//более сложный пример с событием из DOM, надо нажать на кнопку
+const takeUntil2ButtonElement = document.getElementById('id-tight-button');
+const takeUntilSignal$ = fromEvent(takeUntil2ButtonElement, 'click');
+*/
+var takeUntilSrc2$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.takeUntil(takeUntilSignal$), operators_1.endWith('102-закрыт'));
+var takeUntil$ = rxjs_1.of(takeUntilSrc1$, takeUntilSrc2$).pipe(operators_1.mergeAll());
+//takeUntil$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeUntil поток закрыт'));
 /**
  * takeWhile
  * возвращает поток пока получает true из аргумента функции
  * переключается только один раз, после первого false
-0
-1
-2
+
+Hello World!
+получил:  0-1
+получил:  0-2
+получил:  101-1
+получил:  102-2
+получил:  202-1
+получил:  204-2
+получил:  303-1
+получил:  102-закрыт
+получил:  404-1
+получил:  101-закрыт
+takeWhile поток закрыт
  */
-var takeWhile$ = rxjs_1.timer(0, 100).pipe(operators_1.take(6), operators_1.takeWhile(function (item) { return item !== 3; }));
-//takeWhile$.subscribe(a => logAll(a));
+var takeWhileSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
+var isTakeWhile = function (item) { return item !== '306-2'; };
+var takeWhileSrc2$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.takeWhile(isTakeWhile), operators_1.endWith('102-закрыт'));
+var takeWhile$ = rxjs_1.of(takeWhileSrc1$, takeWhileSrc2$).pipe(operators_1.mergeAll());
+//takeWhile$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeWhile поток закрыт'));
 /**
  * distinct
  * возвращает только уникальные значения
  * не ожидает весь поток, работает сразу
  * следует аккуратно отнестись к операции сравнения. Он использует set или Array.indexOf, если set не поддерживается
  * можно передать функцию предварительной обработки значений
-1
-2
-3
-5
+
+Hello World!
+получил:  0
+получил:  101
+получил:  202
+получил:  303
+получил:  404
+получил:  101-закрыт
+получил:  102-закрыт
+distinct поток закрыт
  */
-var distinct$ = rxjs_1.of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(operators_1.distinct());
-//distinct$.subscribe(a => logAll(a));
+var distinctSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101; }), operators_1.endWith('101-закрыт'));
+var distinctSrc2$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101; }), operators_1.endWith('102-закрыт'));
+var distinct$ = rxjs_1.of(distinctSrc1$, distinctSrc2$).pipe(operators_1.mergeAll(), operators_1.distinct());
+//distinct$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinct поток закрыт'));
 /**
- * distinct с функцией предварительной обработки значений
- * возвращает только уникальные значения
- * не ожидает весь поток, работает сразу
+ * distinct
+ * более сложный пример с функцией предварительной обработки значений перед сравнением
  * следует аккуратно отнестись к операции сравнения. Он использует set или Array.indexOf, если set не поддерживается
  *
-{a: 1, b: "2"}
-{a: 2, b: "3"}
+Hello World!
+получил:  { value: 0, stream: '1' }
+получил:  { value: 101, stream: '1' }
+получил:  { value: 202, stream: '1' }
+получил:  { value: 303, stream: '1' }
+получил:  { value: 404, stream: '1' }
+получил:  101-закрыт
+distinct2 поток закрыт
  */
-var distinctFunc$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3' }, { a: 1, b: '4' }).pipe(operators_1.distinct(function (item) { return item.a; }));
-//distinctFunc$.subscribe(a => logAll(a));
+var distinctSrc3$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return { value: item * 101, stream: '1' }; }), operators_1.endWith('101-закрыт'));
+var distinctSrc4$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return { value: item * 101, stream: '2' }; }), operators_1.endWith('102-закрыт'));
+var distinctParse = function (item) { return item.value; };
+var distinct2$ = rxjs_1.of(distinctSrc3$, distinctSrc4$).pipe(operators_1.mergeAll(), operators_1.distinct(distinctParse));
+//distinct2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('distinct2 поток закрыт'));
 /**
  * distinctUntilChanged
- * возвращает только уникальные значения в пределах текущего и предыдущего
+ * возвращает только уникальные значения в пределах двух значений: текущего и предыдущего
  * можно передать функцию предварительной обработки значений
  * не ожидает весь поток, работает сразу
  * следует аккуратно отнестись к операции сравнения. Он использует set или Array.indexOf, если set не поддерживается
@@ -715,8 +814,13 @@ var distinctFunc$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3'
 1
 5
  */
-var distinctUntilChanged$ = rxjs_1.of(1, 1, 1, 2, 3, 1, 5, 5, 5).pipe(operators_1.distinctUntilChanged());
-//distinctUntilChanged$.subscribe(a => logAll(a));
+var distinctUntilChangedSrc3$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return { value: item * 101, stream: '1' }; }), operators_1.endWith('101-закрыт'));
+var distinctUntilChangedSrc4$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return { value: item * 101, stream: '2' }; }), operators_1.endWith('102-закрыт'));
+// const distinctUntilChangedParse = (item, itemPrev) => item.value !== itemPrev.value
+var distinctUntilChanged$ = rxjs_1.of(distinctUntilChangedSrc3$, distinctUntilChangedSrc4$).pipe(operators_1.mergeAll(), 
+// distinctUntilChanged(distinctUntilChangedParse),
+operators_1.distinctUntilChanged());
+distinctUntilChanged$.subscribe(function (item) { return logAll('получил: ', item); }, function (err) { return logAll('ошибка:', err); }, function () { return logAll('distinctUntilChanged поток закрыт'); });
 /**
  * distinctUntilKeyChanged
  * возвращает только уникальные значения в пределах текущего и предыдущего
@@ -2957,7 +3061,4 @@ operators_1.mergeAll());
  */
 /**
   * scan
- */
-/**
- * takeWhile
  */
