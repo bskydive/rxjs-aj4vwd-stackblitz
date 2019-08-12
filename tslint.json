@@ -147,6 +147,7 @@
 		"rxjs-no-create": { "severity": "warn" },
 		"increment-decrement": false,
 		"arrow-return-shorthand": false,
-		"rxjs-no-unsafe-takeuntil": true
+		"rxjs-no-unsafe-takeuntil": true,
+		"object-curly-spacing": { "severity": "warn" }
 	}
 }

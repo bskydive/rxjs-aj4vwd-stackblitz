@@ -52,6 +52,7 @@ module.exports = {
 		'eol-last': 'warn',
 		'comma-spacing': 'warn',
 		'prefer-const': 'warn',
-		'arrow-spacing': 'warn'
+		'arrow-spacing': 'warn',
+		'key-spacing': 'warn'
 	}
 };
