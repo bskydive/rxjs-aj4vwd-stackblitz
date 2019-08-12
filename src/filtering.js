@@ -35,7 +35,7 @@ skip поток закрыт
  */
 var skipSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('101-закрыт'));
 var skipSrc2$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.skip(3), operators_1.endWith('102-закрыт'));
-var skip$ = rxjs_1.of(skipSrc1$, skipSrc2$).pipe(operators_1.mergeAll(), operators_1.endWith('skip поток закрыт'));
+var skip$ = rxjs_1.of(skipSrc1$, skipSrc2$).pipe(operators_1.mergeAll());
 //skip$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skip поток закрыт'));
 exports.filteringOperatorList.push({ observable$: skip$ });
 /**

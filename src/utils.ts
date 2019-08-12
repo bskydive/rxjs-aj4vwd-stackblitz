@@ -12,7 +12,7 @@ export function logAll(...values) {
 }
 
 export type TTypeItem = 'observable' | 'observable' | 'primitive' | 'function' | 'object';
-export type TOperationItem = 'filter' | 'sort' | 'parse';
+export type TOperationItem = 'filter' | 'sort' | 'parse' | 'reply' | 'exhaust' | 'merge' | 'last' | 'debounce' | 'time' | 'accumulate' | 'recursion' | 'switch';
 
 /**
  * Интерфейс для построения модулей, поиска и тестирования операторов

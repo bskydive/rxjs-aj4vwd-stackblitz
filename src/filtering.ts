@@ -44,8 +44,7 @@ const skipSrc2$ = interval(102).pipe(
 );
 
 const skip$ = of(skipSrc1$, skipSrc2$).pipe(
-	mergeAll(),
-	endWith('skip поток закрыт')
+	mergeAll()
 )
 
 //skip$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('skip поток закрыт'));

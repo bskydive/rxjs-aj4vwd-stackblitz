@@ -42,7 +42,7 @@ const error$ = throwError('ошибка ошибковна')
 	)
 
 //error$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('error поток закрыт'));
-
+erroringOperatorList.push({ observable$: error$ });
 
 //
 /**
@@ -60,7 +60,7 @@ const errorEmpty$ = of().pipe(
 )
 
 //errorEmpty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('errorEmpty поток закрыт'));
-
+erroringOperatorList.push({ observable$: errorEmpty$ });
 
 //
 /**
@@ -96,6 +96,7 @@ const errorSwitch$ = interval(101).pipe(
 )
 
 //errorSwitch$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('errorSwitch поток закрыт'));
+erroringOperatorList.push({ observable$: errorSwitch$ });
 
 /**
  * retry
@@ -145,6 +146,7 @@ const retry$ = interval(101).pipe(
 )
 
 //retry$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retry поток закрыт'));
+erroringOperatorList.push({ observable$: retry$ });
 
 /**
  * retryWhen
@@ -187,6 +189,7 @@ const retryWhen$ = interval(101).pipe(
 )
 
 //retryWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen поток закрыт'));
+erroringOperatorList.push({ observable$: retryWhen$ });
 
 /**
  * retryWhen более сложный пример
@@ -231,6 +234,7 @@ const retryWhen2$ = interval(101).pipe(
 )
 
 //retryWhen2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen2 поток закрыт'));
+erroringOperatorList.push({ observable$: retryWhen2$ });
 
 /**
  * timeout
@@ -249,10 +253,10 @@ Hello World!
 timeOut поток закрыт
  */
 
-const timeOut1$ = interval(101).pipe(take(3), map(item => item * 101 + '-1'));
-const timeOut2$ = interval(202).pipe(take(10), map(item => item * 202 + '-2'));
+const timeOutSrc1$ = interval(101).pipe(take(3), map(item => item * 101 + '-1'));
+const timeOutSrc2$ = interval(202).pipe(take(10), map(item => item * 202 + '-2'));
 
-const timeOut$ = of(timeOut1$, timeOut2$).pipe(
+const timeOut$ = of(timeOutSrc1$, timeOutSrc2$).pipe(
 	mergeAll(),
 	timeout(111),
 	catchError((err, caught$) => {
@@ -265,6 +269,7 @@ const timeOut$ = of(timeOut1$, timeOut2$).pipe(
 )
 
 //timeOut$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOut поток закрыт'));
+erroringOperatorList.push({ observable$: timeOut$ });
 
 /**
  * timeoutWith
@@ -298,4 +303,5 @@ const timeOutWith$ = of(timeOutWithSrc1$, timeOutWithSrc2$).pipe(
 )
 
 //timeOutWith$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOutWith поток закрыт'));
+erroringOperatorList.push({ observable$: timeOutWith$ });
 

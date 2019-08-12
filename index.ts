@@ -115,74 +115,21 @@ audit$.subscribe((item) =>
  * Облегчение автоматизации запуска операторов
  */
 const operatorList: Observable<any>[] = [];
-operatorList.push(
-	...filteringOperatorList.map(item => item.observable$),
-	...bufferingOperatorList.map(item => item.observable$),
-	...erroringOperatorList.map(item => item.observable$),
-	...groupingOperatorList.map(item => item.observable$),
-	...multicastingOperatorList.map(item => item.observable$),
-	...timingOperatorList.map(item => item.observable$),
-	...transformingOperatorList.map(item => item.observable$),
-);
+operatorList.push(...filteringOperatorList.map(item => item.observable$));
+operatorList.push(...bufferingOperatorList.map(item => item.observable$));
+operatorList.push(...erroringOperatorList.map(item => item.observable$));
+operatorList.push(...groupingOperatorList.map(item => item.observable$));
+operatorList.push(...multicastingOperatorList.map(item => item.observable$));
+operatorList.push(...timingOperatorList.map(item => item.observable$));
+operatorList.push(...transformingOperatorList.map(item => item.observable$));
 
-logAll(`Библиотека операторов RxJs: ${operatorList.length} шт.`);
 
-/**
- * Запуск операторов для проверки
- */
-of(
-	...operatorList
-).pipe(
-	mergeAll()
-).subscribe(
-	(item) => logAll('получил: ', item),
-	err => logAll('ошибка:', err),
-	() => logAll('поток закрыт')
-);
+logAll(`Библиотека операторов RxJs. Итого примеров: ${operatorList.length} шт.`);
 
 /**
- * map
- * Преобразует и возвращает текущее значение потока
- * interval(x) - Источник значений, который создаёт значения (i=0;i<Number.MAX_SAFE_INTEGER;i++) через каждые x мсек
- * для наглядности умножаю значения на интервал x, чтобы получалось время а не порядковый номер
- * tap - не меняет значения потока
- * take - останавливает поток после получения указанного количества значений
+ * Запуск операторов для автоматической проверки
  */
-const map$ = interval(100).pipe(
-	take(3),
-	map(item => ['преобразуй это: ', item]), //используется для конвертирования значений счётчиков в милисекунды имитации значений
-	tap(item => ['фига с два: ', item]), //не возвращает ничего
-	tap(item => logAll('отладь меня: ', item)), //используется для отладки
-)
-
-/**
- * Три работающих варианта подписки
- * разведены во времени, чтобы не перемешивать вывод в консоль
- */
-//map$.subscribe(item => logAll('самый простой, значение:', item));
-
-/* 
-const mapTimeout1 = setTimeout(() => {
-	map$.subscribe(
-		item => logAll(
-			'стрелочные функции, значение:', item),
-		err => logAll('стрелочные функции, ошибка:', err),
-		() => logAll('стрелочные функции, закрытие:', 'конец')
-	);
-	clearInterval(mapTimeout1)
-}, 1000);
- */
-
-/* 
-const mapTimeout2 = setTimeout(() => {
-	map$.subscribe({
-		next: item => logAll('объект, значение:', item),
-		error: err => logAll('объект, ошибка', err),
-		complete: () => logAll('объект, закрытие', 'конец')
-	})
-	clearInterval(mapTimeout2);
-}, 2000);
- */
+// of(...operatorList).pipe(mergeAll()).subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('поток закрыт'));
 
 //========================================================================================================================
 //==================================================UTILITY===============================================================

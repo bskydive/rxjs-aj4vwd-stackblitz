@@ -1,10 +1,11 @@
 import { IRunListItem, logAll } from './utils';
-import { interval, Subject, Observable, of, ConnectableObservable } from 'rxjs';
+import { interval, Subject, Observable, of, ConnectableObservable, from } from 'rxjs';
 import { take, map, endWith, multicast, delay, share, shareReplay, publish, publishBehavior, mergeAll, publishLast, publishReplay } from 'rxjs/operators';
 
 
 /**
- * Операторы асинхронных потоков
+ * Операторы асинхронного запуска потоков
+ * Примеры пока не приведены к запуску по .subscribe, и требуют раскомментирования по несколько строк для ручной проверки
  * 
  * для массового выполнения тестов, комментировать не надо, запуск управляется из index.ts
  * filteringOperatorList.push({ observable$: xxx$ });
@@ -22,6 +23,7 @@ export const multicastingOperatorList: IRunListItem[] = [];
 
 /**
  * multicast
+ * 
  * Конвертирует поток в ConnectableObservable
  * Перенаправляет входящие потоки multicastIn в специальный поток(прокси) multicastProxy
  * Позволяет одновременно стартовать все потоки через прокси методом connect()
@@ -96,6 +98,7 @@ multicast$.subscribe((item) => logAll(item + '-подписка1'), null, () => 
 multicast$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('multicast подписка2-закрыта'));
 
 // multicast$.connect();
+multicastingOperatorList.push({ observable$: of('multicast не может быть запущен одним subscribe !') });
 
 /**
  * share
@@ -144,6 +147,8 @@ const shareTimeout = setTimeout(() => {
 	// share$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('share2 поток закрыт'));
 	clearInterval(shareTimeout);
 }, 700);
+
+multicastingOperatorList.push({ observable$: of('share не может быть запущен одним subscribe !') });
 
 /**
  * shareReply
@@ -195,6 +200,8 @@ const shareReplayTimeout = setTimeout(() => {
 	// shareReplay$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('shareReplay2 поток закрыт'));
 	clearInterval(shareReplayTimeout)
 }, 700);
+
+multicastingOperatorList.push({ observable$: of('shareReply не может быть запущен одним subscribe !') });
 
 /**
  * publish
@@ -250,7 +257,7 @@ publish$.subscribe((item) => logAll(item + '-подписка1'), null, () => lo
 publish$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publish подписка2-закрыта'));
 
 // publish$.connect();
-
+multicastingOperatorList.push({ observable$: of('publish не может быть запущен одним subscribe !') });
 
 
 /**
@@ -323,6 +330,8 @@ const publishBehavior$ = new Observable(publishBehaviorObserver).pipe(
 // publishBehavior$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publishBehavior подписка2-закрыта'));
 // publishBehavior$.connect();
 
+multicastingOperatorList.push({ observable$: of('publishBehavior не может быть запущен одним subscribe !') });
+
 /**
  * publishLast
  * Конвертирует поток в ConnectableObservable
@@ -361,6 +370,7 @@ const publishLastTimeout = setInterval(() => {
 }, 300);
 
 // publishLast$.connect();
+multicastingOperatorList.push({ observable$: of('publishLast не может быть запущен одним subscribe !') });
 
 /**
  * publishReplay
@@ -416,3 +426,4 @@ const publishReplayTimeout2 = setInterval(() => {
 }, 500);
 
 // publishReplay$.connect();
+multicastingOperatorList.push({ observable$: of('publishReplay не может быть запущен одним subscribe !') });

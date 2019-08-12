@@ -65,6 +65,7 @@ var auditTime2$ = rxjs_1.interval(202).pipe(operators_1.take(10), operators_1.ma
 operators_1.endWith('2-закрыт'));
 var auditTime$ = rxjs_1.of(auditTime1$, auditTime2$).pipe(operators_1.mergeAll(), operators_1.auditTime(500), operators_1.map(function (item) { return item + '-audit500'; }));
 // auditTime$.subscribe(item => logAll(item), null, () => logAll('auditTime поток закрыт'));
+exports.timingOperatorList.push({ observable$: auditTime$ });
 /**
  * sampleTime
  * выводит крайнее значение из потока перед таймером.
@@ -110,6 +111,7 @@ var sampleTime5$ = rxjs_1.interval(505).pipe(operators_1.take(5), operators_1.ma
 operators_1.endWith('5-закрыт'));
 var sampleTime$ = rxjs_1.of(sampleTime1$, sampleTime5$).pipe(operators_1.mergeAll(), operators_1.sampleTime(500));
 // sampleTime$.subscribe(item => logAll(item), null, () => logAll('sampleTime поток закрыт'));
+exports.timingOperatorList.push({ observable$: sampleTime$ });
 /**
  * observeOn
  * работает только в браузере/stackblitz
@@ -203,6 +205,7 @@ operators_1.take(3), operators_1.map(function (item) { return item * 105 + '-5';
 operators_1.endWith('5-закрыт'));
 var observeOn$ = rxjs_1.of(observeOn1$, observeOn2$, observeOn3$, observeOn4$, observeOn5$).pipe(operators_1.mergeAll());
 // observeOn$.subscribe(item => logAll(item), null, () => logAll('observeOn поток закрыт'));
+exports.timingOperatorList.push({ observable$: observeOn$ });
 /**
  * subscribeOn
  * работает только в браузере/stackblitz
@@ -287,6 +290,7 @@ operators_1.take(3), operators_1.map(function (item) { return item * 105 + '-5';
 operators_1.endWith('5-закрыт'));
 var subscribeOn$ = rxjs_1.of(subscribeOn1$, subscribeOn2$, subscribeOn3$, subscribeOn4$, subscribeOn5$).pipe(operators_1.mergeAll());
 // subscribeOn$.subscribe(item => logAll(item), null, () => logAll('subscribeOn поток закрыт'));
+exports.timingOperatorList.push({ observable$: subscribeOn$ });
 /**
  * debounce
  * 'Спаморезка'
@@ -341,6 +345,7 @@ var debounceDynamic$ = rxjs_1.interval(103).pipe(operators_1.take(10), operators
 operators_1.endWith('dynamic-закрыт'));
 var debounce$ = rxjs_1.of(debounceOver$, debounceNorm$, debounceDynamic$).pipe(operators_1.mergeAll());
 //debounce$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounce поток закрыт'));
+exports.timingOperatorList.push({ observable$: debounce$ });
 /**
  * debounceTime
  * 'Спаморезка'
@@ -381,6 +386,7 @@ var debounceTimeNorm$ = rxjs_1.interval(102).pipe(operators_1.take(10), operator
 operators_1.debounceTime(50), operators_1.endWith('norm-закрыт'));
 var debounceTime$ = rxjs_1.of(debounceTimeOver$, debounceTimeNorm$).pipe(operators_1.mergeAll());
 // debounceTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounceTime поток закрыт'));
+exports.timingOperatorList.push({ observable$: debounceTime$ });
 /**
  * delay
  * задержка имитации значений потока на указанный интервал или дату
@@ -420,6 +426,7 @@ operators_1.take(10), operators_1.map(function (item) { return item * 103 + '-3'
 operators_1.endWith('3-закрыт'));
 var delay$ = rxjs_1.of(delay1$, delay2$, delay3$).pipe(operators_1.mergeAll());
 //delay$.subscribe(item => logAll(item + '-$'), null, () => logAll('delay поток закрыт'));
+exports.timingOperatorList.push({ observable$: delay$ });
 /**
  * delayWhen
  * Задерживает имитацию значений потока на указанный интервал
@@ -459,6 +466,7 @@ var delayWhen2$ = rxjs_1.interval(102).pipe(operators_1.delayWhen(function (item
 operators_1.endWith('2-закрыт'));
 var delayWhen$ = rxjs_1.of(delayWhen1$, delayWhen2$).pipe(operators_1.mergeAll());
 //delayWhen$.subscribe(item => logAll(item + '-$'), null, () => logAll('delayWhen поток закрыт'));
+exports.timingOperatorList.push({ observable$: delayWhen$ });
 /**
  * throttleTime
  * пропускает первое значение потока и задерживает остальные на указанное время.
@@ -499,6 +507,7 @@ var throttleTime2$ = rxjs_1.interval(102).pipe(operators_1.throttleTime(300), op
 operators_1.endWith('2-закрыт'));
 var throttleTime$ = rxjs_1.of(throttleTime1$, throttleTime2$).pipe(operators_1.mergeAll());
 //throttleTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('throttleTime поток закрыт'));
+exports.timingOperatorList.push({ observable$: throttleTime$ });
 /**
  * timeInterval
  * оборачивает каждое значение в объект, добавляя поле со значением интервала во времени от предыдущего до текущего значения
@@ -518,6 +527,7 @@ var timeInterval1$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.
 operators_1.endWith('2-закрыт'));
 var timeInterval$ = rxjs_1.of(timeInterval1$).pipe(operators_1.mergeAll());
 //timeInterval$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timeInterval поток закрыт'));
+exports.timingOperatorList.push({ observable$: throttleTime$ });
 /**
  * timestamp
  * оборачивает каждое значение в объект, добавляя время его имитации
@@ -547,3 +557,4 @@ operators_1.take(5), operators_1.map(function (item) { return item * 102 + '-2';
 operators_1.endWith('2-закрыт'));
 var timestamp$ = rxjs_1.of(timestamp1$, timestamp2$).pipe(operators_1.mergeAll());
 //timestamp$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timestamp поток закрыт'));
+exports.timingOperatorList.push({ observable$: timestamp$ });

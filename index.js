@@ -135,49 +135,18 @@ audit$.subscribe((item) =>
  * Облегчение автоматизации запуска операторов
  */
 var operatorList = [];
-operatorList.push.apply(operatorList, __spread(filtering_1.filteringOperatorList.map(function (item) { return item.observable$; }), buffering_1.bufferingOperatorList.map(function (item) { return item.observable$; }), erroring_1.erroringOperatorList.map(function (item) { return item.observable$; }), grouping_1.groupingOperatorList.map(function (item) { return item.observable$; }), multicasting_1.multicastingOperatorList.map(function (item) { return item.observable$; }), timing_1.timingOperatorList.map(function (item) { return item.observable$; }), transforming_1.transformingOperatorList.map(function (item) { return item.observable$; })));
-utils_1.logAll("\u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430 \u043E\u043F\u0435\u0440\u0430\u0442\u043E\u0440\u043E\u0432 RxJs: " + operatorList.length + " \u0448\u0442\u0443\u043A");
+operatorList.push.apply(operatorList, __spread(filtering_1.filteringOperatorList.map(function (item) { return item.observable$; })));
+operatorList.push.apply(operatorList, __spread(buffering_1.bufferingOperatorList.map(function (item) { return item.observable$; })));
+operatorList.push.apply(operatorList, __spread(erroring_1.erroringOperatorList.map(function (item) { return item.observable$; })));
+operatorList.push.apply(operatorList, __spread(grouping_1.groupingOperatorList.map(function (item) { return item.observable$; })));
+operatorList.push.apply(operatorList, __spread(multicasting_1.multicastingOperatorList.map(function (item) { return item.observable$; })));
+operatorList.push.apply(operatorList, __spread(timing_1.timingOperatorList.map(function (item) { return item.observable$; })));
+operatorList.push.apply(operatorList, __spread(transforming_1.transformingOperatorList.map(function (item) { return item.observable$; })));
+utils_1.logAll("\u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430 \u043E\u043F\u0435\u0440\u0430\u0442\u043E\u0440\u043E\u0432 RxJs. \u0418\u0442\u043E\u0433\u043E \u043F\u0440\u0438\u043C\u0435\u0440\u043E\u0432: " + operatorList.length + " \u0448\u0442.");
 /**
- * Запуск операторов для проверки
+ * Запуск операторов для автоматической проверки
  */
-rxjs_1.of.apply(void 0, __spread(operatorList)).pipe(operators_1.mergeAll()).subscribe(function (item) { return utils_1.logAll('получил: ', item); }, function (err) { return utils_1.logAll('ошибка:', err); }, function () { return utils_1.logAll('поток закрыт'); });
-/**
- * map
- * Преобразует и возвращает текущее значение потока
- * interval(x) - Источник значений, который создаёт значения (i=0;i<Number.MAX_SAFE_INTEGER;i++) через каждые x мсек
- * для наглядности умножаю значения на интервал x, чтобы получалось время а не порядковый номер
- * tap - не меняет значения потока
- * take - останавливает поток после получения указанного количества значений
- */
-var map$ = rxjs_1.interval(100).pipe(operators_1.take(3), operators_1.map(function (item) { return ['преобразуй это: ', item]; }), //используется для конвертирования значений счётчиков в милисекунды имитации значений
-operators_1.tap(function (item) { return ['фига с два: ', item]; }), //не возвращает ничего
-operators_1.tap(function (item) { return utils_1.logAll('отладь меня: ', item); }));
-/**
- * Три работающих варианта подписки
- * разведены во времени, чтобы не перемешивать вывод в консоль
- */
-//map$.subscribe(item => logAll('самый простой, значение:', item));
-/*
-const mapTimeout1 = setTimeout(() => {
-    map$.subscribe(
-        item => logAll(
-            'стрелочные функции, значение:', item),
-        err => logAll('стрелочные функции, ошибка:', err),
-        () => logAll('стрелочные функции, закрытие:', 'конец')
-    );
-    clearInterval(mapTimeout1)
-}, 1000);
- */
-/*
-const mapTimeout2 = setTimeout(() => {
-    map$.subscribe({
-        next: item => logAll('объект, значение:', item),
-        error: err => logAll('объект, ошибка', err),
-        complete: () => logAll('объект, закрытие', 'конец')
-    })
-    clearInterval(mapTimeout2);
-}, 2000);
- */
+// of(...operatorList).pipe(mergeAll()).subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('поток закрыт'));
 //========================================================================================================================
 //==================================================UTILITY===============================================================
 //========================================================================================================================

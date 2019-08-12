@@ -52,6 +52,7 @@ const combineAll$ = of(combine1$, combine2$, combine3$).pipe(
 )
 
 // combineAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineAll поток закрыт'));
+groupingOperatorList.push({ observable$: combineAll$ });
 
 /**
  * combineLatest
@@ -85,6 +86,7 @@ const combineLatest$ = combineLatest(combineLatest1$, combineLatest2$, combineLa
 )
 
 // combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
+groupingOperatorList.push({ observable$: combineLatest$ });
 
 /**
  * concatAll
@@ -126,6 +128,7 @@ const concatAll$ = of(concatAll1$, concatAll2$, concatAll3$).pipe(
 )
 
 // concatAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineAll поток закрыт'));
+groupingOperatorList.push({ observable$: concatAll$ });
 
 /**
  * exhaust
@@ -158,6 +161,7 @@ const exhaust$ = of(exhaust1$, exhaust2$, exhaust3$, exhaust4$).pipe(
 )
 
 // exhaust$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('exhaust поток закрыт'));
+groupingOperatorList.push({ observable$: exhaust$ });
 
 /**
  * mergeAll
@@ -201,6 +205,7 @@ const mergeAll$ = of(mergeAll1$, mergeAll2$, mergeAll3$, mergeAll4$).pipe(
 )
 
 // mergeAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeAll поток закрыт'));
+groupingOperatorList.push({ observable$: mergeAll$ });
 
 /**
  * withLatestFrom
@@ -227,7 +232,7 @@ const withLatestFrom$ = interval(303).pipe(
 )
 
 // withLatestFrom$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('withLatestFrom поток закрыт'));
-
+groupingOperatorList.push({ observable$: withLatestFrom$ });
 
 //========================================================================================================================
 //==================================================GROUPING VALUES=======================================================
@@ -259,6 +264,7 @@ const mergeMap$ = of(mergeMap1$, mergeMap2$, mergeMap3$, mergeMap4$).pipe(
 )
 
 //mergeMap$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMap поток закрыт'));
+groupingOperatorList.push({ observable$: mergeMap$ });
 
 /**
  * groupBy
@@ -281,6 +287,7 @@ const groupBy$ = of(
 )
 
 //groupBy$.subscribe((item) => logAll(JSON.stringify(item)))
+groupingOperatorList.push({ observable$: groupBy$ });
 
 /**
  * pairwise
@@ -301,6 +308,7 @@ const pairwise$ = interval(100).pipe(
 )
 
 //pairwise$.subscribe((item) => logAll(JSON.stringify(item)))
+groupingOperatorList.push({ observable$: pairwise$ });
 
 /**
  * partition
@@ -370,6 +378,7 @@ const switchAll$ = of(switchAll0$, switchAll1$, switchAll2$).pipe(
 )
 
 // switchAll$.subscribe(item => logAll(item), null, () => logAll('switchAll поток закрыт'));
+groupingOperatorList.push({ observable$: switchAll$ });
 
 /**
  * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого
@@ -402,3 +411,4 @@ const zipAll$ = of(zipAll0$, zipAll1$, zipAll2$).pipe(
 )
 
 // zipAll$.subscribe(item => logAll(item), null, () => logAll('zipAll поток закрыт'));
+groupingOperatorList.push({ observable$: zipAll$ });

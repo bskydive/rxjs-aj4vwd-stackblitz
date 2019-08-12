@@ -36,6 +36,7 @@ var error$ = rxjs_1.throwError('ошибка ошибковна')
     return rxjs_1.of('янеошибка'); //подмена ошибки значением
 }));
 //error$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('error поток закрыт'));
+exports.erroringOperatorList.push({ observable$: error$ });
 //
 /**
  * errorHandler
@@ -50,6 +51,7 @@ var errorEmpty$ = rxjs_1.of().pipe(operators_1.throwIfEmpty() //без подм�
 //throwIfEmpty(errorHandler)//подмена ошибки
 );
 //errorEmpty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('errorEmpty поток закрыт'));
+exports.erroringOperatorList.push({ observable$: errorEmpty$ });
 //
 /**
  * errorResumeNext
@@ -75,6 +77,7 @@ var errorSwitch$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.ma
     }
 }), operators_1.onErrorResumeNext(errorNext$));
 //errorSwitch$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('errorSwitch поток закрыт'));
+exports.erroringOperatorList.push({ observable$: errorSwitch$ });
 /**
  * retry
  *
@@ -116,6 +119,7 @@ var retry$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(fun
     }
 }), operators_1.retry(3));
 //retry$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retry поток закрыт'));
+exports.erroringOperatorList.push({ observable$: retry$ });
 /**
  * retryWhen
  * повторяет поток пока не будет получен complete/error внутри аргумента наблюдателя retryCondition$
@@ -149,6 +153,7 @@ var retryWhen$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map
     );
 }));
 //retryWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen поток закрыт'));
+exports.erroringOperatorList.push({ observable$: retryWhen$ });
 /**
  * retryWhen более сложный пример
  *
@@ -183,6 +188,7 @@ var retryWhen2$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.ma
     }), operators_1.takeWhile(function (errCount) { return errCount < 2; }));
 }), operators_1.map(function (item) { return item * 101; }));
 //retryWhen2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('retryWhen2 поток закрыт'));
+exports.erroringOperatorList.push({ observable$: retryWhen2$ });
 /**
  * timeout
  * прерывает поток ошибкой, если нет значения за время интервала
@@ -199,9 +205,9 @@ Hello World!
 получил:  { [TimeoutError: Timeout has occurred] message: 'Timeout has occurred', name: 'TimeoutError' }
 timeOut поток закрыт
  */
-var timeOut1$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }));
-var timeOut2$ = rxjs_1.interval(202).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 202 + '-2'; }));
-var timeOut$ = rxjs_1.of(timeOut1$, timeOut2$).pipe(operators_1.mergeAll(), operators_1.timeout(111), operators_1.catchError(function (err, caught$) {
+var timeOutSrc1$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101 + '-1'; }));
+var timeOutSrc2$ = rxjs_1.interval(202).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 202 + '-2'; }));
+var timeOut$ = rxjs_1.of(timeOutSrc1$, timeOutSrc2$).pipe(operators_1.mergeAll(), operators_1.timeout(111), operators_1.catchError(function (err, caught$) {
     if (err.name === 'TimeoutError') {
         // обрабатываем событие таймера
         utils_1.logAll('Таймер сработал');
@@ -210,6 +216,7 @@ var timeOut$ = rxjs_1.of(timeOut1$, timeOut2$).pipe(operators_1.mergeAll(), oper
     return rxjs_1.of(err);
 }));
 //timeOut$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOut поток закрыт'));
+exports.erroringOperatorList.push({ observable$: timeOut$ });
 /**
  * timeoutWith
  * стартует новый поток, если нет значения за время интервала
@@ -237,3 +244,4 @@ var timeOutWith$ = rxjs_1.of(timeOutWithSrc1$, timeOutWithSrc2$).pipe(operators_
     return rxjs_1.of(err);
 }));
 //timeOutWith$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('timeOutWith поток закрыт'));
+exports.erroringOperatorList.push({ observable$: timeOutWith$ });

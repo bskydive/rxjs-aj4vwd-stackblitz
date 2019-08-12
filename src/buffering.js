@@ -30,8 +30,9 @@ Hello World!
 buffer поток закрыт
  */
 var bufferCloseSignal$ = rxjs_1.interval(202);
-var buffer$ = rxjs_1.interval(101).pipe(operators_1.take(7), operators_1.map(function (item) { return item * 101; }), operators_1.buffer(bufferCloseSignal$));
+var buffer$ = rxjs_1.interval(101).pipe(operators_1.take(7), operators_1.map(function (item) { return item * 101; }), operators_1.buffer(bufferCloseSignal$), operators_1.endWith('buffer поток закрыт'));
 //buffer$.subscribe((item) => logAll('получил: ', item), null, () => logAll('buffer поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: buffer$ });
 /**
  * bufferCount
  * Кэширует из входного потока, и возвращает одним массивом
@@ -55,6 +56,7 @@ var bufferCountSize = 3;
 var bufferCountStartNew = 2;
 var bufferCount$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101; }), operators_1.bufferCount(bufferCountSize), operators_1.bufferCount(bufferCountSize, bufferCountStartNew));
 //bufferCount$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferCount поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: bufferCount$ });
 /**
  * bufferTime
  * Кэширует из входного потока, и возвращает одним массивом
@@ -72,6 +74,7 @@ var bufferTimeSize = 202;
 var bufferTimeCreateNew = 102;
 var bufferTime$ = rxjs_1.interval(101).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 101; }), operators_1.bufferTime(bufferTimeSize, bufferTimeCreateNew));
 //bufferTime$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferTime поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: bufferTime$ });
 /**
  * bufferToggle
  * Кэширует из входного потока, и возвращает одним массивом
@@ -100,6 +103,7 @@ var bufferOpen$ = rxjs_1.interval(404).pipe(operators_1.tap(function (item) { re
 var bufferClose$ = function () { return rxjs_1.interval(303).pipe(operators_1.tap(function (item) { return utils_1.logAll('bufferClose: ', item * 303); })); };
 var bufferToggle$ = rxjs_1.interval(101).pipe(operators_1.take(20), operators_1.map(function (item) { return item * 101; }), operators_1.bufferToggle(bufferOpen$, bufferClose$));
 //bufferToggle$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferToggle поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: bufferToggle$ });
 /**
  * bufferWhen
  * Кэширует из входного потока, и возвращает одним массивом
@@ -139,6 +143,7 @@ operators_1.bufferWhen(function () {
     }
 }));
 //bufferWhen$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferWhen поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: bufferWhen$ });
 //========================================================================================================================
 //==================================================WINDOW================================================================
 //========================================================================================================================
@@ -158,6 +163,7 @@ window поток закрыт
 var windowCloseInterval$ = rxjs_1.interval(1000).pipe(operators_1.map(function (item) { return item * 1000 + '-windowCloseInterval'; }), operators_1.tap(utils_1.logAll));
 var window$ = rxjs_1.interval(101).pipe(operators_1.take(20), operators_1.window(windowCloseInterval$), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray()); }));
 // window$.subscribe((item) => logAll('получил: ', item), null, () => logAll('window поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: window$ });
 /**
  * windowCount
  *
@@ -183,6 +189,7 @@ var windowCount$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.m
 // windowCount(windowCountSize),
 operators_1.windowCount(windowCountSize, windowCountStartNew), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray()); }));
 // windowCount$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowCount поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: windowCount$ });
 /**
  * WindowTime
  * Возвращает новый поток(буфер) по времени, предыдущий закрывает
@@ -199,6 +206,7 @@ windowCount поток закрыт
 var windowTimeSize = 202;
 var windowTime$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101; }), operators_1.windowTime(windowTimeSize), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray()); }));
 //windowTime$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowTime поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: windowTime$ });
 /**
  * windowToggle
  * Возвращает новый поток(буфер) по значению от параметров-наблюдателей, предыдущий закрывает
@@ -216,6 +224,7 @@ var windowClose$ = function () { return rxjs_1.interval(303).pipe(operators_1.ma
 ); };
 var windowToggle$ = rxjs_1.interval(101).pipe(operators_1.take(10), operators_1.map(function (item) { return item * 101; }), operators_1.windowToggle(windowOpen$, windowClose$), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray()); }));
 //windowToggle$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowToggle поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: windowToggle$ });
 /**
  * windowWhen
  * Возвращает новый поток(буфер) по значению от параметров-наблюдателей, предыдущий закрывает
@@ -240,3 +249,4 @@ operators_1.windowWhen(function () {
     }
 }), operators_1.switchMap(function (item$) { return item$.pipe(operators_1.toArray()); }));
 //windowWhen$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowWhen поток закрыт'));
+exports.bufferingOperatorList.push({ observable$: windowWhen$ });

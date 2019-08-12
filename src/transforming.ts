@@ -49,6 +49,7 @@ const repeat$ = repeat1$.pipe(
 )
 
 // repeat$.subscribe(item => logAll(item), null, () => logAll('repeat поток закрыт'));
+transformingOperatorList.push({ observable$: repeat$ });
 
 /**
  * repeatWhen
@@ -135,7 +136,7 @@ const repeatWhen$ = repeatWhen1$.pipe(
 )
 
 // repeatWhen$.subscribe(item => logAll(item), null, () => logAll('repeatWhen поток закрыт'));
-
+transformingOperatorList.push({ observable$: repeatWhen$ });
 
 /**
  * ignoreElements
@@ -175,6 +176,7 @@ const ignoreElements$ = of(ignoreElements1$, ignoreElementsErr2$, ignoreElements
 )
 
 //ignoreElements$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('ignoreElements поток закрыт'));
+transformingOperatorList.push({ observable$: ignoreElements$ });
 
 /**
  * finalize
@@ -223,6 +225,7 @@ const finalize$ = of(finalizeErr1$, finalizeErr2$).pipe(
 )
 
 //finalize$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('finalize поток закрыт'));
+transformingOperatorList.push({ observable$: finalize$ });
 
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
@@ -296,6 +299,7 @@ const concatMap$ = of(concatMap1$, concatMap2$, concatMap3$).pipe(
 )
 
 // concatMap$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('concatMap поток закрыт'));
+transformingOperatorList.push({ observable$: concatMap$ });
 
 /**
  * concatMapTo
@@ -367,6 +371,7 @@ const concatMapTo$ = of(concatMapTo1$, concatMapToSignal$).pipe(
 )
 
 // concatMapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('concatMapTo поток закрыт'));
+transformingOperatorList.push({ observable$: concatMapTo$ });
 
 /**
  * defaultIfEmpty
@@ -395,7 +400,7 @@ const defaultIfEmpty$ = of(defaultIfEmpty1$).pipe(
 )
 
 //defaultIfEmpty$.subscribe(item => logAll(item + '-$'), null, () => logAll('defaultIfEmpty поток закрыт'));
-
+transformingOperatorList.push({ observable$: defaultIfEmpty$ });
 
 /**
  * endWith
@@ -432,6 +437,7 @@ const endWith$ = of(endWith1$, endWith2$).pipe(
 )
 
 //endWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('endWith поток закрыт'));
+transformingOperatorList.push({ observable$: endWith$ });
 
 /**
  * startWith
@@ -471,7 +477,7 @@ const startWith$ = of(startWith1$, startWith2$).pipe(
 )
 
 //startWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('startWith поток закрыт'));
-
+transformingOperatorList.push({ observable$: startWith$ });
 
 /**
  * exhaustMap
@@ -495,7 +501,9 @@ const exhaustMap$ = interval(302).pipe(
 	map(item => `startItem-${item * 302}`),
 	exhaustMap(exhaustMapFork$)
 );
+
 //exhaustMap$.subscribe(item => logAll(item), null, ()=> logAll('exhaustMap поток закрыт'));
+transformingOperatorList.push({ observable$: exhaustMap$ });
 
 /**
  * expand
@@ -543,11 +551,53 @@ const expand$ = of(expand1$).pipe(
 )
 
 //expand$.subscribe(item => logAll(item + '-$'), null, () => logAll('expand поток закрыт'));
+transformingOperatorList.push({ observable$: expand$ });
 
 /**
  * map
- * описан в начале
+ * Преобразует и возвращает текущее значение потока
+ * interval(x) - Источник значений, который создаёт значения (i=0;i<Number.MAX_SAFE_INTEGER;i++) через каждые x мсек
+ * для наглядности умножаю значения на интервал x, чтобы получалось время а не порядковый номер
+ * tap - не меняет значения потока
+ * take - останавливает поток после получения указанного количества значений
  */
+const map$ = interval(100).pipe(
+	take(3),
+	map(item => ['преобразуй это: ', item]), //используется для конвертирования значений счётчиков в милисекунды имитации значений
+	tap(item => ['фига с два: ', item]), //не возвращает ничего
+	tap(item => logAll('отладь меня: ', item)), //используется для отладки
+)
+
+/**
+ * Три работающих варианта подписки
+ * разведены во времени, чтобы не перемешивать вывод в консоль
+ */
+//map$.subscribe(item => logAll('самый простой, значение:', item));
+transformingOperatorList.push({ observable$: map$ });
+
+/* 
+const mapTimeout1 = setTimeout(() => {
+	map$.subscribe(
+		item => logAll(
+			'стрелочные функции, значение:', item),
+		err => logAll('стрелочные функции, ошибка:', err),
+		() => logAll('стрелочные функции, закрытие:', 'конец')
+	);
+	clearInterval(mapTimeout1)
+}, 1000);
+ */
+
+/* 
+const mapTimeout2 = setTimeout(() => {
+	map$.subscribe({
+		next: item => logAll('объект, значение:', item),
+		error: err => logAll('объект, ошибка', err),
+		complete: () => logAll('объект, закрытие', 'конец')
+	})
+	clearInterval(mapTimeout2);
+}, 2000);
+ */
+
 
 /**
  * mapTo
@@ -588,6 +638,7 @@ const mapTo$ = of(mapTo1$, mapToSignal$).pipe(
 )
 
 //mapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('mapTo поток закрыт'));
+transformingOperatorList.push({ observable$: mapTo$ });
 
 /**
  * scan
@@ -625,7 +676,7 @@ const scan$ = of(scan1$).pipe(
 )
 
 //scan$.subscribe(item => logAll(item + '-$'), null, () => logAll('scan поток закрыт'));
-
+transformingOperatorList.push({ observable$: scan$ });
 
 /**
  * mergeScan
@@ -689,6 +740,7 @@ const mergeScan$ = of(mergeScan1$).pipe(
 )
 
 //mergeScan$.subscribe(item => logAll(item + '-$'), null, () => logAll('mergeScan поток закрыт'));
+transformingOperatorList.push({ observable$: mergeScan$ });
 
 /**
  * pluck(x:string)
@@ -708,6 +760,7 @@ const pluck$ = interval(100)
 	);
 
 //pluck$.subscribe(item => logAll(item), null, ()=> logAll('pluck поток закрыт'));
+transformingOperatorList.push({ observable$: pluck$ });
 
 /**
  * reduce
@@ -743,7 +796,7 @@ const reduce$ = of(reduce1$).pipe(
 )
 
 //reduce$.subscribe(item => logAll(item + '-$'), null, () => logAll('reduce поток закрыт'));
-
+transformingOperatorList.push({ observable$: reduce$ });
 
 /**
  * switchMap 
@@ -775,6 +828,7 @@ const switchMap$ = interval(303).pipe(
 );
 
 //switchMap$.subscribe(item => logAll(item), null, ()=> logAll('switchMap поток закрыт'));
+transformingOperatorList.push({ observable$: switchMap$ });
 
 /**
  * mergeMapTo
@@ -846,6 +900,7 @@ const mergeMapTo$ = of(mergeMapTo1$, mergeMapTo2$, mergeMapTo3$, mergeMapTo4$).p
 )
 
 // mergeMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMapTo поток закрыт'));
+transformingOperatorList.push({ observable$: mergeMapTo$ });
 
 /**
  * switchMapTo
@@ -911,6 +966,7 @@ const switchMapTo$ = of(switchMapTo1$, switchMapTo2$, switchMapTo3$, switchMapTo
 )
 
 //switchMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('switchMapTo поток закрыт'));
+transformingOperatorList.push({ observable$: switchMapTo$ });
 
 /**
  * materialize
@@ -951,7 +1007,7 @@ const materialize$ = of(materialize1$, materialize2$).pipe(
 )
 
 // materialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('materialize поток закрыт'));
-
+transformingOperatorList.push({ observable$: materialize$ });
 
 /**
  * dematerialize
@@ -983,4 +1039,4 @@ const dematerialize$ = of(dematerialize1$, dematerialize2$, dematerialize3$).pip
 )
 
 //dematerialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('dematerialize поток закрыт'));
-
+transformingOperatorList.push({ observable$: dematerialize$ });

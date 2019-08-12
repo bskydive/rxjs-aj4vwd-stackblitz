@@ -4,7 +4,8 @@ var utils_1 = require("./utils");
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
 /**
- * Операторы асинхронных потоков
+ * Операторы асинхронного запуска потоков
+ * Примеры пока не приведены к запуску по .subscribe, и требуют раскомментирования по несколько строк для ручной проверки
  *
  * для массового выполнения тестов, комментировать не надо, запуск управляется из index.ts
  * filteringOperatorList.push({ observable$: xxx$ });
@@ -19,6 +20,7 @@ exports.multicastingOperatorList = [];
 //
 /**
  * multicast
+ *
  * Конвертирует поток в ConnectableObservable
  * Перенаправляет входящие потоки multicastIn в специальный поток(прокси) multicastProxy
  * Позволяет одновременно стартовать все потоки через прокси методом connect()
@@ -77,6 +79,7 @@ operators_1.multicast(multicastProxy$));
 multicast$.subscribe(function (item) { return utils_1.logAll(item + '-подписка1'); }, null, function () { return utils_1.logAll('multicast подписка1-закрыта'); });
 multicast$.pipe(operators_1.delay(1000)).subscribe(function (item) { return utils_1.logAll(item + '-подписка2'); }, null, function () { return utils_1.logAll('multicast подписка2-закрыта'); });
 // multicast$.connect();
+exports.multicastingOperatorList.push({ observable$: rxjs_1.of('multicast не может быть запущен одним subscribe !') });
 /**
  * share
  * подписывается на входящий поток share1, когда подписываются на него share$
@@ -114,6 +117,7 @@ var shareTimeout = setTimeout(function () {
     // share$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('share2 поток закрыт'));
     clearInterval(shareTimeout);
 }, 700);
+exports.multicastingOperatorList.push({ observable$: rxjs_1.of('share не может быть запущен одним subscribe !') });
 /**
  * shareReply
  * подписывается на входящий поток share1, когда подписываются на него share$
@@ -154,6 +158,7 @@ var shareReplayTimeout = setTimeout(function () {
     // shareReplay$.subscribe((item) => logAll('получил2: ', item), null, () => logAll('shareReplay2 поток закрыт'));
     clearInterval(shareReplayTimeout);
 }, 700);
+exports.multicastingOperatorList.push({ observable$: rxjs_1.of('shareReply не может быть запущен одним subscribe !') });
 /**
  * publish
  * Конвертирует поток в ConnectableObservable
@@ -203,6 +208,7 @@ operators_1.publish());
 publish$.subscribe(function (item) { return utils_1.logAll(item + '-подписка1'); }, null, function () { return utils_1.logAll('publish подписка1-закрыта'); });
 publish$.pipe(operators_1.delay(1000)).subscribe(function (item) { return utils_1.logAll(item + '-подписка2'); }, null, function () { return utils_1.logAll('publish подписка2-закрыта'); });
 // publish$.connect();
+exports.multicastingOperatorList.push({ observable$: rxjs_1.of('publish не может быть запущен одним subscribe !') });
 /**
  * publishBehavior
  * Конвертирует поток в ConnectableObservable
@@ -268,6 +274,7 @@ operators_1.publishBehavior(publishBehaviorInitialValue));
 // publishBehavior$.subscribe((item) => logAll(item + '-подписка1'), null, () => logAll('publishBehavior подписка1-закрыта'));
 // publishBehavior$.pipe(delay(1000)).subscribe((item) => logAll(item + '-подписка2'), null, () => logAll('publishBehavior подписка2-закрыта'));
 // publishBehavior$.connect();
+exports.multicastingOperatorList.push({ observable$: rxjs_1.of('publishBehavior не может быть запущен одним subscribe !') });
 /**
  * publishLast
  * Конвертирует поток в ConnectableObservable
@@ -298,6 +305,7 @@ var publishLastTimeout = setInterval(function () {
     clearInterval(publishLastTimeout);
 }, 300);
 // publishLast$.connect();
+exports.multicastingOperatorList.push({ observable$: rxjs_1.of('publishLast не может быть запущен одним subscribe !') });
 /**
  * publishReplay
  * Конвертирует поток в ConnectableObservable
@@ -342,3 +350,4 @@ var publishReplayTimeout2 = setInterval(function () {
     clearInterval(publishReplayTimeout2);
 }, 500);
 // publishReplay$.connect();
+exports.multicastingOperatorList.push({ observable$: rxjs_1.of('publishReplay не может быть запущен одним subscribe !') });

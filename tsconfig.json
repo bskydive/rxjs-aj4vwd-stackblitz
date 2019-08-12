@@ -1,7 +1,11 @@
 {
 	"compileOnSave": false,
-	"files":[
-		"index.ts"
+	"files": [
+		"index.ts",
+
+	],
+	"include": [
+		"src/*.ts"
 	],
 	"compilerOptions": {
 		"declaration": false,

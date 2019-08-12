@@ -46,6 +46,7 @@ var combineAll$ = rxjs_1.of(combine1$, combine2$, combine3$).pipe(
 // tap(logAll), //возвращает три потока наблюдателей
 operators_1.combineAll());
 // combineAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineAll поток закрыт'));
+exports.groupingOperatorList.push({ observable$: combineAll$ });
 /**
  * combineLatest
  * возвращает крайние значения combineLatestX$
@@ -74,6 +75,7 @@ var combineLatest3$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1
 // const combineLatest$ = combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser).pipe(
 var combineLatest$ = rxjs_1.combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser).pipe(operators_1.take(9));
 // combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
+exports.groupingOperatorList.push({ observable$: combineLatest$ });
 /**
  * concatAll
  * Возвращает все значения всех потоков
@@ -111,6 +113,7 @@ var concatAll3$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map
 var concatAll$ = rxjs_1.of(concatAll1$, concatAll2$, concatAll3$).pipe(operators_1.tap(utils_1.logAll), //возвращает три потока наблюдателей
 operators_1.concatAll());
 // concatAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineAll поток закрыт'));
+exports.groupingOperatorList.push({ observable$: concatAll$ });
 /**
  * exhaust
  * Возвращает значения потока, который первый их имитировал. Остальные потоки блокируются
@@ -139,6 +142,7 @@ var exhaust4$ = rxjs_1.of(1, 2, 3).pipe(operators_1.delay(2000));
 var exhaust$ = rxjs_1.of(exhaust1$, exhaust2$, exhaust3$, exhaust4$).pipe(operators_1.tap(utils_1.logAll), //возвращает три потока наблюдателей
 operators_1.exhaust());
 // exhaust$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('exhaust поток закрыт'));
+exports.groupingOperatorList.push({ observable$: exhaust$ });
 /**
  * mergeAll
  * ВОзвращает все значения всех потоков
@@ -178,6 +182,7 @@ var mergeAll4$ = rxjs_1.of(1, 2, 3).pipe(operators_1.delay(2000));
 var mergeAll$ = rxjs_1.of(mergeAll1$, mergeAll2$, mergeAll3$, mergeAll4$).pipe(operators_1.tap(utils_1.logAll), //возвращает три потока наблюдателей
 operators_1.mergeAll());
 // mergeAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeAll поток закрыт'));
+exports.groupingOperatorList.push({ observable$: mergeAll$ });
 /**
  * withLatestFrom
  * Возвращает массив текущих(предыдущих/крайних) значений потоков после получения значений из основного(сигнального) потока источника
@@ -197,6 +202,7 @@ var withLatestFrom3$ = rxjs_1.of(1);
 //const withLatestFrom3 = of(1).pipe(delay(1000));
 var withLatestFrom$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 303 + '-3'; }), operators_1.withLatestFrom(withLatestFrom1$, withLatestFrom2$, withLatestFrom3$));
 // withLatestFrom$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('withLatestFrom поток закрыт'));
+exports.groupingOperatorList.push({ observable$: withLatestFrom$ });
 //========================================================================================================================
 //==================================================GROUPING VALUES=======================================================
 //========================================================================================================================
@@ -222,6 +228,7 @@ var mergeMapArray = function (item$) { return item$.pipe(operators_1.toArray());
 var mergeMap$ = rxjs_1.of(mergeMap1$, mergeMap2$, mergeMap3$, mergeMap4$).pipe(operators_1.tap(utils_1.logAll), //возвращает три потока наблюдателей
 operators_1.mergeMap(mergeMapArray));
 //mergeMap$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMap поток закрыт'));
+exports.groupingOperatorList.push({ observable$: mergeMap$ });
 /**
  * groupBy
  * Возвращает несколько потоков из значений, сгруппированных по возврату функции groupSort
@@ -233,6 +240,7 @@ operators_1.mergeMap(mergeMapArray));
 var groupSort = function (item) { return item.b + 1; };
 var groupBy$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3' }, { a: 1, b: '4' }).pipe(operators_1.groupBy(groupSort), operators_1.mergeMap(function (item$) { return item$.pipe(operators_1.toArray()); }));
 //groupBy$.subscribe((item) => logAll(JSON.stringify(item)))
+exports.groupingOperatorList.push({ observable$: groupBy$ });
 /**
  * pairwise
  * Возвращает массивы текущего и предыдущего значений потока
@@ -248,6 +256,7 @@ var groupBy$ = rxjs_1.of({ a: 1, b: '2' }, { a: 1, b: '3' }, { a: 2, b: '3' }, {
  */
 var pairwise$ = rxjs_1.interval(100).pipe(operators_1.take(9), operators_1.pairwise());
 //pairwise$.subscribe((item) => logAll(JSON.stringify(item)))
+exports.groupingOperatorList.push({ observable$: pairwise$ });
 /**
  * partition
  * @deprecated заменяется filter
@@ -313,6 +322,7 @@ var switchAll$ = rxjs_1.of(switchAll0$, switchAll1$, switchAll2$).pipe(
 // mergeAll(), // для проверки асинхронности
 operators_1.switchAll());
 // switchAll$.subscribe(item => logAll(item), null, () => logAll('switchAll поток закрыт'));
+exports.groupingOperatorList.push({ observable$: switchAll$ });
 /**
  * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого
  *
@@ -342,3 +352,4 @@ var zipAll$ = rxjs_1.of(zipAll0$, zipAll1$, zipAll2$).pipe(
 // mergeAll(), // для проверки асинхронности
 operators_1.zipAll());
 // zipAll$.subscribe(item => logAll(item), null, () => logAll('zipAll поток закрыт'));
+exports.groupingOperatorList.push({ observable$: zipAll$ });

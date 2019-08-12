@@ -44,6 +44,7 @@ exports.transformingOperatorList = [];
 var repeat1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 101 + '-1'; }), operators_1.endWith('1-закрыт'));
 var repeat$ = repeat1$.pipe(operators_1.repeat(3));
 // repeat$.subscribe(item => logAll(item), null, () => logAll('repeat поток закрыт'));
+exports.transformingOperatorList.push({ observable$: repeat$ });
 /**
  * repeatWhen
  * Повторяет значения входного потока repeatWhen1 пока есть значения в контрольном потоке-функции repeatWhenControl
@@ -120,6 +121,7 @@ operators_1.endWith('1-закрыт'));
 var repeatWhenControl = function () { return rxjs_1.interval(202).pipe(operators_1.delay(1000), operators_1.take(3), operators_1.map(function (item) { return (item * 202 + 1000) + '-control'; }), operators_1.tap(utils_1.logAll), operators_1.endWith('control-закрыт')); };
 var repeatWhen$ = repeatWhen1$.pipe(operators_1.repeatWhen(repeatWhenControl));
 // repeatWhen$.subscribe(item => logAll(item), null, () => logAll('repeatWhen поток закрыт'));
+exports.transformingOperatorList.push({ observable$: repeatWhen$ });
 /**
  * ignoreElements
  * пропускает значения, оставляет сигналы
@@ -138,6 +140,7 @@ var ignoreElementsErr2$ = rxjs_1.interval(404).pipe(operators_1.take(3), operato
 var ignoreElementsErr3$ = rxjs_1.interval(505).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 505 + '-3'; }), operators_1.tap(utils_1.logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.ignoreElements(), operators_1.endWith('err2-закрыт'));
 var ignoreElements$ = rxjs_1.of(ignoreElements1$, ignoreElementsErr2$, ignoreElementsErr3$).pipe(operators_1.mergeAll());
 //ignoreElements$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('ignoreElements поток закрыт'));
+exports.transformingOperatorList.push({ observable$: ignoreElements$ });
 /**
  * finalize
  * выполняет функцию finalizeFn
@@ -165,6 +168,7 @@ operators_1.endWith('err1-закрыт'), operators_1.finalize(finalizeFn('1')))
 var finalizeErr2$ = rxjs_1.interval(505).pipe(operators_1.take(3), operators_1.map(function (item) { return item * 505 + '-2'; }), operators_1.tap(utils_1.logAll), operators_1.map(function (item) { return rxjs_1.throwError(item); }), operators_1.mergeAll(), operators_1.endWith('err2-закрыт'), operators_1.finalize(finalizeFn('2')));
 var finalize$ = rxjs_1.of(finalizeErr1$, finalizeErr2$).pipe(operators_1.mergeAll(), operators_1.finalize(finalizeFn('main')));
 //finalize$.subscribe(item => logAll(item), err => logAll('ошибка:', err), () => logAll('finalize поток закрыт'));
+exports.transformingOperatorList.push({ observable$: finalize$ });
 //========================================================================================================================
 //==================================================TRANSFORM VALUES======================================================
 //========================================================================================================================
@@ -222,6 +226,7 @@ operators_1.take(5), operators_1.map(function (item) { return item * 103 + '-3';
 operators_1.endWith('3-закрыт'));
 var concatMap$ = rxjs_1.of(concatMap1$, concatMap2$, concatMap3$).pipe(operators_1.mergeAll());
 // concatMap$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('concatMap поток закрыт'));
+exports.transformingOperatorList.push({ observable$: concatMap$ });
 /**
  * concatMapTo
  * входные значения - это сигнальный поток для имитации значений внутреннего потока concatMapToInternal
@@ -279,6 +284,7 @@ operators_1.take(5), operators_1.map(function (item) { return item * 103 + '-Sig
 operators_1.endWith('Signal-закрыт'));
 var concatMapTo$ = rxjs_1.of(concatMapTo1$, concatMapToSignal$).pipe(operators_1.mergeAll());
 // concatMapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('concatMapTo поток закрыт'));
+exports.transformingOperatorList.push({ observable$: concatMapTo$ });
 /**
  * defaultIfEmpty
  * возвращает указанное значение defaultIfEmptyInternal, если поток завершился без значений
@@ -297,6 +303,7 @@ operators_1.take(0), operators_1.map(function (item) { return item * 103 + '-1';
 operators_1.defaultIfEmpty(defaultIfEmptyInternal), operators_1.endWith('1-закрыт'));
 var defaultIfEmpty$ = rxjs_1.of(defaultIfEmpty1$).pipe(operators_1.mergeAll());
 //defaultIfEmpty$.subscribe(item => logAll(item + '-$'), null, () => logAll('defaultIfEmpty поток закрыт'));
+exports.transformingOperatorList.push({ observable$: defaultIfEmpty$ });
 /**
  * endWith
  * Выводит указанное значение перед закрытием потока
@@ -321,6 +328,7 @@ operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.endW
 );
 var endWith$ = rxjs_1.of(endWith1$, endWith2$).pipe(operators_1.mergeAll());
 //endWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('endWith поток закрыт'));
+exports.transformingOperatorList.push({ observable$: endWith$ });
 /**
  * startWith
  * Пишет значения в поток сразу после его открытия
@@ -343,6 +351,7 @@ var startWith2$ = rxjs_1.interval(102).pipe(
 operators_1.map(function (item) { return item * 102 + '-2'; }), operators_1.take(3), operators_1.endWith('2-закрыт'), operators_1.startWith('2-открыт'));
 var startWith$ = rxjs_1.of(startWith1$, startWith2$).pipe(operators_1.mergeAll());
 //startWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('startWith поток закрыт'));
+exports.transformingOperatorList.push({ observable$: startWith$ });
 /**
  * exhaustMap
  * Пропускает входящие значения пока не завершится поток аргумента exhaustMapFork$
@@ -358,6 +367,7 @@ var exhaustMapFork$ = function (startItem) { return rxjs_1.interval(100)
     .pipe(operators_1.take(3), operators_1.map(function (item) { return startItem + " forkItem-" + item * 100; })); };
 var exhaustMap$ = rxjs_1.interval(302).pipe(operators_1.take(3), operators_1.map(function (item) { return "startItem-" + item * 302; }), operators_1.exhaustMap(exhaustMapFork$));
 //exhaustMap$.subscribe(item => logAll(item), null, ()=> logAll('exhaustMap поток закрыт'));
+exports.transformingOperatorList.push({ observable$: exhaustMap$ });
 /**
  * expand
  * рекурсивная обработка значений
@@ -395,9 +405,44 @@ var parserRecursive1 = function (item) {
 var expand1$ = rxjs_1.interval(501).pipe(operators_1.take(3), operators_1.expand(parserRecursive1), operators_1.endWith('2-закрыт'));
 var expand$ = rxjs_1.of(expand1$).pipe(operators_1.mergeAll());
 //expand$.subscribe(item => logAll(item + '-$'), null, () => logAll('expand поток закрыт'));
+exports.transformingOperatorList.push({ observable$: expand$ });
 /**
  * map
- * описан в начале
+ * Преобразует и возвращает текущее значение потока
+ * interval(x) - Источник значений, который создаёт значения (i=0;i<Number.MAX_SAFE_INTEGER;i++) через каждые x мсек
+ * для наглядности умножаю значения на интервал x, чтобы получалось время а не порядковый номер
+ * tap - не меняет значения потока
+ * take - останавливает поток после получения указанного количества значений
+ */
+var map$ = rxjs_1.interval(100).pipe(operators_1.take(3), operators_1.map(function (item) { return ['преобразуй это: ', item]; }), //используется для конвертирования значений счётчиков в милисекунды имитации значений
+operators_1.tap(function (item) { return ['фига с два: ', item]; }), //не возвращает ничего
+operators_1.tap(function (item) { return utils_1.logAll('отладь меня: ', item); }));
+/**
+ * Три работающих варианта подписки
+ * разведены во времени, чтобы не перемешивать вывод в консоль
+ */
+//map$.subscribe(item => logAll('самый простой, значение:', item));
+exports.transformingOperatorList.push({ observable$: map$ });
+/*
+const mapTimeout1 = setTimeout(() => {
+    map$.subscribe(
+        item => logAll(
+            'стрелочные функции, значение:', item),
+        err => logAll('стрелочные функции, ошибка:', err),
+        () => logAll('стрелочные функции, закрытие:', 'конец')
+    );
+    clearInterval(mapTimeout1)
+}, 1000);
+ */
+/*
+const mapTimeout2 = setTimeout(() => {
+    map$.subscribe({
+        next: item => logAll('объект, значение:', item),
+        error: err => logAll('объект, ошибка', err),
+        complete: () => logAll('объект, закрытие', 'конец')
+    })
+    clearInterval(mapTimeout2);
+}, 2000);
  */
 /**
  * mapTo
@@ -426,6 +471,7 @@ var mapToSignal$ = rxjs_1.interval(103).pipe(operators_1.take(3), operators_1.ma
 operators_1.endWith('Signal-закрыт'));
 var mapTo$ = rxjs_1.of(mapTo1$, mapToSignal$).pipe(operators_1.mergeAll());
 //mapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('mapTo поток закрыт'));
+exports.transformingOperatorList.push({ observable$: mapTo$ });
 /**
  * scan
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
@@ -453,6 +499,7 @@ var scan1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.scan(sca
 operators_1.endWith('1-закрыт'));
 var scan$ = rxjs_1.of(scan1$).pipe(operators_1.mergeAll());
 //scan$.subscribe(item => logAll(item + '-$'), null, () => logAll('scan поток закрыт'));
+exports.transformingOperatorList.push({ observable$: scan$ });
 /**
  * mergeScan
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
@@ -502,6 +549,7 @@ var mergeScan1$ = rxjs_1.interval(102).pipe(operators_1.take(5), operators_1.mer
 operators_1.endWith('2-закрыт'));
 var mergeScan$ = rxjs_1.of(mergeScan1$).pipe(operators_1.mergeAll());
 //mergeScan$.subscribe(item => logAll(item + '-$'), null, () => logAll('mergeScan поток закрыт'));
+exports.transformingOperatorList.push({ observable$: mergeScan$ });
 /**
  * pluck(x:string)
  * возвращает в поток конкретное свойство x из значений входного потока
@@ -517,6 +565,7 @@ var pluck$ = rxjs_1.interval(100)
 operators_1.pluck('double') //возвращаем в поток только item.double
 );
 //pluck$.subscribe(item => logAll(item), null, ()=> logAll('pluck поток закрыт'));
+exports.transformingOperatorList.push({ observable$: pluck$ });
 /**
  * reduce
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
@@ -542,6 +591,7 @@ var reduce1$ = rxjs_1.interval(101).pipe(operators_1.take(5), operators_1.reduce
 operators_1.endWith('1-закрыт'));
 var reduce$ = rxjs_1.of(reduce1$).pipe(operators_1.mergeAll());
 //reduce$.subscribe(item => logAll(item + '-$'), null, () => logAll('reduce поток закрыт'));
+exports.transformingOperatorList.push({ observable$: reduce$ });
 /**
  * switchMap
  * после каждого нового значения входящего потока interval(302)
@@ -563,6 +613,7 @@ var switchMapFork1$ = function (startItem) { return rxjs_1.interval(101)
     .pipe(operators_1.take(3), operators_1.map(function (item) { return startItem + " forkItem-" + item * 101; })); };
 var switchMap$ = rxjs_1.interval(303).pipe(operators_1.take(3), operators_1.map(function (item) { return "startItem-" + item * 303; }), operators_1.switchMap(switchMapFork1$));
 //switchMap$.subscribe(item => logAll(item), null, ()=> logAll('switchMap поток закрыт'));
+exports.transformingOperatorList.push({ observable$: switchMap$ });
 /**
  * mergeMapTo
  * Выводит вместо входящего значения потока наблюдаемый поток mergeMapToInternal
@@ -627,6 +678,7 @@ var mergeMapToInternal$ = rxjs_1.interval(11).pipe(operators_1.take(3), operator
 var mergeMapTo$ = rxjs_1.of(mergeMapTo1$, mergeMapTo2$, mergeMapTo3$, mergeMapTo4$).pipe(operators_1.tap(utils_1.logAll), //возвращает три потока наблюдателей
 operators_1.mergeMapTo(mergeMapToInternal$));
 // mergeMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMapTo поток закрыт'));
+exports.transformingOperatorList.push({ observable$: mergeMapTo$ });
 /**
  * switchMapTo
  * Выводит вместо входящего значения потока наблюдаемый поток switchMapToInternal
@@ -684,6 +736,7 @@ var switchMapToInternal$ = rxjs_1.interval(11).pipe(operators_1.take(3), operato
 var switchMapTo$ = rxjs_1.of(switchMapTo1$, switchMapTo2$, switchMapTo3$, switchMapTo4$).pipe(operators_1.tap(utils_1.logAll), //возвращает три потока наблюдателей
 operators_1.switchMapTo(switchMapToInternal$));
 //switchMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('switchMapTo поток закрыт'));
+exports.transformingOperatorList.push({ observable$: switchMapTo$ });
 /**
  * materialize
  * Конвертирует входное(имитированное) значение потока в объект-оповещение (emission object to notification object)
@@ -719,6 +772,7 @@ var materialize$ = rxjs_1.of(materialize1$, materialize2$).pipe(
 // tap(logAll),
 operators_1.materialize());
 // materialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('materialize поток закрыт'));
+exports.transformingOperatorList.push({ observable$: materialize$ });
 /**
  * dematerialize
  * Конвертирует объект-оповещение в значение
@@ -743,3 +797,4 @@ var dematerialize$ = rxjs_1.of(dematerialize1$, dematerialize2$, dematerialize3$
 // tap(logAll),
 operators_1.materialize(), operators_1.dematerialize(), operators_1.mergeAll());
 //dematerialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('dematerialize поток закрыт'));
+// transformingOperatorList.push({ observable$: dematerialize$ });

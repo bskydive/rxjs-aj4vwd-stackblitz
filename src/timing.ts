@@ -81,7 +81,7 @@ const auditTime$ = of(auditTime1$, auditTime2$).pipe(
 )
 
 // auditTime$.subscribe(item => logAll(item), null, () => logAll('auditTime поток закрыт'));
-
+timingOperatorList.push({ observable$: auditTime$ });
 
 /**
  * sampleTime
@@ -138,6 +138,7 @@ const sampleTime$ = of(sampleTime1$, sampleTime5$).pipe(
 )
 
 // sampleTime$.subscribe(item => logAll(item), null, () => logAll('sampleTime поток закрыт'));
+timingOperatorList.push({ observable$: sampleTime$ });
 
 /**
  * observeOn
@@ -251,6 +252,7 @@ const observeOn$ = of(observeOn1$, observeOn2$, observeOn3$, observeOn4$, observ
 )
 
 // observeOn$.subscribe(item => logAll(item), null, () => logAll('observeOn поток закрыт'));
+timingOperatorList.push({ observable$: observeOn$ });
 
 /**
  * subscribeOn
@@ -355,6 +357,7 @@ const subscribeOn$ = of(subscribeOn1$, subscribeOn2$, subscribeOn3$, subscribeOn
 )
 
 // subscribeOn$.subscribe(item => logAll(item), null, () => logAll('subscribeOn поток закрыт'));
+timingOperatorList.push({ observable$: subscribeOn$ });
 
 /**
  * debounce
@@ -430,6 +433,7 @@ const debounce$ = of(debounceOver$, debounceNorm$, debounceDynamic$).pipe(
 )
 
 //debounce$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounce поток закрыт'));
+timingOperatorList.push({ observable$: debounce$ });
 
 /**
  * debounceTime
@@ -486,6 +490,7 @@ const debounceTime$ = of(debounceTimeOver$, debounceTimeNorm$).pipe(
 )
 
 // debounceTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('debounceTime поток закрыт'));
+timingOperatorList.push({ observable$: debounceTime$ });
 
 /**
  * delay
@@ -542,6 +547,7 @@ const delay$ = of(delay1$, delay2$, delay3$).pipe(
 )
 
 //delay$.subscribe(item => logAll(item + '-$'), null, () => logAll('delay поток закрыт'));
+timingOperatorList.push({ observable$: delay$ });
 
 /**
  * delayWhen
@@ -593,7 +599,7 @@ const delayWhen$ = of(delayWhen1$, delayWhen2$).pipe(
 )
 
 //delayWhen$.subscribe(item => logAll(item + '-$'), null, () => logAll('delayWhen поток закрыт'));
-
+timingOperatorList.push({ observable$: delayWhen$ });
 
 /**
  * throttleTime
@@ -646,6 +652,7 @@ const throttleTime$ = of(throttleTime1$, throttleTime2$).pipe(
 )
 
 //throttleTime$.subscribe(item => logAll(item + '-$'), null, () => logAll('throttleTime поток закрыт'));
+timingOperatorList.push({ observable$: throttleTime$ });
 
 /**
  * timeInterval
@@ -674,6 +681,7 @@ const timeInterval$ = of(timeInterval1$).pipe(
 )
 
 //timeInterval$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timeInterval поток закрыт'));
+timingOperatorList.push({ observable$: throttleTime$ });
 
 /**
  * timestamp
@@ -717,3 +725,4 @@ const timestamp$ = of(timestamp1$, timestamp2$).pipe(
 )
 
 //timestamp$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('timestamp поток закрыт'));
+timingOperatorList.push({ observable$: timestamp$ });
