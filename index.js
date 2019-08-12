@@ -142,6 +142,7 @@ operatorList.push.apply(operatorList, __spread(grouping_1.groupingOperatorList.m
 operatorList.push.apply(operatorList, __spread(multicasting_1.multicastingOperatorList.map(function (item) { return item.observable$; })));
 operatorList.push.apply(operatorList, __spread(timing_1.timingOperatorList.map(function (item) { return item.observable$; })));
 operatorList.push.apply(operatorList, __spread(transforming_1.transformingOperatorList.map(function (item) { return item.observable$; })));
+// небольшая проверка, что все модули собраны
 utils_1.logAll("\u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430 \u043E\u043F\u0435\u0440\u0430\u0442\u043E\u0440\u043E\u0432 RxJs. \u0418\u0442\u043E\u0433\u043E \u043F\u0440\u0438\u043C\u0435\u0440\u043E\u0432: " + operatorList.length + " \u0448\u0442.");
 /**
  * Запуск операторов для автоматической проверки
@@ -248,21 +249,6 @@ var sequenceEqual$ = rxjs_1.of(sequenceEqual1$, sequenceEqual2$).pipe(
 operators_1.mergeAll());
 // sequenceEqual$.subscribe((item) => logAll('получил: ', item), null, () => logAll('sequenceEqual поток закрыт'));
 //====
-/**
- * forkJoin
- */
-/**
- * merge
- */
-/**
- * concat
- */
-/**
- * race
- */
-/**
- * zip
- */
 /**
  * iif
  */

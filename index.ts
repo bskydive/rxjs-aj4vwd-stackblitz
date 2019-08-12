@@ -124,6 +124,7 @@ operatorList.push(...timingOperatorList.map(item => item.observable$));
 operatorList.push(...transformingOperatorList.map(item => item.observable$));
 
 
+// небольшая проверка, что все модули собраны
 logAll(`Библиотека операторов RxJs. Итого примеров: ${operatorList.length} шт.`);
 
 /**
@@ -305,26 +306,6 @@ const sequenceEqual$ = of(sequenceEqual1$, sequenceEqual2$).pipe(
 //====
 
 
-/**
- * forkJoin
- */
-
-
-/**
- * merge
- */
-
-/**
- * concat
- */
-
-/**
- * race
- */
-
-/**
- * zip
- */
 
 /**
  * iif

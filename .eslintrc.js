@@ -53,6 +53,7 @@ module.exports = {
 		'comma-spacing': 'warn',
 		'prefer-const': 'warn',
 		'arrow-spacing': 'warn',
-		'key-spacing': 'warn'
+		'key-spacing': 'warn',
+		'space-in-parens': 'warn'
 	}
 };

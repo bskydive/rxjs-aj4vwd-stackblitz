@@ -797,4 +797,4 @@ var dematerialize$ = rxjs_1.of(dematerialize1$, dematerialize2$, dematerialize3$
 // tap(logAll),
 operators_1.materialize(), operators_1.dematerialize(), operators_1.mergeAll());
 //dematerialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('dematerialize поток закрыт'));
-// transformingOperatorList.push({ observable$: dematerialize$ });
+exports.transformingOperatorList.push({ observable$: dematerialize$ });

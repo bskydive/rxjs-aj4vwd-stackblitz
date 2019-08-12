@@ -29,7 +29,7 @@ Hello World!
 получил:  янеошибка
 error поток закрыт
  */
-const error$ = throwError('ошибка ошибковна')
+const catchError$ = throwError('ошибка ошибковна')
 	.pipe(
 		catchError((err, caught$) => {
 			logAll('словил:', err, 'источик:', caught$);//перехватчик ошибок
@@ -41,8 +41,8 @@ const error$ = throwError('ошибка ошибковна')
 		}),
 	)
 
-//error$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('error поток закрыт'));
-erroringOperatorList.push({ observable$: error$ });
+// catchError$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('error поток закрыт'));
+erroringOperatorList.push({ observable$: catchError$ });
 
 //
 /**
@@ -64,7 +64,7 @@ erroringOperatorList.push({ observable$: errorEmpty$ });
 
 //
 /**
- * errorResumeNext
+ * onErrorResumeNext
  * Новый поток при ошибке
 
 Hello World!
@@ -82,7 +82,7 @@ const errorNext$ = interval(202).pipe(
 	map(item => item * 202 + '-next')
 );//резервный поток после ошибок
 
-const errorSwitch$ = interval(101).pipe(
+const onErrorResumeNext$ = interval(101).pipe(
 	take(5),
 	map(item => item * 101),
 	map(item => {
@@ -92,11 +92,11 @@ const errorSwitch$ = interval(101).pipe(
 			return item;
 		}
 	}),
-	onErrorResumeNext(errorNext$)
+	onErrorResumeNext(errorNext$),
 )
 
-//errorSwitch$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('errorSwitch поток закрыт'));
-erroringOperatorList.push({ observable$: errorSwitch$ });
+// onErrorResumeNext$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('onErrorResumeNext поток закрыт'));
+erroringOperatorList.push({ observable$: onErrorResumeNext$ });
 
 /**
  * retry
