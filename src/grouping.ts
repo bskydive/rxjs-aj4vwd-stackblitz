@@ -736,28 +736,28 @@ groupingOperatorList.push({ observable$: iif$ });
 // 	.subscribe(console.log);
 
 
-const sequenceEqualSrc0$ = interval(110).pipe(take(5), map(item => item * 110 + '-0'),
+const sequenceEqualSrc0$ = interval(101).pipe(take(5), map(item => item * 101),
 	// tap(logAll),
-	endWith('0-закрыт')
+	// endWith('0-закрыт')
 );
-const sequenceEqualSrc1$ = interval(101).pipe(take(3), map(item => (item * 101) + '-1'),
+const sequenceEqualSrc1$ = interval(101).pipe(take(5), map(item => (item * 101)),
 	// tap(logAll),
-	endWith('1-закрыт')
+	// endWith('1-закрыт')
 );
+
 const sequenceEqualSrc2$ = interval(102).pipe(delay(500), take(3), map(item => (item * 102 + 500) + '-2'),
 	// tap(logAll),
 	endWith('2-закрыт'),
 );
 
-const sequenceEqual$ = sequenceEqualSrc0$.pipe(
+const isSequenceEqual = (item1, item2) => item1 === item2
+
+const sequenceEqual$ = of(sequenceEqualSrc1$, sequenceEqualSrc2$).pipe(
 	// mergeAll()
 	// tap(logAll),
-	mergeMap(item => sequenceEqual(() => {
-		logAll(item + '--');
-		return item === '220-0'
-	}, sequenceEqualSrc1$, sequenceEqualSrc2$
-	)),
+	switchMap(sequenceEqual(sequenceEqualSrc0$), isSequenceEqual), // сравниваем параллельно сразу с двумя потоками
+	// switchMap(sequenceEqual(sequenceEqualSrc0$)),
 )
 
-// sequenceEqual$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sequenceEqual поток закрыт'));
+sequenceEqual$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sequenceEqual поток закрыт'));
 groupingOperatorList.push({ observable$: sequenceEqual$ });

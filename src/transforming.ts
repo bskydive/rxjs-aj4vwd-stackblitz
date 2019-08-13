@@ -370,7 +370,7 @@ const concatMapTo$ = of(concatMapTo1$, concatMapToSignal$).pipe(
 	mergeAll()
 )
 
-// concatMapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('concatMapTo поток закрыт'));
+// concatMapTo$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('concatMapTo поток закрыт'));
 transformingOperatorList.push({ observable$: concatMapTo$ });
 
 /**
@@ -399,7 +399,7 @@ const defaultIfEmpty$ = of(defaultIfEmpty1$).pipe(
 	mergeAll()
 )
 
-//defaultIfEmpty$.subscribe(item => logAll(item + '-$'), null, () => logAll('defaultIfEmpty поток закрыт'));
+//defaultIfEmpty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('defaultIfEmpty поток закрыт'));
 transformingOperatorList.push({ observable$: defaultIfEmpty$ });
 
 /**
@@ -436,7 +436,7 @@ const endWith$ = of(endWith1$, endWith2$).pipe(
 	mergeAll()
 )
 
-//endWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('endWith поток закрыт'));
+//endWith$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('endWith поток закрыт'));
 transformingOperatorList.push({ observable$: endWith$ });
 
 /**
@@ -476,7 +476,7 @@ const startWith$ = of(startWith1$, startWith2$).pipe(
 	mergeAll()
 )
 
-//startWith$.subscribe(item => logAll(item + '-$'), null, () => logAll('startWith поток закрыт'));
+//startWith$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('startWith поток закрыт'));
 transformingOperatorList.push({ observable$: startWith$ });
 
 /**
@@ -550,7 +550,7 @@ const expand$ = of(expand1$).pipe(
 	mergeAll()
 )
 
-//expand$.subscribe(item => logAll(item + '-$'), null, () => logAll('expand поток закрыт'));
+//expand$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('expand поток закрыт'));
 transformingOperatorList.push({ observable$: expand$ });
 
 /**
@@ -637,7 +637,7 @@ const mapTo$ = of(mapTo1$, mapToSignal$).pipe(
 	mergeAll()
 )
 
-//mapTo$.subscribe(item => logAll(item + '-$'), null, () => logAll('mapTo поток закрыт'));
+//mapTo$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mapTo поток закрыт'));
 transformingOperatorList.push({ observable$: mapTo$ });
 
 /**
@@ -675,7 +675,7 @@ const scan$ = of(scan1$).pipe(
 	mergeAll()
 )
 
-//scan$.subscribe(item => logAll(item + '-$'), null, () => logAll('scan поток закрыт'));
+//scan$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('scan поток закрыт'));
 transformingOperatorList.push({ observable$: scan$ });
 
 /**
@@ -739,7 +739,7 @@ const mergeScan$ = of(mergeScan1$).pipe(
 	mergeAll()
 )
 
-//mergeScan$.subscribe(item => logAll(item + '-$'), null, () => logAll('mergeScan поток закрыт'));
+//mergeScan$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeScan поток закрыт'));
 transformingOperatorList.push({ observable$: mergeScan$ });
 
 /**
@@ -795,7 +795,7 @@ const reduce$ = of(reduce1$).pipe(
 	mergeAll()
 )
 
-//reduce$.subscribe(item => logAll(item + '-$'), null, () => logAll('reduce поток закрыт'));
+//reduce$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('reduce поток закрыт'));
 transformingOperatorList.push({ observable$: reduce$ });
 
 /**
