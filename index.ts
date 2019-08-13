@@ -8,6 +8,7 @@ import { groupingOperatorList } from './src/grouping';
 import { multicastingOperatorList } from './src/multicasting';
 import { timingOperatorList } from './src/timing';
 import { transformingOperatorList } from './src/transforming';
+import { toolingOperatorList } from './src/tooling';
 
 /**
  * ===============================================
@@ -122,6 +123,7 @@ operatorList.push(...groupingOperatorList.map(item => item.observable$));
 operatorList.push(...multicastingOperatorList.map(item => item.observable$));
 operatorList.push(...timingOperatorList.map(item => item.observable$));
 operatorList.push(...transformingOperatorList.map(item => item.observable$));
+operatorList.push(...toolingOperatorList.map(item => item.observable$));
 
 
 // небольшая проверка, что все модули собраны
@@ -131,187 +133,4 @@ logAll(`Библиотека операторов RxJs. Итого пример�
  * Запуск операторов для автоматической проверки
  */
 // of(...operatorList).pipe(mergeAll()).subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('поток закрыт'));
-
-//========================================================================================================================
-//==================================================UTILITY===============================================================
-//========================================================================================================================
-//
-
-/**
- * count
- * Выводит количество значений имитированных входным потоком
- * 
- * Hello World!
-получил:  4
-count поток закрыт
- */
-
-const count1$ = interval(101).pipe(take(3), map(item => item * 101 + '-1'), endWith('1-закрыто'));
-
-const count$ = count1$.pipe(
-	// tap(logAll),
-	count(),
-)
-
-// count$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('count поток закрыт'));
-
-/**
- * every
- * проверяет значения входного потока функцией isEveryLess400
- * если true, выводит после закрытия потока true
- * если поймал false, выводит false и отписывается
- * 
- * Hello World!
-0
-isLess400 0
-0
-isLess400 0
-101
-isLess400 101
-202
-isLess400 202
-получил:  true
-получил:  1-закрыто
-202
-isLess400 202
-404
-isLess400 404
-получил:  false
-получил:  2-закрыто
-every поток закрыт
- */
-
-const isEveryLess400 = item => {
-	logAll('isLess400', item);
-	return item < 400
-};
-
-const every1$ = interval(101).pipe(
-	take(3),
-	map(item => item * 101),
-	tap(logAll),
-	every(isEveryLess400),
-	endWith('1-закрыто')
-);
-
-const every2$ = interval(202).pipe(
-	take(3),
-	map(item => item * 202),
-	tap(logAll),
-	every(isEveryLess400),
-	endWith('2-закрыто')
-);
-
-const every$ = of(every1$, every2$).pipe(
-	// tap(logAll),
-	mergeAll()
-)
-
-// every$.subscribe((item) => logAll('получил: ', item), null, () => logAll('every поток закрыт'));
-
-/**
- * isEmpty
- * имитирует true, если входной поток закрыт без значений
- * имитирует false и отписывается, если получено значение
- * 
- * Hello World!
-получил:  true
-получил:  1-закрыто
-0
-получил:  false
-получил:  2-закрыто
-isEmpty поток закрыт
- */
-
-const isEmpty1$ = interval(101).pipe(
-	take(0),
-	map(item => item * 101),
-	tap(logAll),
-	isEmpty(),
-	endWith('1-закрыто')
-);
-
-const isEmpty2$ = interval(202).pipe(
-	take(3),
-	map(item => item * 202),
-	tap(logAll),
-	isEmpty(),
-	endWith('2-закрыто')
-);
-
-const isEmpty$ = of(isEmpty1$, isEmpty2$).pipe(
-	// tap(logAll),
-	mergeAll()
-)
-
-// isEmpty$.subscribe((item) => logAll('получил: ', item), null, () => logAll('isEmpty поток закрыт'));
-
-/**
- * sequenceEqual
- * сравнивает значения входного потока и потока-аргумента
- * время игнорируется
- * 
- * Hello World!
-0-1
-0-2
-0-2другой
-получил:  false
-получил:  2-закрыто
-0-1
-101-1
-202-1
-101-1
-202-1
-получил:  true
-получил:  1-закрыто
-sequenceEqual поток закрыт
- */
-
-
-const sequenceEqual1Control$ = interval(101).pipe(
-	take(3),
-	map(item => item * 101 + '-1'),
-	tap(logAll)
-);
-
-const sequenceEqual1$ = interval(202).pipe( // !время разное
-	take(3),
-	map(item => item * 101 + '-1'),
-	tap(logAll),
-	sequenceEqual(sequenceEqual1Control$),
-	endWith('1-закрыто')
-);
-
-const sequenceEqual2Control$ = interval(101).pipe(
-	take(3),
-	map(item => item * 101 + '-2'),
-	tap(logAll)
-);
-
-const sequenceEqual2$ = interval(101).pipe(
-	take(3),
-	map(item => item * 101 + '-2другой'),
-	tap(logAll),
-	sequenceEqual(sequenceEqual2Control$),
-	endWith('2-закрыто')
-);
-
-const sequenceEqual$ = of(sequenceEqual1$, sequenceEqual2$).pipe(
-	// tap(logAll),
-	mergeAll()
-)
-
-// sequenceEqual$.subscribe((item) => logAll('получил: ', item), null, () => logAll('sequenceEqual поток закрыт'));
-
-//====
-
-
-
-/**
- * iif
- */
-
-/**
-  * scan
- */
 

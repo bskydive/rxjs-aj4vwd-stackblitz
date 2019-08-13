@@ -1,8 +1,8 @@
 import { IRunListItem, logAll } from './utils';
 
-import { interval, of, combineLatest, forkJoin, iif } from 'rxjs';
+import { interval, of, combineLatest, forkJoin, iif, from } from 'rxjs';
 
-import { take, map, combineAll, tap, concatAll, delay, exhaust, mergeAll, withLatestFrom, toArray, mergeMap, groupBy, pairwise, endWith, switchAll, zipAll, zip, merge, concat, race, catchError } from 'rxjs/operators';
+import { take, map, combineAll, tap, concatAll, delay, exhaust, mergeAll, withLatestFrom, toArray, mergeMap, groupBy, pairwise, endWith, switchAll, zipAll, zip, merge, concat, race, catchError, sequenceEqual, switchMap } from 'rxjs/operators';
 
 /**
  * Операторы группировки потоков и значений
@@ -722,3 +722,42 @@ const iif$ = iifSrc0$.pipe(
 // iif$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('iif поток закрыт'));
 groupingOperatorList.push({ observable$: iif$ });
 
+/**
+ * sequenceEqual
+ * выводит результат функции-сравнения двух значений из разных потоков
+ * Используется в тестировании
+ * 
+ */
+
+// const expectedSequence = from([4, 5, 6]);
+
+// of([1, 2, 3], [4, 5, 6], [7, 8, 9])
+// 	.pipe(switchMap(arr => from(arr).pipe(sequenceEqual(expectedSequence))))
+// 	.subscribe(console.log);
+
+
+const sequenceEqualSrc0$ = interval(110).pipe(take(5), map(item => item * 110 + '-0'),
+	// tap(logAll),
+	endWith('0-закрыт')
+);
+const sequenceEqualSrc1$ = interval(101).pipe(take(3), map(item => (item * 101) + '-1'),
+	// tap(logAll),
+	endWith('1-закрыт')
+);
+const sequenceEqualSrc2$ = interval(102).pipe(delay(500), take(3), map(item => (item * 102 + 500) + '-2'),
+	// tap(logAll),
+	endWith('2-закрыт'),
+);
+
+const sequenceEqual$ = sequenceEqualSrc0$.pipe(
+	// mergeAll()
+	// tap(logAll),
+	mergeMap(item => sequenceEqual(() => {
+		logAll(item + '--');
+		return item === '220-0'
+	}, sequenceEqualSrc1$, sequenceEqualSrc2$
+	)),
+)
+
+// sequenceEqual$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sequenceEqual поток закрыт'));
+groupingOperatorList.push({ observable$: sequenceEqual$ });

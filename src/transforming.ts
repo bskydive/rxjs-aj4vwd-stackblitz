@@ -803,6 +803,7 @@ transformingOperatorList.push({ observable$: reduce$ });
  * после каждого нового значения входящего потока interval(302)
  * выполняет функцию аргумент switchMapFork1$, который возвращает новый поток
  * предыдущий поток из switchMapFork1$ закрывается, потому рекомендуется только для чтения значений
+ * Используется для автодополнения https://angular-2-training-book.rangle.io/handout/http/search_with_switchmap.html
  * https://www.learnrxjs.io/operators/transformation/switchmap.html
 'startItem-0 forkItem-0'
 'startItem-0 forkItem-100'

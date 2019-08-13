@@ -542,7 +542,39 @@ var forkJoin$ = rxjs_1.forkJoin(forkJoinSrc1$, forkJoinSrc0$, forkJoinSrc2$).pip
 exports.groupingOperatorList.push({ observable$: forkJoin$ });
 /**
  * iif
- * в зависисости от boolean возврата параметра-функции стартует один или другой поток
+ * в зависимости от boolean возврата параметра-функции стартует один или другой поток
+ *
+ * 0-0--
+110-0--
+220-0--
+получил:  0-1
+330-0--
+получил:  101-1
+440-0--
+0-закрыт--
+получил:  202-1
+получил:  1-закрыт
+получил:  500-2
+получил:  602-2
+получил:  500-2
+получил:  704-2
+получил:  2-закрыт
+получил:  602-2
+получил:  704-2
+получил:  2-закрыт
+получил:  500-2
+получил:  602-2
+получил:  500-2
+получил:  500-2
+получил:  704-2
+получил:  2-закрыт
+получил:  602-2
+получил:  602-2
+получил:  704-2
+получил:  2-закрыт
+получил:  704-2
+получил:  2-закрыт
+iif поток закрыт
  */
 var iifSrc0$ = rxjs_1.interval(110).pipe(operators_1.take(5), operators_1.map(function (item) { return item * 110 + '-0'; }), 
 // tap(logAll),
@@ -560,5 +592,14 @@ operators_1.mergeMap(function (item) { return rxjs_1.iif(function () {
     utils_1.logAll(item + '--');
     return item === '220-0';
 }, iifSrc1$, iifSrc2$); }));
-iif$.subscribe(function (item) { return utils_1.logAll('получил: ', item); }, function (err) { return utils_1.logAll('ошибка:', err); }, function () { return utils_1.logAll('iif поток закрыт'); });
+// iif$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('iif поток закрыт'));
 exports.groupingOperatorList.push({ observable$: iif$ });
+/**
+ * sequenceEqual
+ * выводит результат функции-сравнения двух значений из разных потоков
+ *
+ */
+var expectedSequence = rxjs_1.from([4, 5, 6]);
+rxjs_1.of([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    .pipe(operators_1.switchMap(function (arr) { return rxjs_1.from(arr).pipe(operators_1.sequenceEqual(expectedSequence)); }))
+    .subscribe(console.log);
