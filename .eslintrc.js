@@ -54,6 +54,7 @@ module.exports = {
 		'prefer-const': 'warn',
 		'arrow-spacing': 'warn',
 		'key-spacing': 'warn',
-		'space-in-parens': 'warn'
+		'space-in-parens': 'warn',
+		'eol-last':'warn'
 	}
 };

@@ -13,7 +13,6 @@
 		"deprecation": {
 			"severity": "off"
 		},
-		"eofline": true,
 		"forin": true,
 		"import-blacklist": [
 			true,
@@ -148,6 +147,7 @@
 		"increment-decrement": false,
 		"arrow-return-shorthand": false,
 		"rxjs-no-unsafe-takeuntil": true,
-		"object-curly-spacing": { "severity": "warn" }
+		"object-curly-spacing": { "severity": "warn" },
+		"eofline": { "severity": "warn" }
 	}
 }

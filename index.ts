@@ -1,5 +1,4 @@
-import { of, interval, timer, throwError, Observable, forkJoin, fromEvent, combineLatest, merge, concat, race, zip, iif, asyncScheduler, asapScheduler, queueScheduler, animationFrameScheduler, VirtualTimeScheduler, empty, Notification, Subject, from, ConnectableObservable } from 'rxjs';
-import { map, buffer, take, bufferCount, bufferTime, tap, bufferToggle, bufferWhen, switchMap, toArray, window, windowCount, windowTime, windowToggle, windowWhen, catchError, throwIfEmpty, onErrorResumeNext, retry, scan, takeWhile, retryWhen, timeout, timeoutWith, skip, skipLast, skipUntil, skipWhile, takeLast, takeUntil, distinct, distinctUntilChanged, distinctUntilKeyChanged, filter, sample, audit, throttle, first, last, min, max, elementAt, find, findIndex, single, combineAll, concatAll, exhaust, delay, mergeAll, switchAll, withLatestFrom, groupBy, mergeMap, pairwise, exhaustMap, pluck, endWith, zipAll, repeat, repeatWhen, ignoreElements, finalize, auditTime, sampleTime, observeOn, subscribeOn, debounce, debounceTime, delayWhen, throttleTime, timeInterval, timestamp, concatMap, concatMapTo, defaultIfEmpty, startWith, expand, mapTo, mergeScan, reduce, mergeMapTo, switchMapTo, materialize, dematerialize, multicast, publish, share, shareReplay, publishBehavior, publishLast, publishReplay, count, every, isEmpty, sequenceEqual } from 'rxjs/operators';
+
 import { logAll } from './src/utils';
 import { filteringOperatorList } from './src/filtering';
 import { bufferingOperatorList } from './src/buffering';
@@ -9,11 +8,14 @@ import { multicastingOperatorList } from './src/multicasting';
 import { timingOperatorList } from './src/timing';
 import { transformingOperatorList } from './src/transforming';
 import { toolingOperatorList } from './src/tooling';
+import { Observable } from 'rxjs';
 
 /**
  * ===============================================
  * ========== Библиотека живых примеров ==========
  * ===============================================
+ * 
+ * На текущий момент 6 примеров из 107 дублирующие
  * 
  * ========== ПОЧИТАЙКА: README.md ===============
  * 
@@ -27,7 +29,7 @@ import { toolingOperatorList } from './src/tooling';
  * Поможет при изучении как справочник в поиске, и при отладке.
  * Содержит полный список правильных способов import {}
  * типовые примеры, которые легко комбинировать и сопоставлять
- * входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия.
+ * входные значения всегда потоки с интервалами, изредка - простые значения. Это имитирует боевые условия. Во многих примерах даются of(1,2,3), которые работают совсем иначе, чем interval(100). Например, в примерах со switchMap - простые значения не дают понять, что предыдущий поток может быть закрыт. src/transforming.ts:881(switchMap3$)
  * выводится время появления значения в потоке. Интервалы имитации разведены на милисекунду: 101, 102, 202, 203. Всегда понятно когда и в каком порядке имитировано значение.
  * к значениям из одного потока добавляются унифицированные постфиксы '-1' | '-2' | '-dynamic'
  * в примерах расставлены закоментированные операторы логирования для отладки tap(logAll)

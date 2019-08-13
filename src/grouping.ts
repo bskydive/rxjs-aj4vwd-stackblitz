@@ -324,7 +324,7 @@ groupingOperatorList.push({ observable$: withLatestFrom$ });
 
 /**
  * mergeMap
- * Преобразует каждый поток функцией аргументом mergeMapArray
+ * Преобразует каждый поток функцией аргументом mergeMapParse
  * В данном случае значения потоков аккумулируются в массив
 Observable {_isScalar: false, source: {…}, operator: {…}}
 Observable {_isScalar: false, source: {…}, operator: {…}}
@@ -340,11 +340,11 @@ const mergeMapSrc2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2')
 const mergeMapSrc3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const mergeMapSrc4$ = of(1, 2, 3).pipe(delay(2000));
 
-const mergeMapArray = item$ => item$.pipe(toArray())
+const mergeMapParse = item$ => item$.pipe(toArray())
 
 const mergeMap$ = of(mergeMapSrc1$, mergeMapSrc2$, mergeMapSrc3$, mergeMapSrc4$).pipe(
 	tap(logAll), //возвращает три потока наблюдателей
-	mergeMap(mergeMapArray),
+	mergeMap(mergeMapParse),
 	// mergeMap()
 )
 
@@ -479,7 +479,8 @@ groupingOperatorList.push({ observable$: switchAll$ });
 
 
 /**
- * zip - ждёт значения от всех потоков, и выдаёт по одному от каждого в общий массив. Принимает на вход только значения, комбинирует с потоками-параметрами, 
+ * zip - ждёт значения от всех потоков, и выдаёт по одному от каждого в общий массив. 
+ * Принимает на вход только значения, комбинирует с потоками-параметрами, 
  * 
  * 
 [ '1-0', '1000-1', '1000-2' ]
@@ -510,7 +511,8 @@ const zip$ = of(zip0$).pipe(
 groupingOperatorList.push({ observable$: zip$ });
 
 /**
- * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого в общий массив. Принимает на вход потоки
+ * zipAll - ждёт значения от всех потоков, и выдаёт по одному от каждого в общий массив. 
+ * Принимает на вход потоки
  * 
  Hello World!
 1-0
@@ -722,42 +724,4 @@ const iif$ = iifSrc0$.pipe(
 // iif$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('iif поток закрыт'));
 groupingOperatorList.push({ observable$: iif$ });
 
-/**
- * sequenceEqual
- * выводит результат функции-сравнения двух значений из разных потоков
- * Используется в тестировании
- * 
- */
 
-// const expectedSequence = from([4, 5, 6]);
-
-// of([1, 2, 3], [4, 5, 6], [7, 8, 9])
-// 	.pipe(switchMap(arr => from(arr).pipe(sequenceEqual(expectedSequence))))
-// 	.subscribe(console.log);
-
-
-const sequenceEqualSrc0$ = interval(101).pipe(take(5), map(item => item * 101),
-	// tap(logAll),
-	// endWith('0-закрыт')
-);
-const sequenceEqualSrc1$ = interval(101).pipe(take(5), map(item => (item * 101)),
-	// tap(logAll),
-	// endWith('1-закрыт')
-);
-
-const sequenceEqualSrc2$ = interval(102).pipe(delay(500), take(3), map(item => (item * 102 + 500) + '-2'),
-	// tap(logAll),
-	endWith('2-закрыт'),
-);
-
-const isSequenceEqual = (item1, item2) => item1 === item2
-
-const sequenceEqual$ = of(sequenceEqualSrc1$, sequenceEqualSrc2$).pipe(
-	// mergeAll()
-	// tap(logAll),
-	switchMap(sequenceEqual(sequenceEqualSrc0$), isSequenceEqual), // сравниваем параллельно сразу с двумя потоками
-	// switchMap(sequenceEqual(sequenceEqualSrc0$)),
-)
-
-sequenceEqual$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sequenceEqual поток закрыт'));
-groupingOperatorList.push({ observable$: sequenceEqual$ });

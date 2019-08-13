@@ -8,6 +8,7 @@
 		"src/*.ts"
 	],
 	"compilerOptions": {
+		"outDir": "./dist/out-tsc",
 		"declaration": false,
 		"module": "commonjs",
 		"downlevelIteration": true,

@@ -502,7 +502,7 @@ const exhaustMap$ = interval(302).pipe(
 	exhaustMap(exhaustMapFork$)
 );
 
-//exhaustMap$.subscribe(item => logAll(item), null, ()=> logAll('exhaustMap поток закрыт'));
+//exhaustMap$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('exhaustMap поток закрыт'));
 transformingOperatorList.push({ observable$: exhaustMap$ });
 
 /**
@@ -759,7 +759,7 @@ const pluck$ = interval(100)
 		pluck('double')//возвращаем в поток только item.double
 	);
 
-//pluck$.subscribe(item => logAll(item), null, ()=> logAll('pluck поток закрыт'));
+//pluck$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('pluck поток закрыт'));
 transformingOperatorList.push({ observable$: pluck$ });
 
 /**
@@ -816,20 +816,70 @@ transformingOperatorList.push({ observable$: reduce$ });
 'startItem-604 forkItem-200'
 поток закрыт
  */
-const switchMapFork1$ = startItem => interval(101)
+const switchMapFork$ = startItem => interval(101)
 	.pipe(
 		take(3),
-		map(item => `${startItem} forkItem-${item * 101}`)
+		map(item => `${JSON.stringify(startItem)} forkItem-${item * 101}`)
 	);
 
 const switchMap$ = interval(303).pipe(
 	take(3),
 	map(item => `startItem-${item * 303}`),
-	switchMap(switchMapFork1$)
+	switchMap(switchMapFork$)
 );
 
-//switchMap$.subscribe(item => logAll(item), null, ()=> logAll('switchMap поток закрыт'));
+//switchMap$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('switchMap поток закрыт'));
 transformingOperatorList.push({ observable$: switchMap$ });
+
+/**
+ * switchMap
+ * пример с несколькими потоками
+ * ! предыдущий поток закрывается
+ * 
+ * получил:  {"_isScalar":false,"source":{"_isScalar":false,"source":{"_isScalar":false},"operator":{"total":5}},"operator":{}} forkItem-0
+получил:  {"_isScalar":false,"source":{"_isScalar":false,"source":{"_isScalar":false},"operator":{"total":5}},"operator":{}} forkItem-101
+получил:  {"_isScalar":false,"source":{"_isScalar":false,"source":{"_isScalar":false},"operator":{"total":5}},"operator":{}} forkItem-202
+switchMap поток закрыт
+ */
+
+const switchMapSrc1$ = interval(201).pipe(take(3), map(item => item * 201 + '-1'));
+const switchMapSrc2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+
+
+const switchMap2$ = of(switchMapSrc1$, switchMapSrc2$).pipe(
+	switchMap(switchMapFork$),
+);
+
+// switchMap2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('switchMap2 поток закрыт'));
+transformingOperatorList.push({ observable$: switchMap2$ });
+
+
+/**
+ * switchMap
+ * демонстрация ошибки в понимании закрытия потоков - простые значения не теряются
+ * 
+ * получил:  1
+получил:  2
+получил:  3
+получил:  4
+получил:  5
+получил:  6
+получил:  7
+получил:  8
+получил:  9
+switchMap3 поток закрыт
+ */
+const switchMap3Src0$ = [1, 2, 3];
+const switchMap3Src1$ = [4, 5, 6];
+const switchMap3Src2$ = [7, 8, 9];
+
+const switchMap3$ = of(switchMap3Src0$, switchMap3Src1$, switchMap3Src2$).pipe(
+	switchMap(item$ => of(item$)),
+	mergeAll()
+)
+
+// switchMap3$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('switchMap3 поток закрыт'));
+transformingOperatorList.push({ observable$: switchMap3$ });
 
 /**
  * mergeMapTo
@@ -900,7 +950,7 @@ const mergeMapTo$ = of(mergeMapTo1$, mergeMapTo2$, mergeMapTo3$, mergeMapTo4$).p
 	mergeMapTo(mergeMapToInternal$)
 )
 
-// mergeMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMapTo поток закрыт'));
+// mergeMapTo$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeMapTo поток закрыт'));
 transformingOperatorList.push({ observable$: mergeMapTo$ });
 
 /**
@@ -966,7 +1016,7 @@ const switchMapTo$ = of(switchMapTo1$, switchMapTo2$, switchMapTo3$, switchMapTo
 	switchMapTo(switchMapToInternal$)
 )
 
-//switchMapTo$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('switchMapTo поток закрыт'));
+//switchMapTo$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('switchMapTo поток закрыт'));
 transformingOperatorList.push({ observable$: switchMapTo$ });
 
 /**
@@ -1007,7 +1057,7 @@ const materialize$ = of(materialize1$, materialize2$).pipe(
 	materialize()
 )
 
-// materialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('materialize поток закрыт'));
+// materialize$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('materialize поток закрыт'));
 transformingOperatorList.push({ observable$: materialize$ });
 
 /**
@@ -1039,5 +1089,5 @@ const dematerialize$ = of(dematerialize1$, dematerialize2$, dematerialize3$).pip
 	mergeAll()
 )
 
-//dematerialize$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('dematerialize поток закрыт'));
+//dematerialize$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('dematerialize поток закрыт'));
 transformingOperatorList.push({ observable$: dematerialize$ });
