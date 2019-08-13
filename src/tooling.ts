@@ -1,8 +1,8 @@
-import { IRunListItem, logAll } from "./utils";
-import { interval, of } from "rxjs";
-import { take, map, endWith, tap, every, mergeAll, isEmpty, sequenceEqual, count, switchMap, delay } from "rxjs/operators";
+import { IRunListItem, logAll } from './utils';
+import { interval, of, from } from 'rxjs';
+import { take, map, endWith, tap, every, mergeAll, isEmpty, sequenceEqual, count, switchMap, delay, mergeMap } from 'rxjs/operators';
 
-import { transformingOperatorList } from "./transforming";
+import { transformingOperatorList } from './transforming';
 
 
 /**
@@ -194,32 +194,75 @@ transformingOperatorList.push({ observable$: sequenceEqual$ });
 
 /**
  * sequenceEqual
- * пример с функцией-сравнением
+ * пример с логированием перед сравнением потока
  * 
+ * 
+сравниваем: {"_isScalar":false,"source":{"_isScalar":false,"source":{"_isScalar":false},"operator":{"total":5}},"operator":{}}
+сравниваем: {"_isScalar":false,"source":{"_isScalar":false,"source":{"_isScalar":false,"source":{"_isScalar":false},"operator":{"delay":500,"scheduler":{"actions":[],"active":false}}},"operator":{"total":5}},"operator":{}}
+сравниваем: {"_isScalar":false,"source":{"_isScalar":false,"source":{"_isScalar":false},"operator":{"total":5}},"operator":{}}
+разные: 0 !== "0-1"
+получил:  false
+получил:  true
+получил:  true
+sequenceEqual2 поток закрыт
  */
 
-const sequenceEqualSrc3$ = interval(101).pipe(take(5), map(item => item * 101),
+const sequenceEqualSrc3$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'),
 	// tap(logAll),
 	// endWith('0-закрыт')
 );
-const sequenceEqualSrc4$ = interval(101).pipe(take(5), map(item => (item * 101)),
+const sequenceEqualSrc4$ = interval(201).pipe(delay(500), take(5), map(item => item * 101 + '-1'), // другой интервал и задержка
+	// tap(logAll),
+	// endWith('1-закрыт')
+);
+const sequenceEqualSrc5$ = interval(101).pipe(take(5), map(item => item * 101),
 	// tap(logAll),
 	// endWith('1-закрыт')
 );
 
-const sequenceEqualSrc5$ = interval(102).pipe(delay(500), take(3), map(item => (item * 102 + 500) + '-2'),
+const sequenceEqual2SrcControl$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'),
 	// tap(logAll),
-	endWith('2-закрыт'),
+	// endWith('2-закрыт'),
 );
 
-const isSequenceEqual = (item1, item2) => item1 === item2
+const isSequenceEqual = (item1: any, item2: any) => {
+	if (item1 === item2) {
+		return true;
+	} else {
+		logAll(`разные: ${JSON.stringify(item1)} !== ${JSON.stringify(item2)}`);
+		return false;
+	}
+};
 
-const sequenceEqual2$ = of(sequenceEqualSrc3$, sequenceEqualSrc4$).pipe(
-	// mergeAll()
+const sequenceEqual2$ = of(sequenceEqualSrc3$, sequenceEqualSrc4$, sequenceEqualSrc5$).pipe(
 	// tap(logAll),
-	switchMap(sequenceEqual(sequenceEqualSrc5$), isSequenceEqual), // сравниваем параллельно сразу с двумя потоками
-	// switchMap(sequenceEqual(sequenceEqualSrc0$)),
+	mergeMap(item$ => {
+		// логируем что сравнили
+		logAll('сравниваем: ' + JSON.stringify(item$));
+		return from(item$).pipe(sequenceEqual(sequenceEqual2SrcControl$, isSequenceEqual));
+		// return from(item$).pipe(sequenceEqual(sequenceEqual2SrcControl$));
+	}),
 )
 
-// sequenceEqual2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sequenceEqual поток закрыт'));
-toolingOperatorList.push({ observable$: sequenceEqual$ });
+// sequenceEqual2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sequenceEqual2 поток закрыт'));
+toolingOperatorList.push({ observable$: sequenceEqual2$ });
+
+/**
+ * sequenceEqual
+ * Пример с функцией-сравнением
+ * 
+ * разные: "0-1" !== 0
+получил:  false
+получил:  true
+разные: "0-1" !== 0
+получил:  false
+sequenceEqual3 поток закрыт
+ */
+
+const sequenceEqual3$ = of(sequenceEqualSrc3$, sequenceEqualSrc4$, sequenceEqualSrc5$).pipe(
+	// tap(logAll),
+	mergeMap(sequenceEqual(sequenceEqualSrc5$, isSequenceEqual)), // сравниваем параллельно сразу с двумя потоками
+)
+
+// sequenceEqual3$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('sequenceEqual3 поток закрыт'));
+toolingOperatorList.push({ observable$: sequenceEqual3$ });
