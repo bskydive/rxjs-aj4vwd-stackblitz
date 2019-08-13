@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "b": "tsc --build tsconfig.json && node index.js"
+    "b": "tsc --build tsconfig.json && node dist/out-tsc/index.js"
   },
   "dependencies": {
     "@angular/compiler": "^8.2.1",
