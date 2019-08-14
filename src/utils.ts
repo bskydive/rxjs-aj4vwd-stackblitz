@@ -1,5 +1,9 @@
 import { Observable } from 'rxjs';
 
+/**
+ * Интерфейсы и служебные функции
+ * 
+ */
 
 /**
  * Чтобы обойти ошибку TS2496: The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5. Consider using a standard function expression.

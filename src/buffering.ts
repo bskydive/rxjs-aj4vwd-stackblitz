@@ -39,7 +39,7 @@ const buffer$ = interval(101).pipe(
 	endWith('buffer поток закрыт')
 );
 
-//buffer$.subscribe((item) => logAll('получил: ', item), null, () => logAll('buffer поток закрыт'));
+//buffer$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('buffer поток закрыт'));
 bufferingOperatorList.push({ observable$: buffer$ });
 
 /**
@@ -71,7 +71,7 @@ const bufferCount$ = interval(101).pipe(
 	bufferCount(bufferCountSize, bufferCountStartNew),
 );
 
-//bufferCount$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferCount поток закрыт'));
+//bufferCount$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('bufferCount поток закрыт'));
 bufferingOperatorList.push({ observable$: bufferCount$ });
 
 /**
@@ -97,7 +97,7 @@ const bufferTime$ = interval(101).pipe(
 	bufferTime(bufferTimeSize, bufferTimeCreateNew),
 )
 
-//bufferTime$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferTime поток закрыт'));
+//bufferTime$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('bufferTime поток закрыт'));
 bufferingOperatorList.push({ observable$: bufferTime$ });
 
 /**
@@ -138,7 +138,7 @@ const bufferToggle$ = interval(101).pipe(
 	bufferToggle(bufferOpen$, bufferClose$),
 )
 
-//bufferToggle$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferToggle поток закрыт'));
+//bufferToggle$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('bufferToggle поток закрыт'));
 bufferingOperatorList.push({ observable$: bufferToggle$ });
 
 /**
@@ -184,7 +184,7 @@ const bufferWhen$ = interval(101).pipe(
 	})
 )
 
-//bufferWhen$.subscribe((item) => logAll('получил: ', item), null, () => logAll('bufferWhen поток закрыт'));
+//bufferWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('bufferWhen поток закрыт'));
 bufferingOperatorList.push({ observable$: bufferWhen$ });
 
 //========================================================================================================================
@@ -218,7 +218,7 @@ const window$ = interval(101).pipe(
 	)),
 )
 
-// window$.subscribe((item) => logAll('получил: ', item), null, () => logAll('window поток закрыт'));
+// window$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('window поток закрыт'));
 bufferingOperatorList.push({ observable$: window$ });
 
 /**
@@ -254,7 +254,7 @@ const windowCount$ = interval(101).pipe(
 	)),
 )
 
-// windowCount$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowCount поток закрыт'));
+// windowCount$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('windowCount поток закрыт'));
 bufferingOperatorList.push({ observable$: windowCount$ });
 
 
@@ -283,7 +283,7 @@ const windowTime$ = interval(101).pipe(
 	)),
 )
 
-//windowTime$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowTime поток закрыт'));
+//windowTime$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('windowTime поток закрыт'));
 bufferingOperatorList.push({ observable$: windowTime$ });
 
 /**
@@ -312,7 +312,7 @@ const windowToggle$ = interval(101).pipe(
 	)),
 )
 
-//windowToggle$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowToggle поток закрыт'));
+//windowToggle$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('windowToggle поток закрыт'));
 bufferingOperatorList.push({ observable$: windowToggle$ });
 
 /**
@@ -346,5 +346,5 @@ const windowWhen$ = interval(101).pipe(
 	))
 )
 
-//windowWhen$.subscribe((item) => logAll('получил: ', item), null, () => logAll('windowWhen поток закрыт'));
+//windowWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('windowWhen поток закрыт'));
 bufferingOperatorList.push({ observable$: windowWhen$ });

@@ -37,7 +37,7 @@ const count$ = count1$.pipe(
 	count(),
 )
 
-// count$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('count поток закрыт'));
+// count$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('count поток закрыт'));
 transformingOperatorList.push({ observable$: count$ });
 
 /**

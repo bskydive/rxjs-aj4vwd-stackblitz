@@ -348,7 +348,7 @@ const mergeMap$ = of(mergeMapSrc1$, mergeMapSrc2$, mergeMapSrc3$, mergeMapSrc4$)
 	// mergeMap()
 )
 
-//mergeMap$.subscribe((item) => logAll('получил: ',item), null, ()=> logAll('mergeMap поток закрыт'));
+//mergeMap$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeMap поток закрыт'));
 groupingOperatorList.push({ observable$: mergeMap$ });
 
 /**
@@ -359,7 +359,7 @@ const mergeMap2$ = mergeMapSrc4$.pipe(
 	mergeMap(item => of(item1 => item1 + '-of', mergeMapSrc1$, mergeMapSrc2$, mergeMapSrc3$))
 )
 
-// mergeMapSrc2$.subscribe((item) => logAll('получил: ', item), null, () => logAll('mergeMap2 поток закрыт'));
+// mergeMapSrc2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeMap2 поток закрыт'));
 groupingOperatorList.push({ observable$: mergeMapSrc2$ });
 
 /**

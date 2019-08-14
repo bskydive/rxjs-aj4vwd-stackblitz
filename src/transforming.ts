@@ -48,7 +48,7 @@ const repeat$ = repeat1$.pipe(
 	repeat(3)
 )
 
-// repeat$.subscribe(item => logAll(item), null, () => logAll('repeat поток закрыт'));
+// repeat$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('repeat поток закрыт'));
 transformingOperatorList.push({ observable$: repeat$ });
 
 /**
@@ -135,7 +135,7 @@ const repeatWhen$ = repeatWhen1$.pipe(
 	repeatWhen(repeatWhenControl)
 )
 
-// repeatWhen$.subscribe(item => logAll(item), null, () => logAll('repeatWhen поток закрыт'));
+// repeatWhen$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('repeatWhen поток закрыт'));
 transformingOperatorList.push({ observable$: repeatWhen$ });
 
 /**
