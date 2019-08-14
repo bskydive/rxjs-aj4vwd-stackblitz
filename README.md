@@ -44,19 +44,19 @@
 ## Автоматическая проверка кода
 
 По ходу дела я прикрутил в проект два линтера и несколько наборов правил:
-	* сорян, но табы. Они позволяют настраивать каждому своё отображение, не меняя код в репе.
-	* именование файлов в шашлычном стиле
-	* именование интерфейсов с префиксом `I`
-	* многие правила es/ts lint дублируются, часть отключено в одном из двух, но большинство оставлено, т.к. непонятно как конкретно работают правила, и непонятно что лучше.
-	* правила форматирования переведены в `severity: warn`.
-	* нельзя оставлять в коде console.log()
-	* [Финская нотация](https://medium.com/@benlesh/observables-and-finnish-notation-df8356ed1c9b). Да, она через линтер помогает, например, не проглядеть тип значений внутри операторов `map(item=>item... | map(item$=>item$...` , т.к. вместо объекта может прилететь `Observable`, и это не всегда отлавливается tslint.
-	* перелопатил [все правила eslint](https://eslint.org/docs/rules/), и добавил что добавилось. Искал правило для [сложного](https://github.com/bskydive/angular-docdja) [случая](https://stackblitz.com/edit/angular-docdja), который периодически трепал мне нервы. Не нашёл :(.
-	* [rxjs-tslint-rules](https://github.com/cartant/rxjs-tslint-rules#rules)
-	* [codelyzer for Angular](https://github.com/mgechev/codelyzer)
-	* [angular-tslint-rules: a configuration preset for both TSLint & codelyzer](https://medium.com/burak-tasci/angular-tslint-rules-a-configuration-preset-for-both-tslint-codelyzer-8b5fa1455908)
-	* [https://blog.angularindepth.com/rxjs-avoiding-takeuntil-leaks-fb5182d047ef](https://blog.angularindepth.com/rxjs-avoiding-takeuntil-leaks-fb5182d047ef)
-	* [https://medium.com/free-code-camp/best-practices-for-a-clean-and-performant-angular-application-288e7b39eb6f](https://medium.com/free-code-camp/best-practices-for-a-clean-and-performant-angular-application-288e7b39eb6f)
+* сорян, но табы. Они позволяют настраивать каждому своё отображение, не меняя код в репе.
+* именование файлов в шашлычном стиле
+* именование интерфейсов с префиксом `I`
+* многие правила es/ts lint дублируются, часть отключено в одном из двух, но большинство оставлено, т.к. непонятно как конкретно работают правила, и непонятно что лучше.
+* правила форматирования переведены в `severity: warn`.
+* нельзя оставлять в коде console.log()
+* [Финская нотация](https://medium.com/@benlesh/observables-and-finnish-notation-df8356ed1c9b). Да, она через линтер помогает, например, не проглядеть тип значений внутри операторов `map(item=>item... | map(item$=>item$...` , т.к. вместо объекта может прилететь `Observable`, и это не всегда отлавливается tslint.
+* перелопатил [все правила eslint](https://eslint.org/docs/rules/), и добавил что добавилось. Искал правило для [сложного](https://github.com/bskydive/angular-docdja) [случая](https://stackblitz.com/edit/angular-docdja), который периодически трепал мне нервы. Не нашёл :(.
+* [rxjs-tslint-rules](https://github.com/cartant/rxjs-tslint-rules#rules)
+* [codelyzer for Angular](https://github.com/mgechev/codelyzer)
+* [angular-tslint-rules: a configuration preset for both TSLint & codelyzer](https://medium.com/burak-tasci/angular-tslint-rules-a-configuration-preset-for-both-tslint-codelyzer-8b5fa1455908)
+* [https://blog.angularindepth.com/rxjs-avoiding-takeuntil-leaks-fb5182d047ef](https://blog.angularindepth.com/rxjs-avoiding-takeuntil-leaks-fb5182d047ef)
+* [https://medium.com/free-code-camp/best-practices-for-a-clean-and-performant-angular-application-288e7b39eb6f](https://medium.com/free-code-camp/best-practices-for-a-clean-and-performant-angular-application-288e7b39eb6f)
 
 ## Как использовать
 
