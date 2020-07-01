@@ -23,6 +23,33 @@
 * TODO написать тесты для для всех примеров
 * TODO добавить в описания операторов их более простые аналоги/комбинации
 
+## Как использовать
+
+* примеры разбиты на файлы, чтобы не сводить с ума линтеры, и собраны в index.ts через экспорт массивов для реализации в будущем автотестов.
+* запуск всех примеров выключен(закомментирован). Чтобы их запустить - надо раскомментировать подписку `subscribe`
+* для генерации входного потока данных вручную сделана кнопка `<button id="id-tight-button">` в `index.html`
+* можно [открыть в IDE](https://github.com/bskydive/rxjs-aj4vwd-stackblitz), а можно через chrome в облаке [stackblitz](https://stackblitz.com/edit/rxjs-aj4vwd)
+* Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора. Например `switchMap$`. Также операторы видны в "структуре кода" - специальном окне IDE. 
+* Перед каждым примером есть небольшое описание и результат выполнения
+* В облаке stackblitz:
+	 * обновить страницу(stackblitz)
+	 * раскомментировать `*$.subscribe(*` строку необходимого оператора
+	 * открыть консоль встроенного браузера(stackblitz)
+ * Локально в IDE:
+	```bash
+		git clone https://github.com/bskydive/rxjs-aj4vwd-stackblitz.git
+		cd rxjs-aj4vwd-stackblitz
+		npm i
+		npm run b
+	```
+* Список плагинов VSCode, которые относятся к теме:
+	* [tslint](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin) 
+	* [eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) 
+	* [учёт времени с привязкой к git wakatime](https://marketplace.visualstudio.com/items?itemName=WakaTime.vscode-wakatime)
+	* [открытый аналог локально](https://marketplace.visualstudio.com/items?itemName=hangxingliu.vscode-coding-tracker)
+	* [открытый аналог локально для подсчёта эффективности без привязки к веткам и комитам](https://marketplace.visualstudio.com/items?itemName=softwaredotcom.swdc-vscode)
+ * чтобы заглушить ненужный входной поток достаточно дописать в начеле `*.pipe(*` оператор `take(0)`
+
 ## Список основных ресурсов, на основе которых написана библиотека
 
 * [Платный курс](https://app.pluralsight.com/library/courses/rxjs-operators-by-example-playbook), который можно посмотреть за время бесплатного доступа. Главное вспомнить отвязать банковскую карту до его окончания. Из этого курса я взял список операторов и их группировку.
@@ -47,30 +74,6 @@
 * [angular-tslint-rules: a configuration preset for both TSLint & codelyzer](https://medium.com/burak-tasci/angular-tslint-rules-a-configuration-preset-for-both-tslint-codelyzer-8b5fa1455908)
 * [RxJS: Avoiding takeUntil Leaks](https://blog.angularindepth.com/rxjs-avoiding-takeuntil-leaks-fb5182d047ef)
 * [Best practices for a clean and performant Angular application](https://medium.com/free-code-camp/best-practices-for-a-clean-and-performant-angular-application-288e7b39eb6f)
-
-## Как использовать
-
-* можно [открыть в IDE](https://github.com/bskydive/rxjs-aj4vwd-stackblitz), а можно через chrome в облаке [stackblitz](https://stackblitz.com/edit/rxjs-aj4vwd)
-* Необходимые операторы ищутся ctrl+f, в конце добавляем $ к названию оператора. Например `switchMap$`. Также операторы видны в "структуре кода" - специальном окне IDE. 
-* Перед каждым примером есть небольшое описание и результат выполнения
-* В облаке stackblitz:
-	 * обновить страницу(stackblitz)
-	 * раскомментировать `*$.subscribe(*` строку необходимого оператора
-	 * открыть консоль встроенного браузера(stackblitz)
- * Локально в IDE:
-	```bash
-		git clone https://github.com/bskydive/rxjs-aj4vwd-stackblitz.git
-		cd rxjs-aj4vwd-stackblitz
-		npm i
-		npm run b
-	```
-* Список плагинов VSCode, которые относятся к теме:
-	* [tslint](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin) 
-	* [eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) 
-	* [учёт времени с привязкой к git wakatime](https://marketplace.visualstudio.com/items?itemName=WakaTime.vscode-wakatime)
-	* [открытый аналог локально](https://marketplace.visualstudio.com/items?itemName=hangxingliu.vscode-coding-tracker)
-	* [открытый аналог локально для подсчёта эффективности без привязки к веткам и комитам](https://marketplace.visualstudio.com/items?itemName=softwaredotcom.swdc-vscode)
- * чтобы заглушить ненужный входной поток достаточно дописать в начеле `*.pipe(*` оператор `take(0)`
 
 ## Виды операторов по типу операций со значеними
 
