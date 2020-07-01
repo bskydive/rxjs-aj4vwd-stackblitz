@@ -657,26 +657,8 @@ groupingOperatorList.push({ observable$: race$ });
  * ! необходимо ловить ошибки внутри каждого потока, чтобы не прерывать родительский forkJoin
  * https://www.learnrxjs.io/learn-rxjs/operators/combination/forkjoin
 
-0-0
-110-0
-220-0
-330-0
-440-0
-500-1
-500-2
-550-0
-601-1
-601-2
-660-0
-702-1
-702-2
-Error: ничоси
-770-0
-803-1
-880-0
-904-1
-990-0
-получил:  [ '1-закрыт', '0-закрыт', '2-закрыт' ]
+ничоси
+получил:  [ '1-закрыт', '0-закрыт', 'error-forkJoinSrc2' ]
 forkJoin поток закрыт
  */
 
@@ -705,8 +687,9 @@ const forkJoinSrc2$ = interval(101).pipe(
 			return item;
 		}
 	}),
-	catchError((error, caught$) => { logAll(error); return of('error-forkJoinSrc2') }),
-	endWith('2-закрыт'),
+	mergeAll(), // вернули throwError в текущий поток
+	catchError((error, caught$) => { logAll(error); return of('error-forkJoinSrc2') }), // если закомментировать, обработается в родительском потоке
+	// endWith('2-закрыт'), // если раскомментировать, то ошибка не будет видна
 );
 
 const forkJoin$ = forkJoin(forkJoinSrc1$, forkJoinSrc0$, forkJoinSrc2$).pipe(
