@@ -59,30 +59,40 @@ groupingOperatorList.push({ observable$: combineAll$ });
  * возвращает крайние значения combineLatestX$
  * на старте ждёт значения от всех асинхронных потоков combineLatestX$
  * !!!не работает внутри pipe
- * Есть необязательный аргумент combineLatestParser для обработки всех входящих значений
+ * @deprecated Есть необязательный аргумент combineLatestParser для обработки всех входящих значений
+ * combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser)
  * https://www.learnrxjs.io/operators/combination/combinelatest.html
  * 
 
 Hello World!
-получил:  item1:101-item2:0-item3:0
-получил:  item1:202-item2:0-item3:0
-получил:  item1:202-item2:202-item3:0
-получил:  item1:303-item2:202-item3:0
-получил:  item1:404-item2:202-item3:0
-получил:  item1:404-item2:202-item3:303
-получил:  item1:404-item2:404-item3:303
-получил:  item1:505-item2:404-item3:303
-получил:  item1:606-item2:404-item3:303
+получил:  item1:101--item2:0--item3:0
+получил:  item1:202--item2:0--item3:0
+получил:  item1:202--item2:202--item3:0
+получил:  item1:303--item2:202--item3:0
+получил:  item1:404--item2:202--item3:0
+получил:  item1:404--item2:202--item3:303
+получил:  item1:404--item2:404--item3:303
+получил:  item1:505--item2:404--item3:303
+получил:  item1:606--item2:404--item3:303
+получил:  item1:606--item2:606--item3:303
+получил:  item1:707--item2:606--item3:303
+получил:  item1:707--item2:606--item3:606
+получил:  item1:707--item2:606--item3:303-закрыт
+получил:  item1:808--item2:606--item3:303-закрыт
+получил:  item1:808--item2:808--item3:303-закрыт
+получил:  item1:808--item2:202-закрыт--item3:303-закрыт
+получил:  item1:909--item2:202-закрыт--item3:303-закрыт
+получил:  item1:101-закрыт--item2:202-закрыт--item3:303-закрыт
 combineLatest поток закрыт
  */
-const combineLatestParser = (item1, item2, item3) => `item1:${item1}-item2:${item2}-item3:${item3}`;
-const combineLatest1$ = interval(101).pipe(take(10), map(item => item * 101));
-const combineLatest2$ = interval(202).pipe(take(5), map(item => item * 202));
-const combineLatest3$ = interval(303).pipe(take(3), map(item => item * 303));
+const combineLatestParser = ([item1, item2, item3]) => `item1:${item1}--item2:${item2}--item3:${item3}`;
+const combineLatest1$ = interval(101).pipe(take(10), map(item => item * 101), endWith('101-закрыт'));
+const combineLatest2$ = interval(202).pipe(take(5), map(item => item * 202), endWith('202-закрыт'));
+const combineLatest3$ = interval(303).pipe(take(3), map(item => item * 303), endWith('303-закрыт'));
 
-// const combineLatest$ = combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser).pipe(
-const combineLatest$ = combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser).pipe(
-	take(9)
+const combineLatest$ = combineLatest([combineLatest1$, combineLatest2$, combineLatest3$]).pipe(
+	// take(9),
+	map(combineLatestParser)
 )
 
 // combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
@@ -238,7 +248,7 @@ const merge3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const merge4$ = of(1, 2, 3).pipe(delay(2000));
 const merge$ = of(merge1$).pipe(
 	// tap(logAll), //возвращает три потока наблюдателей
-	mergeAll(), // на вход значения
+	mergeAll(), // на вход значения из merge1$ вместо потока
 	merge(merge2$, merge3$, merge4$)
 )
 
@@ -291,7 +301,7 @@ groupingOperatorList.push({ observable$: mergeAll$ });
 
 /**
  * withLatestFrom
- * Возвращает массив текущих(предыдущих/крайних) значений потоков после получения значений из основного(сигнального) потока источника 
+ * Возвращает массив/снимок текущих(крайних) значений потоков после получения значений из основного(сигнального) потока источника 
  * Возвращает из сигнального потока и из потоков аргументов withLatestFrom1, withLatestFrom2
  * Главный сигнальный поток - источник interval(303) withLatestFrom$
  * 
@@ -354,13 +364,46 @@ groupingOperatorList.push({ observable$: mergeMap$ });
 /**
  * mergeMap
  * Более сложный пример. Группировка аргументов. Используется для передачи внутрь *Src* потоков значений входящего потока
+ * 
+получил:  [Function]
+получил:  Observable {
+  _isScalar: false,
+  source: Observable {
+    _isScalar: false,
+    source: Observable { _isScalar: false, _subscribe: [Function] },
+    operator: TakeOperator { total: 10 }
+  },
+  operator: MapOperator { project: [Function], thisArg: undefined }
+}
+получил:  [Function]
+получил:  Observable {
+  _isScalar: false,
+  source: Observable {
+    _isScalar: false,
+    source: Observable { _isScalar: false, _subscribe: [Function] },
+    operator: TakeOperator { total: 10 }
+  },
+  operator: MapOperator { project: [Function], thisArg: undefined }
+}
+получил:  [Function]
+получил:  Observable {
+  _isScalar: false,
+  source: Observable {
+    _isScalar: false,
+    source: Observable { _isScalar: false, _subscribe: [Function] },
+    operator: TakeOperator { total: 10 }
+  },
+  operator: MapOperator { project: [Function], thisArg: undefined }
+}
+mergeMap2 поток закрыт
  */
 const mergeMap2$ = mergeMapSrc4$.pipe(
-	mergeMap(item => of(item1 => item1 + '-of', mergeMapSrc1$, mergeMapSrc2$, mergeMapSrc3$))
+	mergeMap(item => of(item1 => item1 + '-of', mergeMapSrc1$)),
+
 )
 
-// mergeMapSrc2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeMap2 поток закрыт'));
-groupingOperatorList.push({ observable$: mergeMapSrc2$ });
+// mergeMap2$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeMap2 поток закрыт'));
+groupingOperatorList.push({ observable$: mergeMap2$ });
 
 /**
  * groupBy
