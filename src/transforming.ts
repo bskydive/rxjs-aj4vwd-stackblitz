@@ -680,7 +680,7 @@ transformingOperatorList.push({ observable$: scan$ });
 
 /**
  * mergeScan
- * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+ * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции mergeScanAccumulator
  * имитирует наблюдаемый поток mergeScanInternal
  * 
  * Hello World!
@@ -764,7 +764,7 @@ transformingOperatorList.push({ observable$: pluck$ });
 
 /**
  * reduce
- * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+ * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции reduceAccumulator
  * возвращает итоговое значение один раз, когда входной поток завершится
  * 
 Hello World!
