@@ -1,6 +1,6 @@
 import { IRunListItem, logAll } from './utils';
 
-import { interval, of, combineLatest, forkJoin, iif, from } from 'rxjs';
+import { interval, of, combineLatest, forkJoin, iif, from, throwError } from 'rxjs';
 
 import { take, map, combineAll, tap, concatAll, delay, exhaust, mergeAll, withLatestFrom, toArray, mergeMap, groupBy, pairwise, endWith, switchAll, zipAll, zip, merge, concat, race, catchError, sequenceEqual, switchMap } from 'rxjs/operators';
 
@@ -653,9 +653,9 @@ groupingOperatorList.push({ observable$: race$ });
 
 /**
  * forkJoin
- * выводит крайнее значение от каждого потока в виде массива
+ * выводит одно крайнее значение от каждого потока в виде массива
  * ! необходимо ловить ошибки внутри каждого потока, чтобы не прерывать родительский forkJoin
- * 
+ * https://www.learnrxjs.io/learn-rxjs/operators/combination/forkjoin
 
 0-0
 110-0
@@ -680,29 +680,39 @@ Error: ничоси
 forkJoin поток закрыт
  */
 
-const forkJoinSrc0$ = interval(110).pipe(take(10), map(item => item * 110 + '-0'),
-	tap(logAll),
+const forkJoinSrc0$ = interval(110).pipe(
+	take(10),
+	map(item => item * 110 + '-0'),
+	// tap(logAll),
 	endWith('0-закрыт')
 );
-const forkJoinSrc1$ = interval(101).pipe(delay(500), take(5), map(item => (item * 101 + 500) + '-1'),
-	tap(logAll),
+const forkJoinSrc1$ = interval(101).pipe(
+	delay(500),
+	take(5),
+	map(item => (item * 101 + 500) + '-1'),
+	// tap(logAll),
 	endWith('1-закрыт')
 );
-const forkJoinSrc2$ = interval(101).pipe(delay(500), take(5), map(item => (item * 101 + 500) + '-2'),
-	tap(logAll),
+const forkJoinSrc2$ = interval(101).pipe(
+	delay(500), 
+	take(5), 
+	map(item => (item * 101 + 500) + '-2'),
+	// tap(logAll),
 	map(item => {
 		if (item === '702-2') {
-			throw new Error('ничоси');
+			return throwError('ничоси');
 		} else {
 			return item;
 		}
 	}),
-	// catchError((error, caught$) => { logAll(error); return of('error') }),
+	catchError((error, caught$) => { logAll(error); return of('error-forkJoinSrc2') }),
 	endWith('2-закрыт'),
 );
 
 const forkJoin$ = forkJoin(forkJoinSrc1$, forkJoinSrc0$, forkJoinSrc2$).pipe(
-	// mergeAll()
+	// tap(logAll),
+	// mergeAll(),
+	catchError((error, caught$) => { logAll(error); return of('error-forkJoin') }),
 )
 
 // forkJoin$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('forkJoin поток закрыт'));
