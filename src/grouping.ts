@@ -333,17 +333,21 @@ groupingOperatorList.push({ observable$: withLatestFrom$ });
 
 
 /**
- * mergeMap
+ * mergeMap aka flatMap
  * Преобразует каждый поток функцией аргументом mergeMapParse
+ * Путает очерёдность
  * В данном случае значения потоков аккумулируются в массив
-Observable {_isScalar: false, source: {…}, operator: {…}}
-Observable {_isScalar: false, source: {…}, operator: {…}}
-Observable {_isScalar: false, source: {…}, operator: {…}}
-Observable {_isScalar: false, source: {…}, operator: {…}}
-получил:['0-3', '303-3', '606-3']
-получил:['0-1', '101-1', '202-1', '303-1', '404-1', '505-1', '606-1', '707-1', '808-1', '909-1']
-получил:['0-2', '202-2', '404-2', '606-2', '808-2']
-получил:[1, 2, 3]
+получил:  [ '0-3', '303-3', '606-3' ]
+получил:  [ '0-2', '202-2', '404-2', '606-2', '808-2' ]
+получил:  [
+  '0-1',   '101-1',
+  '202-1', '303-1',
+  '404-1', '505-1',
+  '606-1', '707-1',
+  '808-1', '909-1'
+]
+получил:  [ 1, 2, 3 ]
+mergeMap поток закрыт
  */
 const mergeMapSrc1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const mergeMapSrc2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
@@ -353,12 +357,12 @@ const mergeMapSrc4$ = of(1, 2, 3).pipe(delay(2000));
 const mergeMapParse = item$ => item$.pipe(toArray())
 
 const mergeMap$ = of(mergeMapSrc1$, mergeMapSrc2$, mergeMapSrc3$, mergeMapSrc4$).pipe(
-	tap(logAll), //возвращает три потока наблюдателей
+	// tap(logAll), //возвращает 4 потока наблюдателей
 	mergeMap(mergeMapParse),
-	// mergeMap()
+	toArray() // один массив вместо 4 для удобства обработки
 )
 
-//mergeMap$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeMap поток закрыт'));
+// mergeMap$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeMap поток закрыт'));
 groupingOperatorList.push({ observable$: mergeMap$ });
 
 /**
