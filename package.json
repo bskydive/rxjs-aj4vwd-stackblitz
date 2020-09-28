@@ -3,27 +3,28 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "b": "tsc --build tsconfig.json && node dist/out-tsc/index.js"
+	"b": "tsc --build tsconfig.json && node dist/out-tsc/index.js",
+	"lint:ts": "tslint -c tslint.json -p ./tsconfig.json"
   },
   "dependencies": {
-    "@angular/compiler": "^8.2.1",
-    "@angular/core": "^8.2.1",
+    "@angular/compiler": "^10.1.3",
+    "@angular/core": "^10.1.3",
     "rxjs": "latest"
   },
   "devDependencies": {
-    "@types/node": "^12.7.1",
-    "@typescript-eslint/parser": "^1.13.0",
-    "codelyzer": "^5.1.0",
-    "eslint": "^6.1.0",
-    "eslint-config-standard": "^13.0.1",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-node": "^9.1.0",
+    "@types/node": "^14.11.2",
+    "@typescript-eslint/parser": "^4.3.0",
+    "codelyzer": "^6.0.0",
+    "eslint": "^7.10.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "rxjs-tslint-rules": "^4.24.3",
-    "ts-node": "^8.3.0",
-    "tslint": "^5.18.0",
-    "tslint-angular": "^3.0.2",
-    "typescript": "^3.5.3"
+    "eslint-plugin-standard": "^4.0.1",
+    "rxjs-tslint-rules": "^4.34.3",
+    "ts-node": "^9.0.0",
+    "tslint": "^6.1.3",
+    "tslint-angular": "^3.0.3",
+    "typescript": "^4.0.3"
   }
 }
