@@ -237,68 +237,41 @@ transformingOperatorList.push({ observable$: finalize$ });
  * преобразует входное значение потока, сохраняя их порядок даже при задержке преобразования
  * в отличии от map может возвращать потоки
  * 
- * Hello World!
-'0-1'-$
-'0-2'-$
-'0-21000'-$
-'101-1'-$
-'102-2'-$
-'102-21000'-$
-'202-1'-$
-['0-2','delay200']-$
-'204-2'-$
-'204-21000'-$
-'303-1'-$
-'306-2'-$
-'306-21000'-$
-'404-1'-$
-['102-2','delay200']-$
-'408-2'-$
-'408-21000'-$
-'2-закрыт'-$
-'505-1'-$
-['204-2','delay200']-$
-'606-1'-$
-'707-1'-$
-['306-2','delay200']-$
-'808-1'-$
-'909-1'-$
-'1-закрыт'-$
-['408-2','delay200']-$
-'2-закрыт'-$
-concatMap поток закрыт
+ * flattening higher order
+ * ждёт значение из внешнего потока
+ * подписывается на внутренний поток и выводит его
+ * ждёт закрытия внутреннего потока
+ * берёт из кэша или ждёт следующее значение внешнего потока
+ * подписывается на внутренний поток для каждого значения внешнего
+ * синхронный, сохраняет порядок
+ * 
+получил:  inner:0-2-outer:0-3
+получил:  inner:202-2-outer:0-3
+получил:  inner:404-2-outer:0-3
+получил:  inner:606-2-outer:0-3
+получил:  inner:808-2-outer:0-3
+получил:  inner:0-2-outer:303-3
+получил:  inner:202-2-outer:303-3
+получил:  inner:404-2-outer:303-3
+получил:  inner:606-2-outer:303-3
+получил:  inner:808-2-outer:303-3
+получил:  inner:0-2-outer:606-3
+получил:  inner:202-2-outer:606-3
+получил:  inner:404-2-outer:606-3
+получил:  inner:606-2-outer:606-3
+получил:  inner:808-2-outer:606-3
+concatMapInternal поток закрыт
  */
-const concatMap1$ = interval(101).pipe(
-	// контрольный поток
-	take(10),
-	map(item => item * 101 + '-1'),
-	// tap(logAll),
-	endWith('1-закрыт'),
+const concatMapInternal1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const concatMapInternal2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const concatMapInternal2Outer$ = (outer)=>concatMapInternal2$.pipe(map(item => `inner:${item}-outer:${outer}`));
+const concatMapInternal3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+
+const concatMap$ = concatMapInternal3$.pipe(
+	concatMap(item=>concatMapInternal2Outer$(item)),
 )
 
-const concatMap2$ = interval(102).pipe(
-	// просто меняем значение на массив
-	take(5),
-	map(item => item * 102 + '-2'),
-	concatMap((item, index) => [item, item + 1000]),
-	// tap(logAll),
-	endWith('2-закрыт'),
-)
-
-const concatMap3$ = interval(103).pipe(
-	// добавляем задержку
-	take(5),
-	map(item => item * 103 + '-3'),
-	concatMap((item, index) => of([item, 'delay200']).pipe(delay(200))),
-	// tap(logAll),
-	endWith('3-закрыт'),
-)
-
-const concatMap$ = of(concatMap1$, concatMap2$, concatMap3$).pipe(
-	mergeAll()
-)
-
-// concatMap$.subscribe(item => logAll(JSON.stringify(item) + '-$'), null, () => logAll('concatMap поток закрыт'));
+// concatMap$.subscribe(item => logAll('получил:', item), err => logAll('ошибка:', err), () => logAll('concatMap поток закрыт'));
 transformingOperatorList.push({ observable$: concatMap$ });
 
 /**
@@ -643,6 +616,8 @@ transformingOperatorList.push({ observable$: mapTo$ });
 /**
  * scan
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+ * можно собрать в массив или суммировать
+ * TODO в чём разница с map?
  * 
  * Hello World!
 time: 0; item: 0; accumulator: 0
