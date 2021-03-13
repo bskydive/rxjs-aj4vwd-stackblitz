@@ -337,7 +337,7 @@ const withLatestFrom$ = withLatestFrom2$.pipe( // сигнальный пото�
 	//map(([item1,item2,item3,item4])=>logAll([item1,item2,item3,item4]))
 )
 
-withLatestFrom$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('withLatestFrom поток закрыт'));
+// withLatestFrom$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('withLatestFrom поток закрыт'));
 groupingOperatorList.push({ observable$: withLatestFrom$ });
 
 //========================================================================================================================
