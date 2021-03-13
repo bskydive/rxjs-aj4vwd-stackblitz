@@ -1,6 +1,6 @@
 import { IRunListItem, logAll } from './utils';
 import { throwError, of, interval } from 'rxjs';
-import { catchError, throwIfEmpty, take, map, retry, retryWhen, scan, takeWhile, mergeAll, timeout, timeoutWith, onErrorResumeNext } from 'rxjs/operators';
+import { catchError, throwIfEmpty, take, map, retry, retryWhen, scan, takeWhile, mergeAll, timeout, timeoutWith, onErrorResumeNext, endWith } from 'rxjs/operators';
 
 /**
  * Операторы обработки ошибок
@@ -17,31 +17,58 @@ export const erroringOperatorList: IRunListItem[] = [];
 //==================================================ERRORS================================================================
 //========================================================================================================================
 
+/**
+ * throwError
+ * Создаёт новый поток с ошибкой
+ * в отличии от throw new Error не включает стандартный стэк вызовов at...
+ * вариант 1
+словил: Error: ошибка ошибковна throw
+    at MapSubscriber.project (/home/bsk/doc/idea_work/bskydive/rxjs-aj4vwd-stackblitz/dist/out-tsc/src/erroring.js:26:77)
+	... источик: Observable {}
+ошибка: вернул взад Error: ошибка ошибковна throw
+ * вариант 2
+словил: ошибка ошибковна источик: Observable {...}
+ошибка: вернул взад ошибка ошибковна
+ */
+const throwError$ = of(1).pipe(
+	// map(item => { throw new Error('ошибка ошибковна throw') }), // вариант 1
+	map(item => throwError('ошибка ошибковна')), // вариант 2
+	mergeAll(), // иначе ошибка throwError() уходит в дочерний поток
+	catchError((err, caught$) => {
+		logAll('словил:', err, 'источик:', caught$);//перехватчик ошибок
+		return throwError(`вернул взад ${err}`);//генерируем новую ошибку вместо текущей
+		// return of('янеошибка');//подмена ошибки значением
+	}),
+	endWith('конец'),
+)
+
+// throwError$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('throwError поток закрыт'));
+erroringOperatorList.push({ observable$: throwError$ });
 
 /**
  * catchError
  * Перехват потока при ошибке
  * Практическое применение: самописные обработчики ошибок, сервисы хранения ошибок типа ravenjs
  * 
-Hello World!
-словил: ошибка ошибковна источик: Observable { }
-положь где взял: вернул взад ошибка ошибковна источик: Observable { }
+словил: ошибка ошибковна источик: Observable {...}
+положь где взял: вернул взад ошибка ошибковна источик: Observable {...}
 получил:  янеошибка
-error поток закрыт
+catchError поток закрыт
  */
-const catchError$ = throwError('ошибка ошибковна')
-	.pipe(
-		catchError((err, caught$) => {
-			logAll('словил:', err, 'источик:', caught$);//перехватчик ошибок
-			return throwError(`вернул взад ${err}`);//генерируем новую ошибку вместо текущей
-		}),
-		catchError((err, caught$) => {
-			logAll('положь где взял:', err, 'источик:', caught$);//перехватчик ошибок работает последовательно
-			return of('янеошибка');//подмена ошибки значением
-		}),
-	)
+const catchError$ = of(1).pipe(
+	map(item => throwError('ошибка ошибковна')),
+	mergeAll(), // иначе ошибка уходит в дочерний поток
+	catchError((err, caught$) => {
+		logAll('словил:', err, 'источик:', caught$);//перехватчик ошибок
+		return throwError(`вернул взад ${err}`);//генерируем новую ошибку вместо текущей
+	}),
+	catchError((err, caught$) => {
+		logAll('положь где взял:', err, 'источик:', caught$);//перехватчик ошибок работает последовательно
+		return of('янеошибка');//подмена ошибки значением
+	}),
+)
 
-// catchError$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('error поток закрыт'));
+// catchError$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('catchError поток закрыт'));
 erroringOperatorList.push({ observable$: catchError$ });
 
 //
