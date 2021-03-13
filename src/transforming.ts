@@ -643,6 +643,8 @@ transformingOperatorList.push({ observable$: mapTo$ });
 /**
  * scan
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции scanAccumulator
+ * можно собрать в массив или суммировать
+ * TODO в чём разница с map?
  * 
  * Hello World!
 time: 0; item: 0; accumulator: 0
