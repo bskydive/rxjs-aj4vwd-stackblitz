@@ -138,6 +138,7 @@ transformingOperatorList.push({ observable$: isEmpty$ });
  * EMPTY
  * формирует пустое значение Observable<never>
  * используется для удаления значений из потока или подмены ошибки
+ * Нельзя заменять в сигнальном потоке ошибки через EMPTY - поток может завершиться
  * 
 получил:  0-1
 получил:  101-1
@@ -152,7 +153,7 @@ transformingOperatorList.push({ observable$: isEmpty$ });
 получил:  Observable { _isScalar: false, _subscribe: [Function] }
 получил:  808-1
 получил:  909-1
-isEmpty поток закрыт
+empty поток закрыт
  */
 const empty1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const empty2$ = interval(303).pipe(take(3), map(item => throwError(item * 303 + '-3'))); // поток ошибок
@@ -163,8 +164,8 @@ const empty$ = of(empty1$, empty2$).pipe(
 	catchError(err => EMPTY),
 )
 
-// empty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('isEmpty поток закрыт'));
-transformingOperatorList.push({ observable$: isEmpty$ });
+// empty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('empty поток закрыт'));
+transformingOperatorList.push({ observable$: empty$ });
 
 /**
  * sequenceEqual
