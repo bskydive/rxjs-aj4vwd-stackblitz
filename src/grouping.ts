@@ -23,6 +23,7 @@ export const groupingOperatorList: IRunListItem[] = [];
 /**
  * combineAll
  * возвращает крайние значения, если они пришли от всех асинхронных потоков
+ * повторяет крайние значения
  * в данном случае ожидает по три значения
 
 получил:  [ 101, 0, 0 ]
@@ -56,44 +57,45 @@ groupingOperatorList.push({ observable$: combineAll$ });
 
 /**
  * combineLatest
- * возвращает крайние значения combineLatestX$
- * на старте ждёт значения от всех асинхронных потоков combineLatestX$
- * !!!не работает внутри pipe
- * @deprecated Есть необязательный аргумент combineLatestParser для обработки всех входящих значений
+ * возвращает крайние значения combineLatest*
+ * на старте ждёт значения от всех асинхронных потоков combineLatest*
+ * теряет начальные
+ * кэширует все последующие
+ * стартует - не работает внутри pipe
+ * combineLatestParser для обработки всех входящих значений
  * combineLatest(combineLatest1$, combineLatest2$, combineLatest3$, combineLatestParser)
- * https://www.learnrxjs.io/operators/combination/combinelatest.html
+ * повторяет крайнее значение https://www.learnrxjs.io/learn-rxjs/operators/combination/combinelatest
  * 
 
-Hello World!
-получил:  item1:101--item2:0--item3:0
-получил:  item1:202--item2:0--item3:0
-получил:  item1:202--item2:202--item3:0
-получил:  item1:303--item2:202--item3:0
-получил:  item1:404--item2:202--item3:0
-получил:  item1:404--item2:202--item3:303
-получил:  item1:404--item2:404--item3:303
-получил:  item1:505--item2:404--item3:303
-получил:  item1:606--item2:404--item3:303
-получил:  item1:606--item2:606--item3:303
-получил:  item1:707--item2:606--item3:303
-получил:  item1:707--item2:606--item3:606
-получил:  item1:707--item2:606--item3:303-закрыт
-получил:  item1:808--item2:606--item3:303-закрыт
-получил:  item1:808--item2:808--item3:303-закрыт
-получил:  item1:808--item2:202-закрыт--item3:303-закрыт
-получил:  item1:909--item2:202-закрыт--item3:303-закрыт
-получил:  item1:101-закрыт--item2:202-закрыт--item3:303-закрыт
+получил:  [303-1, 202-2, 0-3]
+получил:  [404-1, 202-2, 0-3]
+получил:  [404-1, 404-2, 0-3]
+получил:  [505-1, 404-2, 0-3]
+получил:  [606-1, 404-2, 0-3]
+получил:  [606-1, 606-2, 0-3]
+получил:  [707-1, 606-2, 0-3]
+получил:  [808-1, 606-2, 0-3]
+получил:  [808-1, 606-2, 505-3]
+получил:  [808-1, 808-2, 505-3]
+получил:  [909-1, 808-2, 505-3]
+получил:  [909-1, 808-2, 1010-3]
 combineLatest поток закрыт
  */
-const combineLatestParser = ([item1, item2, item3]) => `item1:${item1}--item2:${item2}--item3:${item3}`;
-const combineLatest1$ = interval(101).pipe(take(10), map(item => item * 101), endWith('101-закрыт'));
-const combineLatest2$ = interval(202).pipe(take(5), map(item => item * 202), endWith('202-закрыт'));
-const combineLatest3$ = interval(303).pipe(take(3), map(item => item * 303), endWith('303-закрыт'));
+const combineLatestParser = ([item1, item2, item3]) => `[${item1}, ${item2}, ${item3}]`;
+// const combineLatestParser = logAll;
+const combineLatest1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const combineLatest2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const combineLatest3$ = interval(505).pipe(take(3), map(item => item * 505 + '-3'));
+// const combineLatest3$ = of(1).pipe(delay(1000), map(item => item * 1000 + '-3'));
 
-const combineLatest$ = combineLatest([combineLatest1$, combineLatest2$, combineLatest3$]).pipe(
-	// take(9),
-	map(combineLatestParser)
-)
+const combineLatest$ = combineLatest([
+		combineLatest1$, 
+		combineLatest2$, 
+		combineLatest3$,
+	]).pipe(
+		// take(9),
+		map(combineLatestParser)
+	)
 
 // combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
 groupingOperatorList.push({ observable$: combineLatest$ });
@@ -103,7 +105,7 @@ groupingOperatorList.push({ observable$: combineLatest$ });
  * Возвращает все значения всех потоков
  * Группирует значения по потокам
  * На вход значения, потоки в аргументах
- * 
+ * @deprecated
 получил:  0-1
 получил:  101-1
 получил:  202-1
@@ -138,9 +140,12 @@ groupingOperatorList.push({ observable$: concat$ });
 
 /**
  * concatAll
+ * аналог withLatestFrom
  * Возвращает все значения всех потоков
- * Группирует значения по потокам
- * 
+ * Группирует/выводит значения по потокам
+ * не теряет
+ * кэширует
+ * не сохраняет порядок
 
 Hello World!
 Observable {_isScalar: false, source: {…}, operator: {…}}
@@ -165,13 +170,13 @@ Observable {_isScalar: false, source: {…}, operator: {…}}
 получил:  0-3
 получил:  303-3
 получил:  606-3
-combineAll поток закрыт
+concatAll поток закрыт
  */
 const concatAll1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const concatAll2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 const concatAll3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const concatAll$ = of(concatAll1$, concatAll2$, concatAll3$).pipe(
-	tap(logAll), //возвращает три потока наблюдателей
+	// tap(logAll), //возвращает три потока наблюдателей
 	concatAll()
 )
 
@@ -179,7 +184,7 @@ const concatAll$ = of(concatAll1$, concatAll2$, concatAll3$).pipe(
 groupingOperatorList.push({ observable$: concatAll$ });
 
 /**
- * exhaust
+ * exhaust - истощение
  * Возвращает значения потока, который первый их имитировал. Остальные потоки блокируются
 
 Hello World!
@@ -301,25 +306,34 @@ groupingOperatorList.push({ observable$: mergeAll$ });
 
 /**
  * withLatestFrom
- * Возвращает массив/снимок текущих(крайних) значений потоков после получения значений из основного(сигнального) потока источника 
- * Возвращает из сигнального потока и из потоков аргументов withLatestFrom1, withLatestFrom2
- * Главный сигнальный поток - источник interval(303) withLatestFrom$
+ * аналог для concatAll
+ * Возвращает массив/снимок текущих(крайних из кэша) значений потоков 
+ * Возвращает из сигнального потока и из потоков аргументов withLatestFrom*
+ * Возвращает после получения значений из основного(сигнального) потока
+ * теряет начальные/промежуточные значения до очередного значения сигнального потока
+ * кэширует все последующие
  * 
 
-Hello World!
-получил:  [ '0-3', '101-1', '0-2', 1 ]
-получил:  [ '303-3', '404-1', '202-2', 1 ]
-получил:  [ '606-3', '707-1', '606-2', 1 ]
+получил:  [ '202-2', '202-1', '0-3', '0-4', '000-5' ]
+получил:  [ '404-2', '404-1', '303-3', '0-4', '000-5' ]
+получил:  [ '606-2', '606-1', '303-3', '0-4', '000-5' ]
+получил:  [ '808-2', '808-1', '606-3', '0-4', '000-5' ]
 withLatestFrom поток закрыт
  */
 const withLatestFrom1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
 const withLatestFrom2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
-const withLatestFrom3$ = of(1);
-//const withLatestFrom3 = of(1).pipe(delay(1000));
-const withLatestFrom$ = interval(303).pipe(
-	take(3),
-	map(item => item * 303 + '-3'),
-	withLatestFrom(withLatestFrom1$, withLatestFrom2$, withLatestFrom3$),
+const withLatestFrom3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
+const withLatestFrom4$ = interval(404).pipe(take(1), map(item => item * 404 + '-4')); // задерживает весь поток
+const withLatestFrom5$ = of('000-5'); // кэшируется
+
+const withLatestFrom$ = withLatestFrom2$.pipe( // сигнальный поток
+	// take(3),
+	withLatestFrom(
+		withLatestFrom1$,
+		withLatestFrom3$,
+		withLatestFrom4$,
+		withLatestFrom5$
+	),
 	//map(([item1,item2,item3,item4])=>logAll([item1,item2,item3,item4]))
 )
 
@@ -656,46 +670,36 @@ groupingOperatorList.push({ observable$: race$ });
 
 /**
  * forkJoin
- * выводит одно крайнее значение от каждого потока в виде массива
+ * выводит одно крайнее значение от каждого потока в виде массива после закрытия всех потоков
+ * теряет
+ * кэширует одно значение
+ * выводит после закрытия потоков
  * ! необходимо ловить ошибки внутри каждого потока, чтобы не прерывать родительский forkJoin
  * https://www.learnrxjs.io/learn-rxjs/operators/combination/forkjoin
 
-ничоси
-получил:  [ '1-закрыт', '0-закрыт', 'error-forkJoinSrc2' ]
+ничоси-3
+получил:  [ '909-1', '808-2', 'я норм-3' ]
 forkJoin поток закрыт
  */
 
-const forkJoinSrc0$ = interval(110).pipe(
-	take(10),
-	map(item => item * 110 + '-0'),
-	// tap(logAll),
-	endWith('0-закрыт')
-);
-const forkJoinSrc1$ = interval(101).pipe(
-	delay(500),
-	take(5),
-	map(item => (item * 101 + 500) + '-1'),
-	// tap(logAll),
-	endWith('1-закрыт')
-);
-const forkJoinSrc2$ = interval(101).pipe(
-	delay(500), 
-	take(5), 
-	map(item => (item * 101 + 500) + '-2'),
-	// tap(logAll),
+const forkJoinSrc1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+
+const forkJoinSrc2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const forkJoinSrc3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'),
 	map(item => {
-		if (item === '702-2') {
-			return throwError('ничоси');
+		if (item === '606-3') {
+			return throwError('ничоси-3');
 		} else {
 			return item;
 		}
 	}),
-	mergeAll(), // вернули throwError в текущий поток
-	catchError((error, caught$) => { logAll(error); return of('error-forkJoinSrc2') }), // если закомментировать, обработается в родительском потоке
+	mergeAll(), // вернули значение throwError в текущий поток иначе получим Observable { _isScalar: false, _subscribe: [Function] }
+	catchError((error, caught$) => { logAll(error); return of('я норм-3') }), // если закомментировать, обработается в родительском потоке
 	// endWith('2-закрыт'), // если раскомментировать, то ошибка не будет видна
 );
 
-const forkJoin$ = forkJoin(forkJoinSrc1$, forkJoinSrc0$, forkJoinSrc2$).pipe(
+// const forkJoin$ = forkJoin(forkJoinSrc1$, forkJoinSrc0$, forkJoinSrc2$).pipe( // @deprecated
+const forkJoin$ = forkJoin([forkJoinSrc1$, forkJoinSrc2$, forkJoinSrc3$]).pipe(
 	// tap(logAll),
 	// mergeAll(),
 	catchError((error, caught$) => { logAll(error); return of('error-forkJoin') }),

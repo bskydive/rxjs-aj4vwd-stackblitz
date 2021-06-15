@@ -10,6 +10,7 @@ import { transformingOperatorList } from './src/transforming';
 import { toolingOperatorList } from './src/tooling';
 import { Observable } from 'rxjs';
 import { testingOperatorList } from './src/testing';
+import { usageOperatorList } from './src/usage';
 
 /**
  * ===============================================
@@ -42,6 +43,7 @@ operatorList.push(...timingOperatorList.map(item => item.observable$));
 operatorList.push(...transformingOperatorList.map(item => item.observable$));
 operatorList.push(...toolingOperatorList.map(item => item.observable$));
 operatorList.push(...testingOperatorList.map(item => item.observable$));
+operatorList.push(...usageOperatorList.map(item => item.observable$));
 
 
 // небольшая проверка, что все модули собраны

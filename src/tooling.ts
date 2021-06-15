@@ -1,8 +1,9 @@
 import { IRunListItem, logAll } from './utils';
-import { interval, of, from } from 'rxjs';
-import { take, map, endWith, tap, every, mergeAll, isEmpty, sequenceEqual, count, switchMap, delay, mergeMap } from 'rxjs/operators';
+import { interval, of, from, throwError } from 'rxjs';
+import { take, map, endWith, tap, every, mergeAll, isEmpty, sequenceEqual, count, switchMap, delay, mergeMap, catchError } from 'rxjs/operators';
 
 import { transformingOperatorList } from './transforming';
+import { EMPTY } from 'rxjs/internal/observable/empty';
 
 
 /**
@@ -132,6 +133,39 @@ const isEmpty$ = of(isEmpty1$, isEmpty2$).pipe(
 
 // isEmpty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('isEmpty поток закрыт'));
 transformingOperatorList.push({ observable$: isEmpty$ });
+
+/**
+ * EMPTY
+ * формирует пустое значение Observable<never>
+ * используется для удаления значений из потока или подмены ошибки
+ * Нельзя заменять в сигнальном потоке ошибки через EMPTY - поток может завершиться
+ * 
+получил:  0-1
+получил:  101-1
+получил:  Observable { _isScalar: false, _subscribe: [Function] }
+получил:  202-1
+получил:  303-1
+получил:  404-1
+получил:  Observable { _isScalar: false, _subscribe: [Function] }
+получил:  505-1
+получил:  606-1
+получил:  707-1
+получил:  Observable { _isScalar: false, _subscribe: [Function] }
+получил:  808-1
+получил:  909-1
+empty поток закрыт
+ */
+const empty1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const empty2$ = interval(303).pipe(take(3), map(item => throwError(item * 303 + '-3'))); // поток ошибок
+
+/* eslint-disable node/handle-callback-err */
+const empty$ = of(empty1$, empty2$).pipe(
+	mergeAll(),
+	catchError(err => EMPTY),
+)
+
+// empty$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('empty поток закрыт'));
+transformingOperatorList.push({ observable$: empty$ });
 
 /**
  * sequenceEqual
