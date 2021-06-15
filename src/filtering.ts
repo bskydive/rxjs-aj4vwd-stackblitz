@@ -245,35 +245,47 @@ filteringOperatorList.push({ observable$: takeUntilSignal$ });
  * возвращает поток пока получает true из аргумента функции
  * переключается только один раз, после первого false
 
-
 получил:  0-1
+isTakeWhile true
 получил:  0-2
 получил:  101-1
+isTakeWhile true
 получил:  102-2
 получил:  202-1
+isTakeWhile true
 получил:  204-2
 получил:  303-1
-получил:  102-закрыт
+isTakeWhile false
+получил:  2-закрыт
 получил:  404-1
-получил:  101-закрыт
+получил:  505-1
+получил:  606-1
+получил:  707-1
+получил:  808-1
+получил:  909-1
+получил:  1-закрыт
 takeWhile поток закрыт
  */
-const takeWhileSrc1$ = interval(101).pipe(take(5), map(item => item * 101 + '-1'), endWith('101-закрыт'));
+const takeWhileSrc1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'), endWith('1-закрыт'));
 
-const isTakeWhile = item => item !== '306-2';
+const isTakeWhile = item => { 
+	const result = item !== '306-2'; 
+	console.log('isTakeWhile', result); 
+	return result
+};
 
 const takeWhileSrc2$ = interval(102).pipe(
-	take(5),
+	take(10),
 	map(item => item * 102 + '-2'),
 	takeWhile(isTakeWhile),
-	endWith('102-закрыт')
+	endWith('2-закрыт')
 );
 
 const takeWhile$ = of(takeWhileSrc1$, takeWhileSrc2$).pipe(
 	mergeAll()
 )
 
-//takeWhile$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeWhile поток закрыт'));
+// takeWhile$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('takeWhile поток закрыт'));
 filteringOperatorList.push({ observable$: takeWhile$ });
 
 /**
