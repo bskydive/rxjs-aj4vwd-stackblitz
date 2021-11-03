@@ -721,6 +721,9 @@ transformingOperatorList.push({ observable$: mergeScan$ });
  * pluck(x:string)
  * возвращает в поток конкретное свойство x из значений входного потока
  * pluck(propertyName) аналогично map(item=>item.propertyName)
+ * ломается когда приходит в него null
+ * нет типизации
+ * @deprecated
 0
 2
 4
