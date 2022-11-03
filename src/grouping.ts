@@ -22,6 +22,7 @@ export const groupingOperatorList: IRunListItem[] = [];
 
 /**
  * combineAll
+ * https://rxjs.dev/api/operators/combineLatestAll
  * возвращает крайние значения, если они пришли от всех асинхронных потоков
  * повторяет крайние значения
  * в данном случае ожидает по три значения
@@ -44,9 +45,9 @@ export const groupingOperatorList: IRunListItem[] = [];
 combineAll поток закрыт
  */
 
-const combine1$ = interval(101).pipe(take(10), map(item => item * 101));
-const combine2$ = interval(202).pipe(take(5), map(item => item * 202));
-const combine3$ = interval(303).pipe(take(3), map(item => item * 303));
+const combine1$ = interval(101).pipe(take(10), map(item => item * 101 + '-1'));
+const combine2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
+const combine3$ = interval(303).pipe(take(3), map(item => item * 303 + '-3'));
 const combineAll$ = of(combine1$, combine2$, combine3$).pipe(
 	// tap(logAll), //возвращает три потока наблюдателей
 	combineAll()
@@ -57,6 +58,7 @@ groupingOperatorList.push({ observable$: combineAll$ });
 
 /**
  * combineLatest
+ * https://rxjs.dev/api/index/function/combineLatest
  * возвращает крайние значения combineLatest*
  * на старте ждёт значения от всех асинхронных потоков combineLatest*
  * теряет начальные
@@ -140,12 +142,13 @@ groupingOperatorList.push({ observable$: concat$ });
 
 /**
  * concatAll
+ * https://rxjs.dev/api/operators/concatAll
  * аналог withLatestFrom
  * Возвращает все значения всех потоков
  * Группирует/выводит значения по потокам
  * не теряет
  * кэширует
- * не сохраняет порядок
+ * не сохраняет порядок между потоками, только внутри
 
 Hello World!
 Observable {_isScalar: false, source: {…}, operator: {…}}
