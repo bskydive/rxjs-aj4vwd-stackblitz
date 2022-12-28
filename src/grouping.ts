@@ -59,6 +59,7 @@ groupingOperatorList.push({ observable$: combineAll$ });
 /**
  * combineLatest
  * https://rxjs.dev/api/index/function/combineLatest
+ * !!! import from 'rxjs'
  * возвращает крайние значения combineLatest*
  * на старте ждёт значения от всех асинхронных потоков combineLatest*
  * теряет начальные
