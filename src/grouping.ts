@@ -139,7 +139,7 @@ groupingOperatorList.push({ observable$: combineLatest$ });
 // const combineLatestWith2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 // const combineLatestWith3$ = interval(505).pipe(take(3), map(item => item * 505 + '-3'));
 
-// [ 13, 2, 3 ]
+// [ 13, 21, 31 ]
 const setCombineLatestWith1$ = new BehaviorSubject(1);
 const setCombineLatestWith2$ = new BehaviorSubject(2);
 const setCombineLatestWith3$ = new BehaviorSubject(3);
