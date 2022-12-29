@@ -1,6 +1,6 @@
 import { IRunListItem, logAll } from './utils';
 
-import { interval, of, combineLatest, forkJoin, iif, from, throwError, BehaviorSubject, zip } from 'rxjs';
+import { interval, of, combineLatest, forkJoin, iif, from, throwError, BehaviorSubject, zip, ReplaySubject } from 'rxjs';
 
 import { take, map, combineAll, tap, concatAll, delay, exhaust, mergeAll, withLatestFrom, toArray, mergeMap, groupBy, pairwise, endWith, switchAll, zipAll, merge, concat, race, catchError, sequenceEqual, switchMap, combineLatestWith, mergeScan, zipWith } from 'rxjs/operators';
 
@@ -101,16 +101,15 @@ const combineLatestParser = ([item1, item2, item3]) => `[${item1}, ${item2}, ${i
 // const combineLatest2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 // const combineLatest3$ = interval(505).pipe(take(3), map(item => item * 505 + '-3'));
 
-// [13, 2, 3]
-const setCombineLatest1$ = new BehaviorSubject(1);
-const setCombineLatest2$ = new BehaviorSubject(2);
-const setCombineLatest3$ = new BehaviorSubject(3);
-setCombineLatest1$.next(11);
-setCombineLatest2$.next(21);
-setCombineLatest3$.next(31);
-setCombineLatest1$.next(12);
-setCombineLatest1$.next(13);
-
+// получил:  [1, 2, 3]
+// получил:  [11, 2, 3]
+// получил:  [11, 21, 3]
+// получил:  [11, 21, 31]
+// получил:  [12, 21, 31]
+// получил:  [13, 21, 31]
+const setCombineLatest1$ = new ReplaySubject(5);
+const setCombineLatest2$ = new ReplaySubject(5);
+const setCombineLatest3$ = new ReplaySubject(5);
 const combineLatest1$ = setCombineLatest1$.asObservable();
 const combineLatest2$ = setCombineLatest2$.asObservable();
 const combineLatest3$ = setCombineLatest3$.asObservable();
@@ -126,7 +125,12 @@ const combineLatest$ = combineLatest([
 		map(combineLatestParser)
 	)
 
-// combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
+combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
+setCombineLatest1$.next(11);
+setCombineLatest2$.next(21);
+setCombineLatest3$.next(31);
+setCombineLatest1$.next(12);
+setCombineLatest1$.next(13);
 groupingOperatorList.push({ observable$: combineLatest$ });
 
 
@@ -378,35 +382,6 @@ const mergeAll$ = of(mergeAll1$, mergeAll2$, mergeAll3$, mergeAll4$).pipe(
 // mergeAll$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('mergeAll поток закрыт'));
 groupingOperatorList.push({ observable$: mergeAll$ });
 
-
-
-/**
- * mergeScan
- * https://rxjs.dev/api/operators/mergeScan
- */
-// const setMergeScan1$ = new BehaviorSubject(1);
-// const setMergeScan2$ = new BehaviorSubject(2);
-// const setMergeScan3$ = new BehaviorSubject(3);
-// setMergeScan1$.next(11);
-// setMergeScan2$.next(21);
-// setMergeScan3$.next(31);
-// setMergeScan1$.next(12);
-// setMergeScan1$.next(13);
-
-// const mergeScan1$ = setMergeScan1$.asObservable();
-// const mergeScan2$ = setMergeScan2$.asObservable();
-// const mergeScan3$ = setMergeScan3$.asObservable();
-
-// const mergeScan$ = mergeScan1$.pipe(
-// 		// take(9),
-// 		mergeScan(
-// 			combineLatestWith2$, 
-// 			combineLatestWith3$
-// 		),
-// 	)
-
-// mergeScan$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatestWith поток закрыт'));
-// groupingOperatorList.push({ observable$: megeScan$ });
 
 /**
  * withLatestFrom
