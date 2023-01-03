@@ -757,23 +757,22 @@ reduce поток закрыт
  */
 
 const reduceAccumulator = (accumulator, item) => {
-	logAll(`time: ${item * 101}; item: ${item}; accumulator: ${accumulator}`);
+	logAll(`time: ${item + 101}; item: ${item}; accumulator: ${accumulator}`);
 	return item + accumulator
 };
 const reduceAccumulatorInitial = 0;
 
 const reduce1$ = interval(101).pipe(
 	take(5),
-	reduce(reduceAccumulator, reduceAccumulatorInitial),
 	// tap(logAll),
 	endWith('1-закрыт'),
 )
 
-const reduce$ = of(reduce1$).pipe(
-	mergeAll()
+const reduce$ = reduce1$.pipe(
+	reduce(reduceAccumulator, reduceAccumulatorInitial),
 )
 
-//reduce$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('reduce поток закрыт'));
+// reduce$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('reduce поток закрыт'));
 transformingOperatorList.push({ observable$: reduce$ });
 
 /**

@@ -1,6 +1,6 @@
 import { IRunListItem, logAll } from './utils';
 
-import { interval, of, combineLatest, forkJoin, iif, from, throwError, BehaviorSubject, zip, ReplaySubject } from 'rxjs';
+import { interval, of, combineLatest, forkJoin, iif, from, throwError, BehaviorSubject, zip, ReplaySubject, Subject } from 'rxjs';
 
 import { take, map, combineAll, tap, concatAll, delay, exhaust, mergeAll, withLatestFrom, toArray, mergeMap, groupBy, pairwise, endWith, switchAll, zipAll, merge, concat, race, catchError, sequenceEqual, switchMap, combineLatestWith, mergeScan, zipWith } from 'rxjs/operators';
 
@@ -72,7 +72,6 @@ groupingOperatorList.push({ observable$: combineAll$ });
  * !!! import from 'rxjs'
  * возвращает крайние значения combineLatest*
  * на старте ждёт значения от всех асинхронных потоков combineLatest*
- * !!! теряет начальные
  * кэширует все последующие
  * стартует - не работает внутри pipe
  * combineLatestParser для обработки всех входящих значений
@@ -101,18 +100,21 @@ const combineLatestParser = ([item1, item2, item3]) => `[${item1}, ${item2}, ${i
 // const combineLatest2$ = interval(202).pipe(take(5), map(item => item * 202 + '-2'));
 // const combineLatest3$ = interval(505).pipe(take(3), map(item => item * 505 + '-3'));
 
-// получил:  [1, 2, 3]
-// получил:  [11, 2, 3]
-// получил:  [11, 21, 3]
-// получил:  [11, 21, 31]
-// получил:  [12, 21, 31]
+// вариант behaviorSubject
 // получил:  [13, 21, 31]
-const setCombineLatest1$ = new ReplaySubject(5);
-const setCombineLatest2$ = new ReplaySubject(5);
-const setCombineLatest3$ = new ReplaySubject(5);
-const combineLatest1$ = setCombineLatest1$.asObservable();
-const combineLatest2$ = setCombineLatest2$.asObservable();
-const combineLatest3$ = setCombineLatest3$.asObservable();
+// получил:  [14, 21, 31]
+// получил:  [15, 21, 31]
+// получил:  [1-закрыт, 21, 31]
+// получил:  [1-закрыт, 2-закрыт, 31]
+// получил:  [1-закрыт, 2-закрыт, 3-закрыт]
+// получил:  combineLatest-закрыт
+// combineLatest поток закрыт
+const setCombineLatest1$ = new Subject();
+const setCombineLatest2$ = new Subject();
+const setCombineLatest3$ = new Subject();
+const combineLatest1$ = setCombineLatest1$.asObservable().pipe(endWith('1-закрыт'));
+const combineLatest2$ = setCombineLatest2$.asObservable().pipe(endWith('2-закрыт'));
+const combineLatest3$ = setCombineLatest3$.asObservable().pipe(endWith('3-закрыт'));
 
 // const combineLatest3$ = of(1).pipe(delay(1000), map(item => item * 1000 + '-3'));
 
@@ -122,17 +124,23 @@ const combineLatest$ = combineLatest([
 		combineLatest3$,
 	]).pipe(
 		// take(9),
-		map(combineLatestParser)
+		map(combineLatestParser),
+		endWith('combineLatest-закрыт')
 	)
 
-combineLatest$.subscribe((item) => logAll('получил: ', item), err => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
+// const combineLatestSub$ = combineLatest$.subscribe((item) => logAll('получил: ', item), (err) => logAll('ошибка:', err), () => logAll('combineLatest поток закрыт'));
+groupingOperatorList.push({ observable$: combineLatest$ });
 setCombineLatest1$.next(11);
-setCombineLatest2$.next(21);
-setCombineLatest3$.next(31);
 setCombineLatest1$.next(12);
 setCombineLatest1$.next(13);
-groupingOperatorList.push({ observable$: combineLatest$ });
-
+setCombineLatest2$.next(21);
+setCombineLatest3$.next(31);
+setCombineLatest1$.next(14);
+setCombineLatest1$.next(15);
+setCombineLatest1$.complete();
+setCombineLatest2$.complete();
+setCombineLatest3$.complete();
+// combineLatestSub$.unsubscribe();
 
 /**
  * combineLatestWith
