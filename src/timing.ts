@@ -1,4 +1,4 @@
-import { IRunListItem } from './utils';
+import { IRunListItem, logAll } from './utils';
 import { interval, of } from 'rxjs';
 import { take, map, endWith, mergeAll, auditTime, sampleTime, debounce, debounceTime, delay, delayWhen, throttleTime, timeInterval, timestamp } from 'rxjs/operators';
 
@@ -443,45 +443,36 @@ timingOperatorList.push({ observable$: debounce$ });
  * Таймер стартует(переподписывается) каждое значение. Т.е. в простом случае debounceTime(x) ждёт больших, чем интервал x промежутков между значениями потока для вывода. Т.е. игнорирует спам.
  * 
  * 
-Hello World!
-0-dynamic-$
-0-norm-$
-103-dynamic-$
-102-norm-$
-206-dynamic-$
-204-norm-$
-309-dynamic-$
-306-norm-$
-412-dynamic-$
-408-norm-$
-515-dynamic-$
-510-norm-$
-612-norm-$
-714-norm-$
-909-over-$
-over-закрыт-$
-816-norm-$
-918-norm-$
-norm-закрыт-$
-927-dynamic-$
-dynamic-закрыт-$
-debounce поток закрыт
+получил:  0-50
+получил:  102-50
+получил:  204-50
+получил:  306-50
+получил:  408-50
+получил:  510-50
+получил:  612-50
+получил:  714-50
+получил:  816-50
+получил:  909-1000
+получил:  1000-закрыт
+получил:  918-50
+получил:  50-закрыт
+debounceTime поток закрыт
  */
 
 const debounceTimeOver$ = interval(101).pipe(
 	take(10),
-	map(item => item * 101 + '-over'),
+	map(item => item * 101 + '-1000'),
 	// tap(logAll),
 	debounceTime(1000),
-	endWith('over-закрыт'),
+	endWith('1000-закрыт'),
 );
 
 const debounceTimeNorm$ = interval(102).pipe(
 	take(10),
-	map(item => item * 102 + '-norm'),
+	map(item => item * 102 + '-50'),
 	// tap(logAll),
 	debounceTime(50),
-	endWith('norm-закрыт'),
+	endWith('50-закрыт'),
 );
 
 const debounceTime$ = of(debounceTimeOver$, debounceTimeNorm$).pipe(
