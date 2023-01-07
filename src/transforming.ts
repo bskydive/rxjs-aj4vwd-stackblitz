@@ -744,6 +744,8 @@ transformingOperatorList.push({ observable$: pluck$ });
  * reduce
  * позволяет аккумулировать значения. Записывает в аккумулятор текущий возврат функции reduceAccumulator
  * возвращает итоговое значение один раз, когда входной поток завершится
+ * !!! возвращает только когда входной поток закрыт
+ * если нужно каждый раз - scan+debounceTime
  * 
 Hello World!
 time: 0; item: 0; accumulator: 0
